@@ -376,27 +376,62 @@ function StoryTab({ dealtWords }) {
     const sel = genre === "random"
       ? GENRES[Math.floor(Math.random() * (GENRES.length - 1))].label
       : GENRES.find(g => g.id === genre).label;
-    try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          messages: [{ role: "user", content: `Schreibe eine kurze witzige Geschichte auf Deutsch im Stil "${sel}". 8-12 Saetze. Diese Woerter NATUERLICH einbauen: ${wordList.join(", ")}. Jedes dieser Woerter mit **Wort** markieren. NUR die Geschichte, kein Titel. Locker lustig zum Vorlesen bei einer Party.` }]
-        })
-      });
-      const data = await res.json();
-      const text = data.content?.map(b => b.text || "").join("") || "";
-      if (!text) throw new Error("empty");
+    const prompt = `Schreibe eine kurze witzige Geschichte auf Deutsch im Stil "${sel}". 8-12 Saetze. Diese Woerter NATUERLICH einbauen: ${wordList.join(", ")}. Jedes dieser Woerter mit **Wort** markieren. NUR die Geschichte, kein Titel. Locker lustig zum Vorlesen bei einer Party.`;
+    let text = "";
+    try { text = await callPollinations(prompt); } catch {}
+    if (!text) { try { text = await callOpenRouter(prompt); } catch {} }
+    if (!text) {
+      setError("KI gerade nicht erreichbar. Kurz warten und nochmal versuchen.");
+      announce("Fehler aufgetreten.");
+    } else {
       setStory(text);
       announce("Geschichte fertig! Jetzt vorlesen.");
       setTimeout(() => storyRef.current?.focus(), 100);
-    } catch {
-      setError("Verbindungsfehler. Nochmal versuchen.");
-      announce("Fehler aufgetreten.");
     }
     setLoading(false);
+  }
+
+  async function callOpenRouter(prompt) {
+    // OpenRouter free tier - no account needed for free models
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://storychaos-the-game.vercel.app",
+        "X-Title": "Story Chaos"
+      },
+      body: JSON.stringify({
+        model: "mistralai/mistral-7b-instruct:free",
+        max_tokens: 800,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    if (!res.ok) throw new Error("openrouter failed");
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content || "";
+    if (!text) throw new Error("empty");
+    return text;
+  }
+
+  async function callPollinations(prompt) {
+    // Pollinations.ai - completely free, no key needed
+    const res = await fetch("https://text.pollinations.ai/openai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "openai",
+        messages: [
+          { role: "system", content: "Du bist ein kreativer Geschichtenerzaehler auf Deutsch." },
+          { role: "user", content: prompt }
+        ],
+        seed: Math.floor(Math.random() * 99999)
+      })
+    });
+    if (!res.ok) throw new Error("pollinations failed");
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content || "";
+    if (!text) throw new Error("empty");
+    return text;
   }
 
   function renderStory(text) {
@@ -416,18 +451,9 @@ function StoryTab({ dealtWords }) {
         <p style={BTEXT}>Waehle ein Thema. Die KI schreibt eine Geschichte mit den Woertern der Mitspieler. Der Erzaehler liest laut vor – ohne die Woerter zu kennen – und beobachtet alle Reaktionen. Danach raet er: wer hatte welches Wort?</p>
       </div>
 
-      {dealtWords?.length > 0 ? (
-        <div style={{ ...CARD, borderColor: "rgba(96,165,250,.35)", background: "rgba(96,165,250,.06)" }} role="region" aria-label="Woerter der Mitspieler">
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: C.blue, marginBottom: 10 }}>Woerter der Mitspieler</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {dealtWords.map(w => (
-              <span key={w} style={{ fontSize: 13, fontWeight: 600, color: C.bluel, background: "rgba(96,165,250,.12)", padding: "5px 12px", borderRadius: 20, border: "1px solid rgba(96,165,250,.3)" }}>{w}</span>
-            ))}
-          </div>
-        </div>
-      ) : (
+      {!dealtWords?.length && (
         <div style={{ ...CARD, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)" }}>
-          <p style={{ ...BTEXT, color: C.gold }}>Zuerst Karten austeilen im Karten-Tab, damit die Woerter der Mitspieler eingebaut werden.</p>
+          <p style={{ ...BTEXT, color: C.gold }}>Zuerst im Karten-Tab Karten austeilen – dann hier Geschichte generieren.</p>
         </div>
       )}
 
