@@ -5,80 +5,74 @@ const BLUE_WORDS = [
   "Polizei","Internet","Garten","Fussball","Zug","Krankenhaus","Party","Nachbar","Schatz","Computer",
   "Arzt","Supermarkt","Hotel","Strand","Wald","Feuer","Wasser","Film","Musik","Lehrer",
   "Geschenk","Hund","Eis","Spielplatz","Familie","Arbeit","Meeting","Chaos","Schloss","Rakete",
-  "Kuehlschrank","Fahrrad","Bruecke","Balkon","Schluessel","Briefkasten","Waschmaschine","Teppich","Fenster","Treppe",
-  "Bushaltestelle","Parkplatz","Aufzug","Klingel","Muelltonne","Fernbedienung","Steckdose","Gluehbirne","Vorhang","Tuerklinke",
-  "Sushi","Burger","Nudeln","Kuchen","Brot","Kaese","Bier","Wein","Tee","Smoothie",
-  "Pommes","Salat","Steak","Schokolade","Chips","Wassermelone","Ananas","Erdbeere","Marmelade","Honig",
-  "Blitz","Schnee","Nebel","Sturm","Regenbogen","Sonnenuntergang","Vollmond","Tornado","Lawine","Duerre",
-  "Baum","Rose","Pilz","Schmetterling","Spinne","Adler","Hai","Wolf","Baer","Fuchs",
-  "Algorithmus","Podcast","Streaming","Passwort","Update","Selfie","Meme","Emoji","Darkmode","WLAN",
-  "Roboter","Drohne","Satellit","Hologramm","Chip","Akku","Ladestation","Smartwatch","VR-Brille","KI",
-  "Freundin","Opa","Baby","Zwilling","Fremder","Detektiv","Heldin","Schurke","Guru","Legende",
-  "Influencer","Therapeut","Rentner","Azubi","Praktikant","Kapitaen","Pilot","Koch","Moderator","Zeuge",
-  "Flughafen","Bahnhof","Museum","Bibliothek","Fabrik","Friedhof","Bunker","Leuchtturm","Tempel","Palast",
-  "Gefaengnis","Marktplatz","Dachterrasse","Tiefgarage","Hoehle","Insel","Wueste","Dschungel","Gletscher","Kaserne",
-  "Panik","Langeweile","Eifersucht","Euphorie","Heimweh","Albtraum","Schwindel","Gaensehaut","Stille","Neugier",
-  "Koffer","Kompass","Teleskop","Kalender","Tagebuch","Spiegel","Kerze","Muenze","Brief","Maske",
-  "Wuerfel","Karte","Uhr","Lupe","Kette","Ring","Messer","Flasche","Schachtel","Schluesselband"
+  "Kuehlschrank","Fahrrad","Bruecke","Balkon","Schluessel","Teppich","Fenster","Treppe","Aufzug","Sushi",
+  "Burger","Nudeln","Kuchen","Brot","Kaese","Bier","Wein","Tee","Smoothie","Pommes",
+  "Salat","Steak","Schokolade","Chips","Ananas","Erdbeere","Honig","Blitz","Schnee","Nebel",
+  "Sturm","Regenbogen","Vollmond","Baum","Rose","Pilz","Schmetterling","Adler","Wolf","Baer",
+  "Fuchs","Podcast","Passwort","Selfie","Roboter","Drohne","KI","Detektiv","Heldin","Schurke",
+  "Guru","Kapitaen","Flughafen","Bahnhof","Museum","Bibliothek","Bunker","Tempel","Palast","Insel",
+  "Panik","Eifersucht","Euphorie","Heimweh","Albtraum","Stille","Koffer","Kompass","Tagebuch","Spiegel",
+  "Kerze","Brief","Maske","Uhr","Loewe","Pinguin","Kaktus","Vulkan","Geist","Einhorn",
+  "Schere","Luftballon","Bumerang","Laterne","Tretboot","Thermoskanne","Regenschirm","Fernglas","Zauberstab","Schnorchel"
 ];
 
 const RED_ACTIONS = [
-  "Zwinkere \uD83D\uDE09",
-  "Kratz dich an der Nase",
-  "Raeuspere dich",
-  "Schau kurz auf den Boden",
-  "Strecke dich",
-  "Richte deine Haare",
-  "Klopf einmal auf den Tisch",
-  "Verschraenke die Arme",
-  "Lehne dich zurueck",
-  "Seufze leise",
-  "Beiss dir kurz auf die Lippe",
-  "Reib dir die Haende",
-  "Schau auf deine Naegel",
-  "Zucke mit den Schultern",
-  "Schnippe mit den Fingern",
-  "Lache ploetzlich laut \uD83D\uDE02",
-  "Sag: Interessant...",
-  "Klatsche einmal in die Haende",
-  "Sag: Ach wirklich?!",
-  "Mach ein ueberraschtes Gesicht \uD83D\uDE2E",
-  "Sag: Warte mal kurz",
-  "Steh halb auf und setz dich wieder",
-  "Tipp jemanden an",
-  "Sag: Na ja... und schuettle den Kopf",
-  "Mach ein Foto (oder tu so als ob)",
-  "Ruf: Stimmt! in die Runde",
-  "Sag laut: Okay okay okay",
-  "Klopf dir auf die Stirn",
-  "Wedel mit der Hand",
-  "Stoehn dramatisch auf",
-  "Spring auf und ruf: HEUREKA! \uD83C\uDF89",
-  "Wiederhole das letzte Wort",
-  "Unterbrech mit: Hmm!",
-  "Tu so als suchst du etwas",
-  "Fluestere etwas Unverstaendliches",
-  "Zaehl lautlos auf den Fingern",
-  "Klapp ein imaginaeres Buch zu",
-  "Mach eine Vogel-Geste zur Stirn",
-  "Steh auf geh einen Schritt setz dich wieder",
-  "Ruf: Das ist doch nicht dein Ernst!",
-  "Sag deinen eigenen Namen laut",
-  "Sing eine kurze Note",
-  "Fake-Niese",
-  "Fake-Gaehne uebertrieben",
-  "Klopf rhythmisch auf deinen Oberschenkel",
-  "Starre jemanden 3 Sek an \uD83D\uDC40",
-  "Laechle voellig unpassend \uD83D\uDE08",
-  "Schau zur Decke und nicke",
-  "Reagiere zu spaet",
-  "Reagiere zu frueh \uD83D\uDE0F",
-  "Nicke zustimmend bei jedem Wort",
-  "Schuettle beim Reden den Kopf",
-  "Halte den Atem sichtbar an",
-  "Zeig auf jemand anderen ohne Grund",
-  "Mach ein V-Zeichen unter dem Tisch"
+  "Zwinkere","Kratz dich an der Nase","Raeuspere dich","Schau auf den Boden","Strecke dich",
+  "Richte deine Haare","Klopf auf den Tisch","Verschraenke die Arme","Lehne dich zurueck","Seufze leise",
+  "Beiss dir auf die Lippe","Reib dir die Haende","Zucke mit den Schultern","Schnippe mit den Fingern",
+  "Lache ploetzlich laut","Sag: Interessant...","Klatsche in die Haende","Sag: Ach wirklich?!",
+  "Mach ein ueberraschtes Gesicht","Steh halb auf und setz dich wieder",
+  "Tipp jemanden an","Mach ein Foto","Spring auf: HEUREKA!","Wiederhole das letzte Wort",
+  "Unterbrech mit Hmm!","Tu so als suchst du etwas","Starre jemanden 3 Sek an",
+  "Laechle voellig unpassend","Schau zur Decke und nicke","Reagiere zu spaet","Reagiere zu frueh",
+  "Nicke bei jedem Wort","Halte den Atem an","Zeig auf jemand anderen","Sing eine kurze Note","Fake-Gaehne",
+  "Klatsch dir auf die Stirn","Fang an leise vor dich hin zu summen",
+  "Stell dir vor du hoerst schlecht und frag nach",
+  "Tu so als haette dich jemand gerade getreten",
+  "Mach eine dramatische Pause und schau in die Runde",
+  "Sag: Das kenn ich und nicke wissend",
+  "Fang an deine Fingernaegel zu untersuchen",
+  "Schreib etwas Imaginaeres auf",
+  "Tue so als wuerdest du heimlich SMSen",
+  "Sag: Moment mal... und schau nachdenklich",
+  "Streich dir langsam ueber den Bart auch wenn du keinen hast",
+  "Ruf: Bingo! und bereue es sofort",
+  "Klopf einen Rhythmus auf deinen Schenkel",
+  "Sag: Interessant, weiter... und lehn dich vor",
+  "Tue so als wuerdest du eine Fliege verscheuchen",
+  "Huste einmal auffaellig",
+  "Rieche kurz an deiner Schulter",
+  "Sag: Na sowas! mit breitem Grinsen",
+  "Rutsch einmal komplett auf deinem Stuhl rum",
+  "Mach ein Peace-Zeichen ohne Erklaerung",
+  "Klapp einen imaginaeren Laptop zu",
+  "Sag deinen Namen rueckwaerts",
+  "Heb kurz die Hand als waerst du in der Schule",
+  "Zieh eine imaginaere Krawatte gerade",
+  "Tu so als haettest du etwas Wichtiges vergessen",
+  "Schau dramatisch auf deine Uhr",
+  "Steh auf hol tief Luft und setz dich wieder",
+  "Klatsch dir beide Haende auf die Wangen wie Kevin",
+  "Sag: Wusste ich es doch! und klopf auf den Tisch",
+  "Tu so als wuerdest du etwas aus der Luft greifen",
+  "Fluester deinem Nachbarn etwas Unverstaendliches ins Ohr",
+  "Heb beide Daumen hoch ohne Erklaerung",
+  "Sag: Ich sage nur... und schweige danach",
+  "Schau betroffen zur Seite als haettest du was gesehen"
 ];
+
+const GENRES = [
+  { id: "alltag",  label: "Alltag",  emoji: "🏠", desc: "Supermarkt, Buero, Nachbarschaft" },
+  { id: "urlaub",  label: "Urlaub",  emoji: "✈️", desc: "Strand, Hotel, Abenteuer" },
+  { id: "party",   label: "Party",   emoji: "🎉", desc: "Feiern, Freunde, Chaos" },
+  { id: "arbeit",  label: "Arbeit",  emoji: "💼", desc: "Meeting, Chef, Kantine" },
+  { id: "natur",   label: "Natur",   emoji: "🌲", desc: "Wald, Tiere, Abenteuer" },
+  { id: "zukunft", label: "Zukunft", emoji: "🚀", desc: "KI, Roboter, Raumfahrt" },
+  { id: "krimi",   label: "Krimi",   emoji: "🔍", desc: "Detektiv, Verdacht, Spannung" },
+  { id: "random",  label: "Zufall",  emoji: "🎲", desc: "Komplett ueberraschend" },
+];
+
+const FF = "system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
 
 function shuffle(arr) {
   const a = [...arr];
@@ -90,219 +84,427 @@ function shuffle(arr) {
 }
 
 const C = {
-  bg: "#0a0a0f",
-  surface: "#13131a",
-  dark: "#0f172a",
-  border: "#1e293b",
-  blue: "#3b82f6",
-  blueLight: "#93c5fd",
-  red: "#ef4444",
-  redLight: "#fca5a5",
-  gold: "#f59e0b",
-  text: "#e2e8f0",
-  muted: "#64748b",
+  bg: "#0d0d14", sur: "#16161f", sur2: "#1e1e2a", bdr: "#2a2a3a",
+  blue: "#60a5fa", bluel: "#bfdbfe", red: "#f87171", redl: "#fecaca",
+  gold: "#fbbf24", txt: "#f0f0f5", muted: "#9090a8",
 };
 
-const S = {
-  card: {
-    background: C.surface,
-    border: `1px solid ${C.border}`,
-    borderRadius: 8,
-    padding: 18,
-    marginBottom: 12,
-  },
-  cardTitle: {
-    fontFamily: "Georgia, serif",
-    fontSize: 17,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-    marginBottom: 10,
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-  },
-  p: { fontSize: 13, lineHeight: 1.8, color: "#94a3b8" },
-  li: { fontSize: 13, lineHeight: 1.9, color: "#94a3b8", listStyle: "none" },
-};
+const G = `
+  *{box-sizing:border-box;}
+  body{background:${C.bg};color:${C.txt};font-family:${FF};}
+  button{font-family:${FF};}
+  *:focus-visible{outline:3px solid #fff!important;outline-offset:2px!important;border-radius:4px;}
+  *:focus:not(:focus-visible){outline:none!important;}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+  input::placeholder{color:${C.muted};}
+`;
 
+const CARD = { background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 10, padding: 18, marginBottom: 12 };
+const STITLE = { fontSize: 16, fontWeight: 700, color: C.txt, display: "flex", alignItems: "center", gap: 8, marginBottom: 12, fontFamily: FF };
+const BTEXT = { fontSize: 14, lineHeight: 1.7, color: C.muted };
+const SR = { position: "absolute", left: -9999, width: 1, height: 1, overflow: "hidden" };
+
+// Live region hook
+function useLive() {
+  const ref = useRef(null);
+  const announce = (msg) => { if (ref.current) ref.current.textContent = msg; };
+  const node = <div ref={ref} aria-live="polite" aria-atomic="true" style={SR} />;
+  return [node, announce];
+}
+
+// ===== RULES =====
 function Rules() {
   return (
-    <div>
-      <div style={S.card}>
-        <div style={S.cardTitle}><span>🧠</span> Das Konzept</div>
-        <p style={S.p}>Ein Spieler erzaehlt eine Geschichte unter Zeitdruck. Die anderen haben geheime Woerter und Aktionen. Sobald ihr Wort faellt, muessen sie reagieren. Der Erzaehler versucht danach alles zu durchschauen.</p>
+    <section aria-labelledby="h-rules">
+      <div style={CARD}>
+        <h2 id="h-rules" style={STITLE}>📋 Spielregeln</h2>
+        <p style={BTEXT}>Ein Spieler liest eine KI-Geschichte vor. Die anderen haben geheime Woerter und Aktionen. Sobald ihr Wort faellt, muessen sie reagieren. Der Erzaehler beobachtet und raet danach: wer hatte welches Wort?</p>
       </div>
-
-      <div style={S.card}>
-        <div style={S.cardTitle}><span>👥</span> Spieleranzahl & Dauer</div>
-        <ul style={{ paddingLeft: 0 }}>
-          {["2-6 Spieler (optimal 3-5)", "15-30 Minuten", "Timer: 30-60 Sek pro Runde"].map(t => (
-            <li key={t} style={S.li}><span style={{ color: C.blue }}>→ </span>{t}</li>
+      <div style={CARD}>
+        <h3 style={STITLE}>Ablauf</h3>
+        <ol style={{ paddingLeft: 0, listStyle: "none" }}>
+          {["Spieler anlegen im Spieler-Tab","Karten austeilen – jeder zieht Wort und Aktion geheim","Jeder Spieler kann einmal neu ziehen falls gewuenscht","Story-Tab: Genre waehlen und Geschichte generieren","Erzaehler liest vor – sieht die Woerter NICHT","Mitspieler reagieren heimlich bei ihrem Wort","Erzaehler raet wer welches Wort hatte","Aufdecken und Punkte vergeben"].map((t, i) => (
+            <li key={t} style={{ fontSize: 14, lineHeight: 1.9, color: C.muted, display: "flex", gap: 10 }}>
+              <span style={{ color: C.blue, fontWeight: 700, minWidth: 20 }}>{i + 1}.</span>{t}
+            </li>
           ))}
-        </ul>
+        </ol>
       </div>
-
-      <div style={S.card}>
-        <div style={S.cardTitle}><span>🔵</span> Vorbereitung</div>
-        <p style={S.p}>Jeder Spieler (ausser Erzaehler) zieht:</p>
-        <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {[["1x Blaue Karte (Wort)", true], ["1x Rote Karte (Aktion)", false]].map(([label, blue]) => (
-            <span key={label} style={{
-              fontSize: 10, letterSpacing: 1, textTransform: "uppercase",
-              padding: "4px 10px", borderRadius: 3,
-              background: blue ? "rgba(59,130,246,0.15)" : "rgba(239,68,68,0.15)",
-              color: blue ? C.blueLight : C.redLight,
-              border: `1px solid ${blue ? "rgba(59,130,246,0.3)" : "rgba(239,68,68,0.3)"}`
-            }}>{label}</span>
-          ))}
-        </div>
-        <p style={{ marginTop: 10, fontSize: 12, color: C.gold }}>Geheim halten!</p>
-      </div>
-
-      <div style={S.card}>
-        <div style={S.cardTitle}><span>🗣️</span> Ablauf</div>
-        <ul style={{ paddingLeft: 0 }}>
-          {[
-            "Erzaehler startet Timer und erzaehlt sofort",
-            "Nur sprechen solange Zeit laeuft",
-            "Faellt dein Wort: Aktion SOFORT ausfuehren",
-            "Moeglichst unauffaellig bleiben"
-          ].map(t => (
-            <li key={t} style={S.li}><span style={{ color: C.blue }}>→ </span>{t}</li>
-          ))}
-        </ul>
-      </div>
-
-      <div style={S.card}>
-        <div style={S.cardTitle}><span>🏆</span> Punkte</div>
+      <div style={CARD}>
+        <h3 style={STITLE}>🏆 Punkte</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 8 }}>
-          {[["Erzaehler", "+1", "pro richtig erratenem Wort"], ["Erratener", "+1", "fuer seine Rote Karte"]].map(([l, v, d]) => (
-            <div key={l} style={{ background: C.dark, borderRadius: 6, padding: 14, textAlign: "center" }}>
-              <div style={{ fontSize: 10, color: C.muted, letterSpacing: 1, textTransform: "uppercase" }}>{l}</div>
-              <div style={{ fontFamily: "Georgia,serif", fontSize: 32, color: C.gold, margin: "4px 0" }}>{v}</div>
-              <div style={{ fontSize: 10, color: C.muted }}>{d}</div>
+          {[["Erzaehler", "+1", "pro richtig erratenem Wort"], ["Erratener", "+1", "fuer seine rote Karte"]].map(([l, v, d]) => (
+            <div key={l} style={{ background: C.sur2, borderRadius: 8, padding: 14, textAlign: "center" }}>
+              <div style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>{l}</div>
+              <div style={{ fontSize: 30, fontWeight: 800, color: C.gold, margin: "4px 0" }}>{v}</div>
+              <div style={{ fontSize: 11, color: C.muted }}>{d}</div>
             </div>
           ))}
         </div>
       </div>
-
-      <div style={S.card}>
-        <div style={S.cardTitle}><span>🔥</span> Bonus-Modi</div>
-        {[
-          ["🕵️ Profi-Modus", "Erzaehler muss jedem Spieler exakt sein Wort zuordnen. Falsche Zuordnung = 0 Punkte."],
-          ["💣 Chaos-Modus", "Jeder hat 2 Woerter, nur 1 Aktion. Absolute Eskalation garantiert!"],
-          ["🎭 Theater-Modus", "Aktionen duerfen kombiniert werden. Extra Punkt fuer beste Performance."]
-        ].map(([t, d]) => (
-          <div key={t} style={{ background: C.dark, border: `1px solid ${C.border}`, borderRadius: 6, padding: 14, marginBottom: 8 }}>
-            <div style={{ fontSize: 13, color: C.gold, marginBottom: 6 }}>{t}</div>
-            <p style={S.p}>{d}</p>
+      <div style={CARD}>
+        <h3 style={STITLE}>🔥 Bonus-Modi</h3>
+        {[["Profi-Modus","Erzaehler muss Woerter exakt zuordnen. Falsch = 0 Punkte."],["Chaos-Modus","2 Woerter, 1 Aktion. Absolute Eskalation!"],["Theater-Modus","Aktionen kombinieren. Publikum bewertet die beste Performance."]].map(([t, d]) => (
+          <div key={t} style={{ background: C.sur2, borderRadius: 8, padding: 14, marginBottom: 8 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, marginBottom: 4 }}>{t}</div>
+            <p style={BTEXT}>{d}</p>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
-function Cards() {
-  const [count, setCount] = useState(2);
+// ===== CARDS =====
+function Cards({ onDeal }) {
+  const [count, setCount] = useState(3);
   const [dealt, setDealt] = useState([]);
   const [revealed, setRevealed] = useState({});
+  const [liveNode, announce] = useLive();
 
   function deal() {
     const words = shuffle(BLUE_WORDS).slice(0, count);
     const actions = shuffle(RED_ACTIONS).slice(0, count);
-    setDealt(words.map((w, i) => ({ word: w, action: actions[i] })));
+    const newDealt = words.map((w, i) => ({ word: w, action: actions[i], rerolled: false }));
+    setDealt(newDealt);
     setRevealed({});
+    if (onDeal) onDeal(words);
+    announce(`Karten fuer ${count} Spieler ausgeteilt.`);
   }
 
-  function toggle(key) {
-    setRevealed(r => ({ ...r, [key]: !r[key] }));
+  function reroll(i) {
+    const usedWords = dealt.map((d, idx) => idx !== i ? d.word : "");
+    const usedActions = dealt.map((d, idx) => idx !== i ? d.action : "");
+    const freeW = shuffle(BLUE_WORDS.filter(w => !usedWords.includes(w)));
+    const freeA = shuffle(RED_ACTIONS.filter(a => !usedActions.includes(a)));
+    const updated = dealt.map((d, idx) =>
+      idx === i ? { word: freeW[0] || d.word, action: freeA[0] || d.action, rerolled: true } : d
+    );
+    setDealt(updated);
+    setRevealed(r => { const n = {...r}; delete n[`w${i}`]; delete n[`a${i}`]; return n; });
+    if (onDeal) onDeal(updated.map(d => d.word));
+    announce(`Spieler ${i + 1} hat neue Karten gezogen.`);
+  }
+
+  function toggle(key, label) {
+    setRevealed(r => {
+      const next = { ...r, [key]: !r[key] };
+      announce(next[key] ? `${label} aufgedeckt.` : `Verborgen.`);
+      return next;
+    });
   }
 
   return (
-    <div>
-      <div style={{ ...S.card, marginBottom: 10 }}>
-        <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>
-          Mitspieler (ohne Erzaehler)
-        </div>
-        <div style={{ display: "flex", gap: 6 }}>
-          {[1, 2, 3, 4, 5].map(n => (
-            <button key={n} onClick={() => setCount(n)} style={{
-              flex: 1, background: count === n ? "#1a1a2e" : C.dark,
-              border: `1px solid ${count === n ? C.blue : C.border}`,
-              color: count === n ? C.blueLight : C.muted,
-              fontFamily: "Georgia,serif", fontSize: 22, padding: "8px 0",
-              cursor: "pointer", borderRadius: 4, WebkitTapHighlightColor: "transparent"
-            }}>{n}</button>
-          ))}
-        </div>
+    <section aria-labelledby="h-cards">
+      {liveNode}
+      <h2 id="h-cards" style={{ ...STITLE, marginBottom: 14 }}>🎴 Karten ziehen</h2>
+      <div style={{ ...CARD, marginBottom: 12 }}>
+        <fieldset style={{ border: "none", margin: 0, padding: 0 }}>
+          <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10, display: "block" }}>Anzahl Mitspieler</legend>
+          <div style={{ display: "flex", gap: 6 }}>
+            {[1,2,3,4,5].map(n => (
+              <button key={n} onClick={() => setCount(n)} aria-pressed={count === n} aria-label={`${n} Mitspieler`}
+                style={{ flex: 1, background: count === n ? "#1a2a4a" : C.sur2, border: `2px solid ${count === n ? C.blue : C.bdr}`, color: count === n ? C.bluel : C.muted, fontSize: 20, fontWeight: 700, padding: "8px 0", borderRadius: 6, cursor: "pointer", transition: "all .15s" }}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </fieldset>
       </div>
 
-      <button onClick={deal} style={{
-        width: "100%", background: "linear-gradient(135deg,#1a1a3e,#1a0a1e)",
-        border: `1px solid ${C.blue}`, color: C.blueLight,
-        fontFamily: "Georgia,serif", fontSize: 20, letterSpacing: 3,
-        padding: 16, cursor: "pointer", borderRadius: 6, marginBottom: 16,
-        textTransform: "uppercase", WebkitTapHighlightColor: "transparent"
-      }}>
+      <button onClick={deal} aria-label={`Karten fuer ${count} Mitspieler austeilen`}
+        style={{ width: "100%", padding: 13, borderRadius: 8, fontSize: 15, fontWeight: 700, letterSpacing: .5, border: `2px solid ${C.blue}`, background: "rgba(96,165,250,.1)", color: C.bluel, cursor: "pointer", marginBottom: 16, display: "block", transition: "all .15s" }}>
         Karten austeilen
       </button>
 
       {dealt.map((p, i) => (
-        <div key={i} style={{ ...S.card, padding: 0, overflow: "hidden" }}>
-          <div style={{ padding: "10px 14px", fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: C.muted, borderBottom: `1px solid ${C.border}` }}>
-            Spieler {i + 1}
+        <div key={i} style={{ background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 10, overflow: "hidden", marginBottom: 10 }}>
+          <div style={{ padding: "10px 16px", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, borderBottom: `1px solid ${C.bdr}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Spieler {i + 1}</span>
+            <button onClick={() => !p.rerolled && reroll(i)} disabled={p.rerolled}
+              aria-label={p.rerolled ? `Spieler ${i+1} hat bereits neu gezogen` : `Spieler ${i+1} neu ziehen`}
+              style={{ fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 10, cursor: p.rerolled ? "not-allowed" : "pointer", border: `1px solid ${p.rerolled ? C.bdr : "rgba(251,191,36,.4)"}`, background: p.rerolled ? "rgba(90,90,110,.2)" : "rgba(251,191,36,.12)", color: p.rerolled ? C.muted : C.gold, transition: "all .15s" }}>
+              {p.rerolled ? "bereits neu gezogen" : "1x neu ziehen"}
+            </button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-            {[
-              { key: `w${i}`, typeLabel: "Wort", emoji: "🔵", value: p.word, blue: true },
-              { key: `a${i}`, typeLabel: "Aktion", emoji: "🔴", value: p.action, blue: false }
-            ].map((cell, ci) => (
-              <div key={cell.key} onClick={() => toggle(cell.key)} style={{
-                padding: 14, cursor: "pointer", minHeight: 88,
-                borderRight: ci === 0 ? `1px solid ${C.border}` : "none",
-                WebkitTapHighlightColor: "transparent"
-              }}>
-                <div style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6, color: cell.blue ? C.blue : C.red }}>
-                  {cell.emoji} {cell.typeLabel}
-                </div>
-                <div style={{
-                  fontSize: 13, fontWeight: 700, lineHeight: 1.4,
-                  color: cell.blue ? C.blueLight : C.redLight,
-                  filter: revealed[cell.key] ? "none" : "blur(7px)",
-                  transition: "filter 0.25s",
-                  userSelect: revealed[cell.key] ? "auto" : "none"
-                }}>{cell.value}</div>
-                {!revealed[cell.key] && (
-                  <div style={{ fontSize: 9, color: C.muted, marginTop: 5, fontStyle: "italic" }}>Tippen</div>
-                )}
-              </div>
-            ))}
+            {[{ key: `w${i}`, typ: "Geheimwort", val: p.word, blue: true }, { key: `a${i}`, typ: "Geheime Aktion", val: p.action, blue: false }].map((cell, ci) => {
+              const rv = !!revealed[cell.key];
+              return (
+                <button key={cell.key} onClick={() => toggle(cell.key, cell.typ)}
+                  aria-label={rv ? `${cell.typ}: ${cell.val}. Tippen zum Verbergen.` : `${cell.typ} verborgen. Tippen zum Aufdecken.`}
+                  aria-expanded={rv}
+                  style={{ padding: 14, cursor: "pointer", minHeight: 88, textAlign: "left", background: "transparent", border: "none", borderRight: ci === 0 ? `1px solid ${C.bdr}` : "none", display: "block", width: "100%", transition: "background .15s" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6, color: cell.blue ? C.blue : C.red }}>
+                    <span aria-hidden="true">{cell.blue ? "🔵" : "🔴"} </span>{cell.typ}
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.4, color: cell.blue ? C.bluel : C.redl, filter: rv ? "none" : "blur(7px)", transition: "filter .25s", userSelect: rv ? "auto" : "none" }} aria-hidden={!rv}>
+                    {cell.val}
+                  </div>
+                  {!rv && <div style={{ fontSize: 11, color: C.muted, marginTop: 6 }}>Tippen zum Aufdecken</div>}
+                </button>
+              );
+            })}
           </div>
         </div>
       ))}
+    </section>
+  );
+}
+
+// ===== PLAYERS =====
+function Players() {
+  const [players, setPlayers] = useState([]);
+  const [newName, setNewName] = useState("");
+  const [liveNode, announce] = useLive();
+
+  function addPlayer() {
+    const n = newName.trim();
+    if (!n) return;
+    setPlayers(p => [...p, { name: n, score: 0 }]);
+    setNewName("");
+    announce(`${n} hinzugefuegt.`);
+  }
+  function changeScore(i, d) {
+    setPlayers(p => p.map((x, idx) => {
+      if (idx !== i) return x;
+      const sc = Math.max(0, x.score + d);
+      announce(`${x.name}: ${sc} Punkte.`);
+      return { ...x, score: sc };
+    }));
+  }
+  function removePlayer(i) {
+    announce(`${players[i].name} entfernt.`);
+    setPlayers(p => p.filter((_, idx) => idx !== i));
+  }
+
+  const sorted = [...players].sort((a, b) => b.score - a.score);
+
+  return (
+    <section aria-labelledby="h-players">
+      {liveNode}
+      <h2 id="h-players" style={{ ...STITLE, marginBottom: 14 }}>👥 Spieler &amp; Punkte</h2>
+      <div style={CARD}>
+        {players.length === 0 && (
+          <p style={{ ...BTEXT, textAlign: "center", padding: "10px 0" }}>Noch keine Spieler – unten hinzufuegen</p>
+        )}
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }} aria-label="Spielerliste">
+          {players.map((p, i) => (
+            <li key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: C.sur2, borderRadius: 8, padding: "10px 12px", marginBottom: 8 }}>
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 500 }}>{p.name}</span>
+              <button onClick={() => changeScore(i, -1)} aria-label={`${p.name} minus 1`}
+                style={{ background: C.bdr, border: "none", color: C.txt, width: 34, height: 34, borderRadius: 6, fontSize: 20, fontWeight: 700, cursor: "pointer" }}>-</button>
+              <span style={{ fontSize: 26, fontWeight: 800, color: C.gold, minWidth: 38, textAlign: "center" }} aria-live="polite">{p.score}</span>
+              <button onClick={() => changeScore(i, +1)} aria-label={`${p.name} plus 1`}
+                style={{ background: C.bdr, border: "none", color: C.txt, width: 34, height: 34, borderRadius: 6, fontSize: 20, fontWeight: 700, cursor: "pointer" }}>+</button>
+              <button onClick={() => removePlayer(i)} aria-label={`${p.name} entfernen`}
+                style={{ background: "transparent", border: "none", color: C.muted, fontSize: 16, padding: "0 4px", cursor: "pointer" }}>✕</button>
+            </li>
+          ))}
+        </ul>
+        <div style={{ display: "flex", gap: 8, marginTop: players.length > 0 ? 10 : 0 }}>
+          <label htmlFor="pinput" style={SR}>Spielername</label>
+          <input id="pinput" value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === "Enter" && addPlayer()}
+            placeholder="Name eingeben..." maxLength={20} autoComplete="off"
+            style={{ flex: 1, background: C.sur2, border: `1.5px solid ${C.bdr}`, color: C.txt, fontFamily: FF, fontSize: 14, padding: "10px 14px", borderRadius: 8, outline: "none" }} />
+          <button onClick={addPlayer} aria-label="Spieler hinzufuegen"
+            style={{ background: C.sur, border: `1.5px solid ${C.bdr}`, color: C.muted, fontSize: 22, padding: "0 16px", borderRadius: 8, cursor: "pointer", transition: "all .15s" }}>+</button>
+        </div>
+      </div>
+
+      {players.length > 0 && (
+        <div style={{ ...CARD, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)" }} aria-live="polite">
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: C.gold, marginBottom: 10 }}>Rangliste</div>
+          {sorted.map((p, i) => (
+            <div key={p.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: i < sorted.length - 1 ? `1px solid ${C.bdr}` : "none" }}>
+              <span style={{ fontSize: 14, fontWeight: i === 0 ? 700 : 400, color: i === 0 ? C.txt : C.muted }}>{i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : `${i+1}. `}{p.name}</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: C.gold }}>{p.score} Pkt</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ===== REVEAL =====
+function RevealWords({ words, story, renderStory }) {
+  const [revealed, setRevealed] = useState(false);
+  const ref = useRef(null);
+  function reveal() { setRevealed(true); setTimeout(() => ref.current?.focus(), 100); }
+  return (
+    <div style={{ background: "rgba(248,113,113,.05)", border: "1.5px solid rgba(248,113,113,.3)", borderRadius: 10, padding: 18 }} role="region" aria-label="Aufloesung">
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: C.red, marginBottom: 12 }}>Aufloesen – erst nach dem Raten!</div>
+      {!revealed ? (
+        <button onClick={reveal} aria-label="Woerter aufdecken"
+          style={{ width: "100%", padding: 13, borderRadius: 8, fontSize: 15, fontWeight: 700, letterSpacing: .5, border: `2px solid ${C.red}`, background: "rgba(248,113,113,.08)", color: C.redl, cursor: "pointer", display: "block" }}>
+          Woerter aufdecken
+        </button>
+      ) : (
+        <div ref={ref} tabIndex={-1}>
+          <div style={{ fontSize: 16, lineHeight: 2.1, color: C.txt, marginBottom: 16 }} aria-live="polite">{renderStory(story)}</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 12, borderTop: `1px solid ${C.bdr}` }}>
+            {words.map(w => (
+              <span key={w} style={{ fontSize: 12, fontWeight: 600, color: C.gold, background: "rgba(251,191,36,.1)", padding: "4px 12px", borderRadius: 20, border: "1px solid rgba(251,191,36,.3)" }}>{w}</span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
+// ===== STORY =====
+function StoryTab({ dealtWords }) {
+  const [genre, setGenre] = useState(null);
+  const [story, setStory] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [words, setWords] = useState([]);
+  const [revStory, setRevStory] = useState(false);
+  const storyRef = useRef(null);
+  const [liveNode, announce] = useLive();
+
+  async function generateStory() {
+    if (!genre) return;
+    setLoading(true); setError(""); setStory(""); setRevStory(false);
+    announce("Geschichte wird generiert.");
+    const wordList = dealtWords?.length > 0 ? dealtWords : shuffle(BLUE_WORDS).slice(0, 3);
+    setWords(wordList);
+    const sel = genre === "random"
+      ? GENRES[Math.floor(Math.random() * (GENRES.length - 1))].label
+      : GENRES.find(g => g.id === genre).label;
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: `Schreibe eine kurze witzige Geschichte auf Deutsch im Stil "${sel}". 8-12 Saetze. Diese Woerter NATUERLICH einbauen: ${wordList.join(", ")}. Jedes dieser Woerter mit **Wort** markieren. NUR die Geschichte, kein Titel. Locker lustig zum Vorlesen bei einer Party.` }]
+        })
+      });
+      const data = await res.json();
+      const text = data.content?.map(b => b.text || "").join("") || "";
+      if (!text) throw new Error("empty");
+      setStory(text);
+      announce("Geschichte fertig! Jetzt vorlesen.");
+      setTimeout(() => storyRef.current?.focus(), 100);
+    } catch {
+      setError("Verbindungsfehler. Nochmal versuchen.");
+      announce("Fehler aufgetreten.");
+    }
+    setLoading(false);
+  }
+
+  function renderStory(text) {
+    return text.split(/\*\*(.*?)\*\*/g).map((part, i) =>
+      i % 2 === 1
+        ? <strong key={i} style={{ color: C.gold, fontWeight: 700, textDecoration: "underline dotted", textUnderlineOffset: 3 }}>{part}</strong>
+        : part
+    );
+  }
+
+  return (
+    <section aria-labelledby="h-story">
+      {liveNode}
+      <h2 id="h-story" style={{ ...STITLE, marginBottom: 14 }}>✨ KI-Geschichte</h2>
+
+      <div style={CARD}>
+        <p style={BTEXT}>Waehle ein Thema. Die KI schreibt eine Geschichte mit den Woertern der Mitspieler. Der Erzaehler liest laut vor – ohne die Woerter zu kennen – und beobachtet alle Reaktionen. Danach raet er: wer hatte welches Wort?</p>
+      </div>
+
+      {dealtWords?.length > 0 ? (
+        <div style={{ ...CARD, borderColor: "rgba(96,165,250,.35)", background: "rgba(96,165,250,.06)" }} role="region" aria-label="Woerter der Mitspieler">
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: C.blue, marginBottom: 10 }}>Woerter der Mitspieler</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {dealtWords.map(w => (
+              <span key={w} style={{ fontSize: 13, fontWeight: 600, color: C.bluel, background: "rgba(96,165,250,.12)", padding: "5px 12px", borderRadius: 20, border: "1px solid rgba(96,165,250,.3)" }}>{w}</span>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div style={{ ...CARD, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)" }}>
+          <p style={{ ...BTEXT, color: C.gold }}>Zuerst Karten austeilen im Karten-Tab, damit die Woerter der Mitspieler eingebaut werden.</p>
+        </div>
+      )}
+
+      <fieldset style={{ border: "none", margin: "0 0 14px", padding: 0 }}>
+        <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10, display: "block" }}>Thema waehlen</legend>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {GENRES.map(g => (
+            <button key={g.id} onClick={() => setGenre(g.id)} aria-pressed={genre === g.id} aria-label={`${g.label}: ${g.desc}`}
+              style={{ background: genre === g.id ? "rgba(251,191,36,.08)" : C.sur, border: `2px solid ${genre === g.id ? C.gold : C.bdr}`, borderRadius: 8, padding: "12px", cursor: "pointer", textAlign: "left", gridColumn: g.id === "random" ? "span 2" : "span 1", transition: "all .15s", display: "block" }}>
+              <div style={{ fontSize: 18, marginBottom: 4 }} aria-hidden="true">{g.emoji}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: genre === g.id ? C.gold : C.txt }}>{g.label}</div>
+              <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{g.desc}</div>
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      <button onClick={generateStory} disabled={!genre || loading} aria-label={genre ? `Geschichte generieren` : "Bitte zuerst ein Thema auswaehlen"}
+        style={{ width: "100%", padding: 13, borderRadius: 8, fontSize: 15, fontWeight: 700, letterSpacing: .5, border: `2px solid ${genre ? C.gold : C.bdr}`, background: genre ? "rgba(251,191,36,.08)" : C.sur, color: genre ? C.gold : C.muted, cursor: genre ? "pointer" : "not-allowed", marginBottom: 16, display: "block", opacity: loading ? 0.7 : 1, transition: "all .15s" }}>
+        {loading ? "Wird geschrieben..." : "Geschichte generieren"}
+      </button>
+
+      {loading && (
+        <div role="status" aria-label="Wird generiert" style={{ textAlign: "center", padding: 28 }}>
+          <div style={{ fontSize: 30, display: "inline-block", animation: "spin 1.5s linear infinite" }} aria-hidden="true">✍️</div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 10 }}>KI schreibt gerade...</div>
+        </div>
+      )}
+
+      {error && (
+        <div role="alert" style={{ background: "rgba(248,113,113,.07)", border: "1px solid rgba(248,113,113,.35)", borderRadius: 8, padding: 14, marginBottom: 12 }}>
+          <p style={{ ...BTEXT, color: C.redl }}>{error}</p>
+        </div>
+      )}
+
+      {story && !loading && (
+        <div style={{ animation: "fadeIn .3s ease" }}>
+          <div style={{ background: C.sur, border: "1.5px solid rgba(251,191,36,.35)", borderRadius: 10, padding: 18, marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: C.gold }}>Jetzt vorlesen!</span>
+              <button onClick={generateStory} aria-label="Neue Geschichte generieren"
+                style={{ background: "transparent", border: `1px solid ${C.bdr}`, color: C.muted, fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 6, cursor: "pointer" }}>
+                Neu generieren ↻
+              </button>
+            </div>
+            <p style={{ ...BTEXT, marginBottom: 14, fontStyle: "italic" }}>Woerter sind versteckt – beobachte wer wann reagiert, dann rate!</p>
+            <div ref={storyRef} tabIndex={-1} style={{ fontSize: 16, lineHeight: 2.1, color: C.txt }} aria-label="Vorlesetext">
+              {story.replace(/\*\*(.*?)\*\*/g, "$1")}
+            </div>
+          </div>
+          <RevealWords words={words} renderStory={renderStory} story={story} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ===== TIMER =====
 function TimerTab() {
-  const [duration, setDuration] = useState(45);
-  const [remaining, setRemaining] = useState(45);
+  const [duration, setDuration] = useState(60);
+  const [remaining, setRemaining] = useState(60);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
-  const [players, setPlayers] = useState([]);
-  const [newName, setNewName] = useState("");
   const intervalRef = useRef(null);
+  const doneRef = useRef(null);
+  const [liveNode, announce] = useLive();
 
   useEffect(() => {
     if (!running) return;
     intervalRef.current = setInterval(() => {
       setRemaining(r => {
+        if (r === 10) announce("10 Sekunden!");
         if (r <= 1) {
           clearInterval(intervalRef.current);
-          setRunning(false);
-          setDone(true);
+          setRunning(false); setDone(true);
           if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          setTimeout(() => doneRef.current?.focus(), 100);
           return 0;
         }
         return r - 1;
@@ -311,180 +513,128 @@ function TimerTab() {
     return () => clearInterval(intervalRef.current);
   }, [running]);
 
-  function changeDuration(d) {
-    setDuration(d);
-    if (!running) { setRemaining(d); setDone(false); }
-  }
-
-  function toggleTimer() {
-    if (done) return;
-    setRunning(r => !r);
-  }
-
-  function reset() {
-    clearInterval(intervalRef.current);
-    setRunning(false);
-    setRemaining(duration);
-    setDone(false);
-  }
-
-  function addPlayer() {
-    const name = newName.trim();
-    if (!name) return;
-    setPlayers(p => [...p, { name, score: 0 }]);
-    setNewName("");
-  }
-
-  function changeScore(i, delta) {
-    setPlayers(p => p.map((pl, idx) => idx === i ? { ...pl, score: Math.max(0, pl.score + delta) } : pl));
-  }
-
-  function removePlayer(i) {
-    setPlayers(p => p.filter((_, idx) => idx !== i));
-  }
+  function changeDuration(d) { setDuration(d); if (!running) { setRemaining(d); setDone(false); } }
+  function toggle() { if (done) return; const next = !running; announce(next ? "Timer gestartet." : "Pausiert."); setRunning(next); }
+  function reset() { clearInterval(intervalRef.current); setRunning(false); setRemaining(duration); setDone(false); announce("Zurueckgesetzt."); }
 
   const ratio = remaining / duration;
-  const circ = 565;
-  const offset = circ * (1 - ratio);
-  const timerColor = ratio > 0.5 ? C.blue : ratio > 0.25 ? C.gold : C.red;
+  const offset = 565 * (1 - ratio);
+  const strokeColor = ratio > 0.5 ? C.blue : ratio > 0.25 ? C.gold : C.red;
+  const numColor = remaining <= 10 ? C.red : remaining <= 20 ? C.gold : C.txt;
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+  const display = mins > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : String(remaining);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-      <div style={{ display: "flex", gap: 8, width: "100%" }}>
-        {[30, 45, 60, 90].map(d => (
-          <button key={d} onClick={() => changeDuration(d)} style={{
-            flex: 1, background: duration === d ? "#1a0a1e" : C.surface,
-            border: `1px solid ${duration === d ? C.red : C.border}`,
-            color: duration === d ? C.redLight : C.muted,
-            fontFamily: "'Courier New',monospace", fontSize: 13,
-            padding: "10px 0", cursor: "pointer", borderRadius: 4,
-            WebkitTapHighlightColor: "transparent"
-          }}>{d}s</button>
-        ))}
-      </div>
+    <section aria-labelledby="h-timer" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+      {liveNode}
+      <h2 id="h-timer" style={{ ...STITLE, width: "100%", marginBottom: 0 }}>⏱ Timer</h2>
+
+      <fieldset style={{ border: "none", margin: 0, padding: 0, width: "100%" }}>
+        <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 8, display: "block" }}>Dauer waehlen</legend>
+        <div style={{ display: "flex", gap: 8 }}>
+          {[60, 90, 120, 180].map(d => (
+            <button key={d} onClick={() => changeDuration(d)} aria-pressed={duration === d} aria-label={`${d} Sekunden`}
+              style={{ flex: 1, background: duration === d ? "rgba(248,113,113,.1)" : C.sur, border: `2px solid ${duration === d ? C.red : C.bdr}`, color: duration === d ? C.redl : C.muted, fontSize: 14, fontWeight: 600, padding: "10px 0", borderRadius: 6, cursor: "pointer", transition: "all .15s" }}>
+              {d >= 60 ? `${d / 60} min` : `${d}s`}
+            </button>
+          ))}
+        </div>
+      </fieldset>
 
       <div style={{ position: "relative", width: 200, height: 200 }}>
-        <svg width="200" height="200" style={{ transform: "rotate(-90deg)" }}>
-          <circle cx="100" cy="100" r="90" fill="none" stroke={C.border} strokeWidth="8" />
-          <circle cx="100" cy="100" r="90" fill="none" stroke={timerColor} strokeWidth="8"
-            strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
+        <svg width="200" height="200" style={{ transform: "rotate(-90deg)" }} aria-hidden="true">
+          <circle cx="100" cy="100" r="90" fill="none" stroke={C.bdr} strokeWidth="10" />
+          <circle cx="100" cy="100" r="90" fill="none" stroke={strokeColor} strokeWidth="10"
+            strokeLinecap="round" strokeDasharray="565" strokeDashoffset={offset}
             style={{ transition: "stroke-dashoffset 1s linear, stroke 0.5s" }} />
         </svg>
-        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <div style={{
-            fontFamily: "Georgia,serif", fontSize: 64, lineHeight: 1,
-            color: remaining <= 10 ? C.red : remaining <= 15 ? C.gold : C.text,
-          }}>{remaining}</div>
-          <div style={{ fontSize: 10, letterSpacing: 2, color: C.muted, textTransform: "uppercase" }}>Sek</div>
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}
+          role="timer" aria-label={`${remaining} Sekunden verbleibend`}>
+          <div style={{ fontSize: 64, fontWeight: 800, lineHeight: 1, color: numColor }} aria-hidden="true">{display}</div>
+          <div style={{ fontSize: 11, letterSpacing: 3, color: C.muted, textTransform: "uppercase", marginTop: 2 }} aria-hidden="true">
+            {mins > 0 ? "min : sek" : "Sekunden"}
+          </div>
         </div>
       </div>
 
       {done && (
-        <div style={{
-          width: "100%", background: "linear-gradient(135deg,rgba(239,68,68,0.15),rgba(245,158,11,0.15))",
-          border: "1px solid rgba(239,68,68,0.4)", borderRadius: 8, padding: 16, textAlign: "center"
-        }}>
-          <div style={{ fontFamily: "Georgia,serif", fontSize: 28, letterSpacing: 3, color: C.redLight, textTransform: "uppercase" }}>Zeit ist um!</div>
-          <div style={{ fontSize: 10, color: C.muted, letterSpacing: 1, marginTop: 4 }}>Jetzt Ratephase starten</div>
+        <div ref={doneRef} tabIndex={-1} role="alert"
+          style={{ width: "100%", background: "linear-gradient(135deg,rgba(248,113,113,.12),rgba(251,191,36,.12))", border: "1.5px solid rgba(248,113,113,.4)", borderRadius: 10, padding: 18, textAlign: "center" }}>
+          <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: 2, color: C.redl, textTransform: "uppercase" }}>Zeit ist um!</div>
+          <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>Jetzt Ratephase starten</div>
         </div>
       )}
 
       <div style={{ display: "flex", gap: 10, width: "100%" }}>
-        <button onClick={toggleTimer} disabled={done} style={{
-          flex: 1, background: "linear-gradient(135deg,#1a0a1e,#2a0a1e)",
-          border: `1px solid ${C.red}`, color: C.redLight,
-          fontFamily: "Georgia,serif", fontSize: 20, letterSpacing: 2,
-          padding: 14, cursor: done ? "not-allowed" : "pointer", borderRadius: 6,
-          textTransform: "uppercase", opacity: done ? 0.4 : 1,
-          WebkitTapHighlightColor: "transparent"
-        }}>{running ? "PAUSE" : "START"}</button>
-        <button onClick={reset} style={{
-          flex: 1, background: C.surface, border: `1px solid ${C.border}`, color: C.muted,
-          fontFamily: "Georgia,serif", fontSize: 20, letterSpacing: 2,
-          padding: 14, cursor: "pointer", borderRadius: 6, textTransform: "uppercase",
-          WebkitTapHighlightColor: "transparent"
-        }}>RESET</button>
+        <button onClick={toggle} disabled={done} aria-label={running ? "Pausieren" : "Starten"} aria-pressed={running}
+          style={{ flex: 1, padding: 14, borderRadius: 8, fontSize: 17, fontWeight: 700, letterSpacing: 1, border: `2px solid ${C.red}`, background: "rgba(248,113,113,.1)", color: C.redl, cursor: done ? "not-allowed" : "pointer", opacity: done ? 0.4 : 1, transition: "all .15s" }}>
+          {running ? "PAUSE" : "START"}
+        </button>
+        <button onClick={reset} aria-label="Zuruecksetzen"
+          style={{ flex: 1, padding: 14, borderRadius: 8, fontSize: 17, fontWeight: 700, letterSpacing: 1, border: `2px solid ${C.bdr}`, background: C.sur, color: C.muted, cursor: "pointer", transition: "all .15s" }}>
+          RESET
+        </button>
       </div>
-
-      <div style={{ ...S.card, width: "100%" }}>
-        <div style={{ fontFamily: "Georgia,serif", fontSize: 18, letterSpacing: 2, color: C.gold, marginBottom: 14, textTransform: "uppercase" }}>
-          Punktestand
-        </div>
-        {players.length === 0 && (
-          <div style={{ fontSize: 11, color: C.muted, textAlign: "center", padding: 10 }}>Noch keine Spieler</div>
-        )}
-        {players.map((p, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: C.dark, borderRadius: 4, padding: "8px 10px", marginBottom: 6 }}>
-            <div style={{ flex: 1, fontSize: 12, color: C.text }}>{p.name}</div>
-            <button onClick={() => changeScore(i, -1)} style={{ background: C.border, border: "none", color: C.text, width: 30, height: 30, borderRadius: 3, cursor: "pointer", fontSize: 18, WebkitTapHighlightColor: "transparent" }}>-</button>
-            <div style={{ fontFamily: "Georgia,serif", fontSize: 26, color: C.gold, minWidth: 32, textAlign: "center" }}>{p.score}</div>
-            <button onClick={() => changeScore(i, 1)} style={{ background: C.border, border: "none", color: C.text, width: 30, height: 30, borderRadius: 3, cursor: "pointer", fontSize: 18, WebkitTapHighlightColor: "transparent" }}>+</button>
-            <button onClick={() => removePlayer(i)} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 14, padding: "0 2px", WebkitTapHighlightColor: "transparent" }}>✕</button>
-          </div>
-        ))}
-        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <input
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && addPlayer()}
-            placeholder="Spieler hinzufuegen..."
-            maxLength={16}
-            style={{
-              flex: 1, background: C.dark, border: `1px solid ${C.border}`,
-              color: C.text, fontFamily: "'Courier New',monospace",
-              fontSize: 13, padding: "10px 12px", borderRadius: 4, outline: "none",
-              WebkitAppearance: "none"
-            }}
-          />
-          <button onClick={addPlayer} style={{
-            background: C.surface, border: `1px solid ${C.border}`, color: C.muted,
-            fontSize: 22, padding: "0 16px", borderRadius: 4, cursor: "pointer",
-            WebkitTapHighlightColor: "transparent"
-          }}>+</button>
-        </div>
-      </div>
-    </div>
+    </section>
   );
 }
 
+// ===== APP =====
+const TABS = [
+  { id: "rules",   icon: "📋", label: "Regeln"  },
+  { id: "cards",   icon: "🎴", label: "Karten"  },
+  { id: "players", icon: "👥", label: "Spieler" },
+  { id: "story",   icon: "✨", label: "Story"   },
+  { id: "timer",   icon: "⏱",  label: "Timer"   },
+];
+
 export default function App() {
   const [tab, setTab] = useState("rules");
+  const [dealtWords, setDealtWords] = useState([]);
+  const mainRef = useRef(null);
+
+  function switchTab(id) { setTab(id); setTimeout(() => mainRef.current?.focus(), 50); }
 
   return (
-    <div style={{ background: C.bg, minHeight: "100vh", color: C.text, fontFamily: "'Courier New', monospace" }}>
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px 80px" }}>
-        <div style={{ textAlign: "center", padding: "32px 0 20px" }}>
-          <div style={{
-            fontSize: "clamp(48px,15vw,76px)", fontWeight: 900, letterSpacing: 4, lineHeight: 1,
-            background: "linear-gradient(135deg, #ef4444 0%, #f59e0b 50%, #3b82f6 100%)",
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            backgroundClip: "text", fontFamily: "Georgia, serif", textTransform: "uppercase"
-          }}>Story Chaos</div>
-          <div style={{ fontSize: 10, letterSpacing: 3, color: C.muted, textTransform: "uppercase", marginTop: 6 }}>
-            Das Spiel gegen den Erzaehler
+    <div style={{ background: C.bg, minHeight: "100vh", color: C.txt, fontFamily: FF }}>
+      <style>{G}</style>
+      <a href="#main" style={{ position: "fixed", top: -60, left: 8, zIndex: 9999, background: "#fff", color: "#000", padding: "10px 18px", borderRadius: 6, fontWeight: 700, fontSize: 14, textDecoration: "none", transition: "top .2s" }}
+        onFocus={e => e.currentTarget.style.top = "8px"} onBlur={e => e.currentTarget.style.top = "-60px"}>
+        Zum Hauptinhalt springen
+      </a>
+
+      <div style={{ maxWidth: 500, margin: "0 auto", padding: "0 16px 80px" }}>
+        <header style={{ textAlign: "center", padding: "24px 0 12px" }}>
+          <h1 style={{ fontSize: "clamp(36px,10vw,56px)", fontWeight: 800, letterSpacing: -1, textTransform: "uppercase", background: "linear-gradient(135deg,#f87171,#fbbf24 50%,#60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", lineHeight: 1, margin: 0 }}>
+            Story Chaos
+          </h1>
+          <p style={{ fontSize: 11, letterSpacing: 3, color: C.muted, textTransform: "uppercase", marginTop: 5 }}>Das Partyspiel gegen den Erzaehler</p>
+        </header>
+
+        <nav aria-label="Spielbereiche">
+          <div role="tablist" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, margin: "12px 0 16px" }}>
+            {TABS.map(t => (
+              <button key={t.id} role="tab" onClick={() => switchTab(t.id)} aria-selected={tab === t.id} aria-label={t.label}
+                style={{ background: tab === t.id ? "#1a1a2e" : C.sur, border: `1.5px solid ${tab === t.id ? C.blue : C.bdr}`, color: tab === t.id ? C.bluel : C.muted, fontSize: 10, fontWeight: 600, letterSpacing: .5, padding: "9px 2px 7px", borderRadius: 6, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer", transition: "all .15s" }}>
+                <span style={{ fontSize: 15 }} aria-hidden="true">{t.icon}</span>
+                <span>{t.label}</span>
+              </button>
+            ))}
           </div>
-        </div>
+        </nav>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, margin: "0 0 20px" }}>
-          {[["rules","📘 Regeln"], ["cards","🎴 Karten"], ["timer","⏱ Timer"]].map(([id, label]) => (
-            <button key={id} onClick={() => setTab(id)} style={{
-              background: tab === id ? "#1a1a2e" : C.surface,
-              border: `1px solid ${tab === id ? C.blue : C.border}`,
-              color: tab === id ? C.blueLight : C.muted,
-              fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 1.5,
-              textTransform: "uppercase", padding: "11px 4px", cursor: "pointer", borderRadius: 4,
-              transition: "all 0.15s", WebkitTapHighlightColor: "transparent"
-            }}>{label}</button>
-          ))}
-        </div>
+        <main id="main" ref={mainRef} tabIndex={-1} aria-label={TABS.find(t => t.id === tab)?.label} style={{ outline: "none" }}>
+          {tab === "rules"   && <Rules />}
+          {tab === "cards"   && <Cards onDeal={setDealtWords} />}
+          {tab === "players" && <Players />}
+          {tab === "story"   && <StoryTab dealtWords={dealtWords} />}
+          {tab === "timer"   && <TimerTab />}
+        </main>
 
-        {tab === "rules" && <Rules />}
-        {tab === "cards" && <Cards />}
-        {tab === "timer" && <TimerTab />}
-
-        <div style={{ textAlign: "center", padding: "24px 0 8px", fontSize: 10, color: "#2a3a4a", letterSpacing: 1.5, textTransform: "uppercase" }}>
-          Story Chaos · Party Game · 2-6 Players
-        </div>
+        <footer style={{ textAlign: "center", padding: "20px 0 8px" }}>
+          <p style={{ fontSize: 10, color: "#4a5a6a", letterSpacing: 1.5, textTransform: "uppercase" }}>Story Chaos · Party Game · 2–6 Spieler</p>
+        </footer>
       </div>
     </div>
   );
