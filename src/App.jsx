@@ -158,16 +158,16 @@ function Rules() {
 }
 
 // ===== CARDS =====
-function Cards({ onDeal }) {
-  const [count, setCount] = useState(3);
+function Cards({ onDeal, players, switchTab }) {
   const [dealt, setDealt] = useState([]);
   const [revealed, setRevealed] = useState({});
   const [liveNode, announce] = useLive();
+  const count = players.length;
 
   function deal() {
     const words = shuffle(BLUE_WORDS).slice(0, count);
     const actions = shuffle(RED_ACTIONS).slice(0, count);
-    const newDealt = words.map((w, i) => ({ word: w, action: actions[i], rerolled: false }));
+    const newDealt = words.map((w, i) => ({ word: w, action: actions[i], rerolled: false, name: players[i]?.name || `Spieler ${i+1}` }));
     setDealt(newDealt);
     setRevealed({});
     if (onDeal) onDeal(words);
@@ -180,12 +180,12 @@ function Cards({ onDeal }) {
     const freeW = shuffle(BLUE_WORDS.filter(w => !usedWords.includes(w)));
     const freeA = shuffle(RED_ACTIONS.filter(a => !usedActions.includes(a)));
     const updated = dealt.map((d, idx) =>
-      idx === i ? { word: freeW[0] || d.word, action: freeA[0] || d.action, rerolled: true } : d
+      idx === i ? { ...d, word: freeW[0] || d.word, action: freeA[0] || d.action, rerolled: true } : d
     );
     setDealt(updated);
     setRevealed(r => { const n = {...r}; delete n[`w${i}`]; delete n[`a${i}`]; return n; });
     if (onDeal) onDeal(updated.map(d => d.word));
-    announce(`Spieler ${i + 1} hat neue Karten gezogen.`);
+    announce(`${dealt[i].name} hat neue Karten gezogen.`);
   }
 
   function toggle(key, label) {
@@ -196,22 +196,40 @@ function Cards({ onDeal }) {
     });
   }
 
+  if (count === 0) {
+    return (
+      <section aria-labelledby="h-cards">
+        {liveNode}
+        <h2 id="h-cards" style={{ ...STITLE, marginBottom: 14 }}>🎴 Karten ziehen</h2>
+        <div style={{ ...CARD, borderColor: "rgba(248,113,113,.3)", background: "rgba(248,113,113,.05)", textAlign: "center", padding: "28px 20px" }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>🫥</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.txt, marginBottom: 8 }}>Noch keine Mitspieler da!</div>
+          <p style={{ ...BTEXT, marginBottom: 16 }}>Ohne Spieler keine Karten. Logisch, oder? Leg zuerst im Spieler-Tab los – dann klappt's auch mit den Karten. 🃏</p>
+          <button onClick={() => switchTab("players")}
+            style={{ padding: "10px 22px", borderRadius: 8, fontSize: 14, fontWeight: 700, border: `2px solid ${C.red}`, background: "rgba(248,113,113,.1)", color: C.redl, cursor: "pointer" }}>
+            Spieler erstellen →
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section aria-labelledby="h-cards">
       {liveNode}
       <h2 id="h-cards" style={{ ...STITLE, marginBottom: 14 }}>🎴 Karten ziehen</h2>
-      <div style={{ ...CARD, marginBottom: 12 }}>
-        <fieldset style={{ border: "none", margin: 0, padding: 0 }}>
-          <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10, display: "block" }}>Anzahl Mitspieler</legend>
-          <div style={{ display: "flex", gap: 6 }}>
-            {[1,2,3,4,5].map(n => (
-              <button key={n} onClick={() => setCount(n)} aria-pressed={count === n} aria-label={`${n} Mitspieler`}
-                style={{ flex: 1, background: count === n ? "#1a2a4a" : C.sur2, border: `2px solid ${count === n ? C.blue : C.bdr}`, color: count === n ? C.bluel : C.muted, fontSize: 20, fontWeight: 700, padding: "8px 0", borderRadius: 6, cursor: "pointer", transition: "all .15s" }}>
-                {n}
-              </button>
-            ))}
+
+      <div style={{ ...CARD, borderColor: "rgba(96,165,250,.2)", background: "rgba(96,165,250,.04)", marginBottom: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.txt, marginBottom: 2 }}>{count} Mitspieler bereit</div>
+            <div style={{ fontSize: 12, color: C.muted }}>{players.map(p => p.name).join(", ")}</div>
           </div>
-        </fieldset>
+          <button onClick={() => switchTab("players")}
+            style={{ fontSize: 11, fontWeight: 600, padding: "5px 12px", borderRadius: 6, border: `1px solid ${C.bdr}`, background: "transparent", color: C.muted, cursor: "pointer", whiteSpace: "nowrap", marginLeft: 12 }}>
+            + Spieler
+          </button>
+        </div>
       </div>
 
       <button onClick={deal} aria-label={`Karten fuer ${count} Mitspieler austeilen`}
@@ -222,9 +240,9 @@ function Cards({ onDeal }) {
       {dealt.map((p, i) => (
         <div key={i} style={{ background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 10, overflow: "hidden", marginBottom: 10 }}>
           <div style={{ padding: "10px 16px", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, borderBottom: `1px solid ${C.bdr}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>Spieler {i + 1}</span>
+            <span>{p.name}</span>
             <button onClick={() => !p.rerolled && reroll(i)} disabled={p.rerolled}
-              aria-label={p.rerolled ? `Spieler ${i+1} hat bereits neu gezogen` : `Spieler ${i+1} neu ziehen`}
+              aria-label={p.rerolled ? `${p.name} hat bereits neu gezogen` : `${p.name} neu ziehen`}
               style={{ fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 10, cursor: p.rerolled ? "not-allowed" : "pointer", border: `1px solid ${p.rerolled ? C.bdr : "rgba(251,191,36,.4)"}`, background: p.rerolled ? "rgba(90,90,110,.2)" : "rgba(251,191,36,.12)", color: p.rerolled ? C.muted : C.gold, transition: "all .15s" }}>
               {p.rerolled ? "bereits neu gezogen" : "1x neu ziehen"}
             </button>
@@ -255,8 +273,7 @@ function Cards({ onDeal }) {
 }
 
 // ===== PLAYERS =====
-function Players() {
-  const [players, setPlayers] = useState([]);
+function Players({ players, setPlayers }) {
   const [newName, setNewName] = useState("");
   const [liveNode, announce] = useLive();
 
@@ -618,6 +635,7 @@ const TABS = [
 export default function App() {
   const [tab, setTab] = useState("rules");
   const [dealtWords, setDealtWords] = useState([]);
+  const [players, setPlayers] = useState([]);
   const mainRef = useRef(null);
 
   function switchTab(id) { setTab(id); setTimeout(() => mainRef.current?.focus(), 50); }
@@ -652,8 +670,8 @@ export default function App() {
 
         <main id="main" ref={mainRef} tabIndex={-1} aria-label={TABS.find(t => t.id === tab)?.label} style={{ outline: "none" }}>
           {tab === "rules"   && <Rules />}
-          {tab === "cards"   && <Cards onDeal={setDealtWords} />}
-          {tab === "players" && <Players />}
+          {tab === "cards"   && <Cards onDeal={setDealtWords} players={players} switchTab={switchTab} />}
+          {tab === "players" && <Players players={players} setPlayers={setPlayers} />}
           {tab === "story"   && <StoryTab dealtWords={dealtWords} />}
           {tab === "timer"   && <TimerTab />}
         </main>
