@@ -247,6 +247,8 @@ const UI = {
       narratorVoteApproved: "Mehrheit dafür: Der Erzähler bekommt 1 Punkt.",
       narratorVoteRejected: "Keine Mehrheit: Der Erzähler bekommt keinen Punkt.",
       narratorVotePending: "Warte auf die Stimmen der Mitspieler.",
+      narratorVoteLive: "Live-Ergebnis",
+      narratorVoteDone: "Abstimmung abgeschlossen",
       word: "🔵 Wort",
       action: "🔴 Aktion",
       pointsTitle: "Punkte vergeben",
@@ -264,6 +266,11 @@ const UI = {
     scores: {
       title: "🏆 Punktestand",
       desc: "Gespeicherte Punkte aller Mitspieler.",
+      rulesTitle: "Punkteregeln",
+      rules: [
+        "Der Erzähler kann jedem Mitspieler in der Auflösung 1 Punkt geben.",
+        "Die Mitspieler stimmen am Ende ab, ob der Erzähler 1 Punkt bekommt.",
+      ],
     },
     timer: {
       duration: "Dauer",
@@ -313,6 +320,7 @@ const UI = {
       narratorVoteSent: "Deine Stimme wurde gezählt.",
       narratorVoteApproved: "Die Gruppe gibt dem Erzähler 1 Punkt.",
       narratorVoteRejected: "Die Gruppe gibt dem Erzähler keinen Punkt.",
+      narratorVotePending: "Warte auf das Endergebnis…",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -464,6 +472,8 @@ const UI = {
       narratorVoteApproved: "Majority says yes: the narrator gets 1 point.",
       narratorVoteRejected: "No majority: the narrator gets no point.",
       narratorVotePending: "Waiting for the players to vote.",
+      narratorVoteLive: "Live result",
+      narratorVoteDone: "Vote finished",
       word: "🔵 Word",
       action: "🔴 Action",
       pointsTitle: "Award points",
@@ -481,6 +491,11 @@ const UI = {
     scores: {
       title: "🏆 Scoreboard",
       desc: "Saved points for all players.",
+      rulesTitle: "Scoring rules",
+      rules: [
+        "The narrator can give each player 1 point during the reveal.",
+        "At the end, the players vote on whether the narrator gets 1 point.",
+      ],
     },
     timer: {
       duration: "Duration",
@@ -530,6 +545,7 @@ const UI = {
       narratorVoteSent: "Your vote has been counted.",
       narratorVoteApproved: "The group gives the narrator 1 point.",
       narratorVoteRejected: "The group gives the narrator no point.",
+      narratorVotePending: "Waiting for the final result…",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -1375,13 +1391,33 @@ function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onCh
               </div>
             </div>
             <p style={{ ...S.bt, marginTop: 12 }}>{ui.resolution.narratorVoteWaiting(voteEntries.length, audienceCount)}</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+              <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(74,222,128,.10)", border: "1px solid rgba(74,222,128,.26)" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.green, marginBottom: 6 }}>{ui.resolution.narratorVoteYes}</div>
+                <div style={{ fontSize: 30, fontWeight: 800, color: ACC.greenl, lineHeight: 1 }}>{yesVotes}</div>
+              </div>
+              <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(148,163,184,.10)", border: `1px solid ${C.bdr}` }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 6 }}>{ui.resolution.narratorVoteNo}</div>
+                <div style={{ fontSize: 30, fontWeight: 800, color: C.txt, lineHeight: 1 }}>{noVotes}</div>
+              </div>
+            </div>
             {room?.status === "voted" ? (
-              <div style={{ marginTop: 10, padding: "12px 14px", borderRadius: 12, background: narratorAwarded ? "rgba(74,222,128,.08)" : "rgba(148,163,184,.10)", border: `1px solid ${narratorAwarded ? "rgba(74,222,128,.28)" : C.bdr}`, color: narratorAwarded ? ACC.greenl : C.txt, fontSize: 14, fontWeight: 700 }}>
-                {narratorAwarded ? ui.resolution.narratorVoteApproved : ui.resolution.narratorVoteRejected}
+              <div style={{ marginTop: 14, padding: "18px 18px", borderRadius: 16, background: narratorAwarded ? "linear-gradient(180deg, rgba(74,222,128,.16), rgba(74,222,128,.06))" : "linear-gradient(180deg, rgba(148,163,184,.14), rgba(148,163,184,.06))", border: `1px solid ${narratorAwarded ? "rgba(74,222,128,.30)" : C.bdr}`, color: narratorAwarded ? ACC.greenl : C.txt }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 8 }}>
+                  {ui.resolution.narratorVoteDone}
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.35 }}>
+                  {narratorAwarded ? ui.resolution.narratorVoteApproved : ui.resolution.narratorVoteRejected}
+                </div>
               </div>
             ) : (
-              <div style={{ marginTop: 10, padding: "12px 14px", borderRadius: 12, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.24)", color: C.txt, fontSize: 14, fontWeight: 600 }}>
-                {finalizingNarratorVote ? ui.common.loading : ui.resolution.narratorVotePending}
+              <div style={{ marginTop: 14, padding: "16px 18px", borderRadius: 16, background: "linear-gradient(180deg, rgba(96,165,250,.10), rgba(96,165,250,.04))", border: "1px solid rgba(96,165,250,.24)", color: C.txt }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>
+                  {ui.resolution.narratorVoteLive}
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 700 }}>
+                  {finalizingNarratorVote ? ui.common.loading : ui.resolution.narratorVotePending}
+                </div>
               </div>
             )}
           </div>
@@ -1435,6 +1471,14 @@ function Scores({ room, players, ui, C, S }) {
       <div style={S.card}>
         <div style={S.st}>{ui.scores.title}</div>
         <p style={{ ...S.bt, marginBottom: 12 }}>{ui.scores.desc}</p>
+        <div style={{ marginBottom: 14, padding: "14px 16px", borderRadius: 14, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.22)" }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.scores.rulesTitle}</div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {ui.scores.rules.map((rule) => (
+              <div key={rule} style={{ fontSize: 13, color: C.txt }}>{rule}</div>
+            ))}
+          </div>
+        </div>
         <ul style={{ listStyle: "none", padding: 0 }}>
           {sorted.map((player, index) => (
             <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 8, background: C.sur2, borderRadius: 8, padding: "10px 12px", marginBottom: 8 }}>
@@ -1893,7 +1937,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
                   <button onClick={() => castNarratorVote(false)} style={S.pbtn(C.bdr, C.sur2)}>{ui.player.narratorVoteNo}</button>
                 </div>
               ) : (
-                <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(74,222,128,.08)", border: "1px solid rgba(74,222,128,.24)", color: ACC.greenl, fontSize: 14, fontWeight: 700 }}>
+                <div style={{ marginTop: 12, padding: "14px 16px", borderRadius: 14, background: "rgba(74,222,128,.08)", border: "1px solid rgba(74,222,128,.24)", color: ACC.greenl, fontSize: 14, fontWeight: 700 }}>
                   {ui.player.narratorVoteSent}
                 </div>
               )}
@@ -1901,10 +1945,19 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
           )}
 
           {room.status === "voted" && voteResult !== null && (
-            <div style={{ ...S.card, borderColor: voteResult ? "rgba(74,222,128,.3)" : C.bdr, background: voteResult ? "rgba(74,222,128,.06)" : C.sur2, marginTop: 12 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: voteResult ? ACC.greenl : C.txt }}>
+            <div style={{ ...S.card, borderColor: voteResult ? "rgba(74,222,128,.3)" : C.bdr, background: voteResult ? "linear-gradient(180deg, rgba(74,222,128,.12), rgba(74,222,128,.05))" : "linear-gradient(180deg, rgba(148,163,184,.14), rgba(148,163,184,.06))", marginTop: 12, padding: "18px 18px" }}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: voteResult ? ACC.green : C.muted, marginBottom: 8 }}>
+                {ui.player.narratorVoteTitle}
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: voteResult ? ACC.greenl : C.txt, lineHeight: 1.35 }}>
                 {voteResult ? ui.player.narratorVoteApproved : ui.player.narratorVoteRejected}
               </div>
+            </div>
+          )}
+
+          {room.status === "voted" && voteResult === null && (
+            <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "rgba(96,165,250,.06)", marginTop: 12 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: ACC.bluel }}>{ui.player.narratorVotePending}</div>
             </div>
           )}
         </div>
