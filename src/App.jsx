@@ -5,6 +5,7 @@ const SUPABASE_URL = "https://iioipzphjxzoiofnukjs.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpb2lwenBoanh6b2lvZm51a2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNzYzOTMsImV4cCI6MjA5MTc1MjM5M30.aIO5sXDUNNk01lTcqb79f4BowKXy4YH4Er0OrB8gx8U";
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const APP_URL = "https://storychaos-the-game.vercel.app";
+const APP_ICON = "/icon-192.png";
 
 const CONTENT = {
   de: {
@@ -527,8 +528,8 @@ function makeStyles(C) {
     st: { fontSize: 16, fontWeight: 800, color: C.txt, display: "flex", alignItems: "center", gap: 8, marginBottom: 12, letterSpacing: "-0.02em" },
     bt: { fontSize: 14, lineHeight: 1.7, color: C.muted },
     input: { width: "100%", background: C.sur2, border: `1.5px solid ${C.bdr}`, color: C.txt, fontFamily: FF, fontSize: 16, padding: "14px 15px", borderRadius: 13, outline: "none", boxShadow: "inset 0 1px 0 rgba(255,255,255,.03)" },
-    pbtn: (col, bg) => ({ width: "100%", minHeight: 54, padding: "14px 16px", borderRadius: 13, fontSize: 16, fontWeight: 800, border: `1.5px solid ${col}`, background: bg, color: col, cursor: "pointer", transition: "all .15s", display: "block", boxShadow: `0 0 0 1px ${col}18 inset` }),
-    sbtn: (col) => ({ fontSize: 12, fontWeight: 700, padding: "7px 12px", borderRadius: 10, border: `1px solid ${col}`, background: "transparent", color: col, cursor: "pointer" }),
+    pbtn: (col, bg) => ({ width: "100%", minHeight: 56, padding: "15px 16px", borderRadius: 13, fontSize: 17, fontWeight: 800, lineHeight: 1.2, border: `1.5px solid ${col}`, background: bg, color: col, cursor: "pointer", transition: "all .15s", display: "block", boxShadow: `0 0 0 1px ${col}18 inset` }),
+    sbtn: (col) => ({ fontSize: 13, fontWeight: 800, padding: "8px 12px", borderRadius: 10, border: `1px solid ${col}`, background: "transparent", color: col, cursor: "pointer" }),
   };
 }
 
@@ -614,6 +615,17 @@ function playBeep(freq = 440, dur = 0.15) {
 }
 
 async function generateStory(prompt, contentLang) {
+  const requestOpenRouter = async (model) => {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "HTTP-Referer": APP_URL, "X-Title": "Story Chaos" },
+      body: JSON.stringify({ model, max_tokens: 800, messages: [{ role: "user", content: prompt }] }),
+    });
+    if (!response.ok) throw new Error(`${model}:fail`);
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || "";
+  };
+
   const apis = [
     async () => {
       const response = await fetch("https://text.pollinations.ai/openai", {
@@ -637,15 +649,15 @@ async function generateStory(prompt, contentLang) {
       if (!response.ok) throw new Error("fail");
       return await response.text();
     },
+    async () => requestOpenRouter("mistralai/mistral-7b-instruct:free"),
+    async () => requestOpenRouter("google/gemma-2-9b-it:free"),
+    async () => requestOpenRouter("meta-llama/llama-3.1-8b-instruct:free"),
     async () => {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "HTTP-Referer": APP_URL, "X-Title": "Story Chaos" },
-        body: JSON.stringify({ model: "mistralai/mistral-7b-instruct:free", max_tokens: 800, messages: [{ role: "user", content: prompt }] }),
-      });
-      if (!response.ok) throw new Error("fail");
-      const data = await response.json();
-      return data.choices?.[0]?.message?.content || "";
+      const fallbackWords = prompt.match(/: (.*)\. Jedes/s)?.[1] || "";
+      if (contentLang === "de") {
+        return `Im alten Viertel begann alles ganz harmlos, bis plötzlich ${fallbackWords} in einer einzigen absurder werdenden Geschichte zusammenliefen. Erst lachte niemand, dann lachten alle. Jedes Detail wirkte zu seltsam, um Zufall zu sein, und genau das machte die Sache verdächtig. Eine Person blieb auffällig ruhig, während eine andere viel zu spät auf das Offensichtliche reagierte. Je länger die Geschichte dauerte, desto klarer wurde, dass hier jede Kleinigkeit beobachtet wurde. Am Ende war zwar nicht alles logisch, aber alles irgendwie perfekt vorbereitet. Genau deshalb schaute der Erzähler jetzt ganz genau hin.`;
+      }
+      return `What started as an ordinary scene quickly spiraled into chaos when ${fallbackWords} all collided inside one increasingly suspicious story. At first nobody reacted, and then everybody tried a little too hard not to react. Every detail felt slightly too specific to be accidental. One player stayed unnervingly calm while another overcorrected at exactly the wrong moment. The longer the story went on, the more obvious it became that every tiny gesture mattered. By the end, the plot barely made sense, but the tension absolutely did. That was exactly when the narrator started watching everyone much more closely.`;
     },
   ];
   const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
@@ -1545,7 +1557,9 @@ function JoinScreen({ initialCode, onJoined, ui, C, S }) {
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
       <div style={{ ...S.card, textAlign: "center", padding: "24px 18px 18px", background: C.bg === "#0d0d14" ? "linear-gradient(180deg, rgba(96,165,250,.10), rgba(96,165,250,.03))" : "linear-gradient(180deg, rgba(96,165,250,.10), rgba(255,255,255,.9))" }}>
-        <div style={{ width: 64, height: 64, margin: "0 auto 12px", borderRadius: 18, display: "grid", placeItems: "center", fontSize: 33, background: C.sur, border: `1px solid ${C.bdr}` }}>🎮</div>
+        <div style={{ width: 64, height: 64, margin: "0 auto 12px", borderRadius: 18, display: "grid", placeItems: "center", background: C.sur, border: `1px solid ${C.bdr}`, overflow: "hidden", padding: 8 }}>
+          <img src={APP_ICON} alt="Story Chaos icon" width="48" height="48" style={{ display: "block", borderRadius: 12 }} />
+        </div>
         <div style={{ fontSize: 24, fontWeight: 800, color: C.txt, marginBottom: 6, letterSpacing: "-0.03em" }}>{ui.join.title}</div>
         <p style={S.bt}>{ui.join.desc}</p>
       </div>
@@ -1590,7 +1604,9 @@ function CreateRoom({ onCreated, ui, C, S }) {
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
       <div style={{ ...S.card, textAlign: "center", padding: "24px 18px 18px", background: C.bg === "#0d0d14" ? "linear-gradient(180deg, rgba(251,191,36,.11), rgba(251,191,36,.03))" : "linear-gradient(180deg, rgba(251,191,36,.10), rgba(255,255,255,.9))" }}>
-        <div style={{ width: 64, height: 64, margin: "0 auto 12px", borderRadius: 18, display: "grid", placeItems: "center", fontSize: 33, background: C.sur, border: `1px solid ${C.bdr}` }}>🎲</div>
+        <div style={{ width: 64, height: 64, margin: "0 auto 12px", borderRadius: 18, display: "grid", placeItems: "center", background: C.sur, border: `1px solid ${C.bdr}`, overflow: "hidden", padding: 8 }}>
+          <img src={APP_ICON} alt="Story Chaos icon" width="48" height="48" style={{ display: "block", borderRadius: 12 }} />
+        </div>
         <div style={{ fontSize: 24, fontWeight: 800, color: C.txt, marginBottom: 6, letterSpacing: "-0.03em" }}>{ui.create.title}</div>
         <p style={S.bt}>{ui.create.desc}</p>
       </div>
@@ -1709,7 +1725,9 @@ export default function App() {
           {screen === "home" && (
             <div style={{ animation: "fadeIn .3s ease" }}>
               <div style={{ ...S.card, textAlign: "center", padding: "26px 16px 18px", marginBottom: 14, borderRadius: 16, background: dark ? "linear-gradient(180deg, rgba(28,28,40,.96), rgba(22,22,31,.96))" : "linear-gradient(180deg, rgba(255,255,255,.98), rgba(244,246,252,.98))", boxShadow: dark ? "0 12px 40px rgba(0,0,0,.24)" : "0 18px 45px rgba(15,23,42,.08)" }}>
-                <div style={{ width: 70, height: 70, margin: "0 auto 14px", borderRadius: 20, display: "grid", placeItems: "center", fontSize: 38, background: dark ? "linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02))" : "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))", border: `1px solid ${dark ? "rgba(255,255,255,.08)" : "rgba(96,165,250,.18)"}` }}>🎲</div>
+                <div style={{ width: 70, height: 70, margin: "0 auto 14px", borderRadius: 20, display: "grid", placeItems: "center", background: dark ? "linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02))" : "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))", border: `1px solid ${dark ? "rgba(255,255,255,.08)" : "rgba(96,165,250,.18)"}`, overflow: "hidden", padding: 9 }}>
+                  <img src={APP_ICON} alt="Story Chaos icon" width="52" height="52" style={{ display: "block", borderRadius: 14 }} />
+                </div>
                 <div style={{ fontSize: 28, fontWeight: 800, color: C.txt, marginBottom: 8, letterSpacing: "-0.03em" }}>{ui.home.welcome}</div>
                 <p style={{ ...S.bt, fontSize: 15, lineHeight: 1.65, marginBottom: 22, maxWidth: 290, marginInline: "auto" }}>{ui.home.desc}</p>
                 <button onClick={() => setScreen("create")} style={{ ...S.pbtn(ACC.blue, dark ? "linear-gradient(180deg, rgba(96,165,250,.18), rgba(96,165,250,.08))" : "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))"), marginBottom: 10, minHeight: 56, borderRadius: 13, boxShadow: "0 0 0 1px rgba(96,165,250,.18) inset" }}>{ui.home.newGame}</button>
