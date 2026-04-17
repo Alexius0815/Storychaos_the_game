@@ -136,6 +136,7 @@ const UI = {
       host: "Host",
       status: "Status",
       story: "Story",
+      phaseTitle: "Rundenphase",
     },
     offline: "Keine Verbindung – bitte WLAN pruefen",
     home: {
@@ -184,6 +185,8 @@ const UI = {
       empty: "Noch niemand… QR-Code scannen!",
       waiting: "Warte auf Mitspieler…",
       start: (n) => `Spiel starten mit ${n} Spieler${n !== 1 ? "n" : ""} →`,
+      nextRoundTitle: "Nächste Runde",
+      nextRoundDesc: "Der nächste Erzähler übernimmt jetzt und bereitet die neue Runde vor.",
     },
     cards: {
       title: "🎴 Runde vorbereiten",
@@ -253,6 +256,7 @@ const UI = {
       action: "🔴 Aktion",
       pointsTitle: "Punkte vergeben",
       pointsDesc: "Du entscheidest als Erzähler, wer für diese Runde Punkte bekommt.",
+      pointsRule: "Jeder Mitspieler kann in dieser Runde höchstens 1 Punkt von dir bekommen.",
       currentScore: "Punktestand",
       addPoint: "+1 Punkt",
       removePoint: "-1 Punkt",
@@ -262,6 +266,8 @@ const UI = {
       nextRound: "Nächste Runde starten",
       chooseFirst: "Wähle zuerst den nächsten Erzähler.",
       nextUp: (name) => `Nächste Runde: ${name} ist Erzähler`,
+      roundSummaryTitle: "Runde abgeschlossen",
+      roundSummaryDesc: "Vergib oben Punkte, prüfe den Erzählerpunkt und bestimme dann den nächsten Erzähler.",
     },
     scores: {
       title: "🏆 Punktestand",
@@ -321,6 +327,12 @@ const UI = {
       narratorVoteApproved: "Die Gruppe gibt dem Erzähler 1 Punkt.",
       narratorVoteRejected: "Die Gruppe gibt dem Erzähler keinen Punkt.",
       narratorVotePending: "Warte auf das Endergebnis…",
+      phaseWaiting: "Warte auf den Erzähler",
+      phaseCards: "Karten anschauen",
+      phaseReady: "Bereit machen",
+      phaseStory: "Reagieren",
+      phaseVoting: "Abstimmen",
+      phaseResult: "Runde beendet",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -361,6 +373,7 @@ const UI = {
       host: "Host",
       status: "Status",
       story: "Story",
+      phaseTitle: "Round phase",
     },
     offline: "No connection – please check your Wi-Fi",
     home: {
@@ -409,6 +422,8 @@ const UI = {
       empty: "No one yet… scan the QR code!",
       waiting: "Waiting for players…",
       start: (n) => `Start game with ${n} player${n !== 1 ? "s" : ""} →`,
+      nextRoundTitle: "Next round",
+      nextRoundDesc: "The next narrator takes over now and prepares the new round.",
     },
     cards: {
       title: "🎴 Prepare round",
@@ -478,6 +493,7 @@ const UI = {
       action: "🔴 Action",
       pointsTitle: "Award points",
       pointsDesc: "As the narrator, you decide who earns points this round.",
+      pointsRule: "Each player can get at most 1 point from you this round.",
       currentScore: "Score",
       addPoint: "+1 point",
       removePoint: "-1 point",
@@ -487,6 +503,8 @@ const UI = {
       nextRound: "Start next round",
       chooseFirst: "Choose the next narrator first.",
       nextUp: (name) => `Next round: ${name} is the narrator`,
+      roundSummaryTitle: "Round complete",
+      roundSummaryDesc: "Award points above, check the narrator vote, then choose the next narrator.",
     },
     scores: {
       title: "🏆 Scoreboard",
@@ -546,6 +564,12 @@ const UI = {
       narratorVoteApproved: "The group gives the narrator 1 point.",
       narratorVoteRejected: "The group gives the narrator no point.",
       narratorVotePending: "Waiting for the final result…",
+      phaseWaiting: "Waiting for the narrator",
+      phaseCards: "Check your cards",
+      phaseReady: "Get ready",
+      phaseStory: "React",
+      phaseVoting: "Vote",
+      phaseResult: "Round complete",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -684,6 +708,28 @@ function getNarratorId(room, players = []) {
 
 function getAudience(players = [], narratorId) {
   return players.filter((player) => player.id !== narratorId);
+}
+
+function getPlayerPhase(room, player, bothRevealed, isReady, ui) {
+  if (!player?.secret_word || !player?.secret_action) return ui.player.phaseWaiting;
+  if (!bothRevealed) return ui.player.phaseCards;
+  if (!isReady) return ui.player.phaseReady;
+  if (room?.status === "voting") return ui.player.phaseVoting;
+  if (room?.status === "voted") return ui.player.phaseResult;
+  if (room?.story) return ui.player.phaseStory;
+  return ui.player.phaseWaiting;
+}
+
+function getHostPhase(tab, ui) {
+  const phases = {
+    lobby: ui.hostTabs.lobby,
+    cards: ui.hostTabs.cards,
+    ready: ui.hostTabs.ready,
+    story: ui.hostTabs.story,
+    resolve: ui.hostTabs.resolve,
+    scores: ui.hostTabs.scores,
+  };
+  return phases[tab] || ui.hostTabs.lobby;
 }
 
 const debugLog = [];
@@ -987,8 +1033,9 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart }) {
 
       {room?.round > 1 && room?.host_name && (
         <div style={{ ...S.card, borderColor: "rgba(251,191,36,.35)", background: "linear-gradient(180deg, rgba(251,191,36,.12), rgba(251,191,36,.04))", textAlign: "center" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.resolution.title}</div>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.hostLobby.nextRoundTitle}</div>
           <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{ui.resolution.nextUp(room.host_name)}</div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>{ui.hostLobby.nextRoundDesc}</div>
         </div>
       )}
 
@@ -1389,6 +1436,9 @@ function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onCh
           <div style={{ ...S.card, marginTop: viewport.isDesktop ? 0 : 12 }}>
         <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.pointsTitle}</div>
         <p style={S.bt}>{ui.resolution.pointsDesc}</p>
+        <div style={{ marginTop: 10, marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.22)", color: C.txt, fontSize: 13, fontWeight: 700 }}>
+          {ui.resolution.pointsRule}
+        </div>
         <div style={{ display: "grid", gap: 10 }}>
           {others.map((player) => (
             <div key={`${player.id}-score`} style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.bdr}` }}>
@@ -1459,6 +1509,10 @@ function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onCh
           </div>
           {nextCandidates.length > 0 && (
             <div style={{ ...S.card, marginTop: 12 }}>
+              <div style={{ marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.22)" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.resolution.roundSummaryTitle}</div>
+                <div style={{ fontSize: 13, color: C.txt, lineHeight: 1.6 }}>{ui.resolution.roundSummaryDesc}</div>
+              </div>
               <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.nextTitle}</div>
               <p style={S.bt}>{nextCandidates.length > 1 ? ui.resolution.nextDesc : ui.resolution.nextAuto}</p>
               <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
@@ -1787,6 +1841,10 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
           ))}
         </div>
       </nav>
+      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.common.phaseTitle}</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{getHostPhase(tab, ui)}</div>
+      </div>
       {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} onStart={() => setTab("cards")} />}
       {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setTab("ready"); }} />}
       {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onAllReady={() => setTab("story")} />}
@@ -1896,6 +1954,8 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
 
   const hasCards = player.secret_word && player.secret_action;
   const bothRevealed = cardRevealed.word && cardRevealed.action;
+  const playerPhase = getPlayerPhase(room, player, bothRevealed, isReady, ui);
+  const hasAsidePanel = room.status === "voting" || room.status === "voted";
 
   return (
     <div>
@@ -1905,6 +1965,11 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
         <div style={{ fontSize: 13, color: ACC.blue, marginTop: 2 }}>{ui.player.as} {playerName}</div>
       </div>
 
+      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.common.phaseTitle}</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{playerPhase}</div>
+      </div>
+
       {!hasCards ? (
         <div style={{ ...S.card, textAlign: "center", padding: "28px 20px", borderStyle: "dashed" }}>
           <div style={{ fontSize: 32, marginBottom: 12, animation: "pulse 2s infinite" }}>⏳</div>
@@ -1912,7 +1977,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
           <p style={S.bt}>{ui.player.hostDealing}</p>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1.15fr) minmax(320px, 0.85fr)" : "1fr", gap: 14, alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop && hasAsidePanel ? "minmax(0, 1.15fr) minmax(320px, 0.85fr)" : "1fr", gap: 14, alignItems: "start" }}>
           <div>
           <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
