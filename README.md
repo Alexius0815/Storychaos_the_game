@@ -1,5 +1,9 @@
 # Story Chaos
 
+<p align="center">
+  <img src="public/icon-192.png" alt="Story Chaos app icon" width="140" />
+</p>
+
 > Das Echtzeit-Partyspiel, bei dem niemand unauffaellig bleibt.
 
 **Story Chaos** ist ein browserbasiertes Multiplayer-Partyspiel fuer 2 bis 8 Spieler. Eine Person liest eine KI-generierte Geschichte vor, waehrend die anderen geheime Woerter und geheime Aktionen auf ihren Smartphones haben. Sobald das eigene Wort faellt, muss reagiert werden, ohne sich zu offensichtlich zu verraten.
@@ -12,6 +16,10 @@ Am Ende versucht der Erzaehler herauszufinden: **Wer hatte welches Wort?**
 
 Auf dem iPhone laesst sich das Spiel auch wie eine App nutzen:
 `Safari -> Teilen -> Zum Home-Bildschirm`
+
+## Visual Preview
+
+![Story Chaos gameplay preview](public/readme-preview.svg)
 
 ## At A Glance
 
@@ -100,7 +108,7 @@ Das Projekt ist bereits spielbar und auf schnelle Runden mit Freunden ausgelegt.
 - bessere Auswertung pro Runde
 - PWA-Ausbau fuer ein noch app-igeres Gefuehl
 
-## Screenshot / Demo Hinweis
+## Demo-Fokus
 
 Wenn du das Projekt praesentierst, lohnt es sich besonders, den QR-Join, die geheimen Karten und den Story-/Aufloesungsfluss zu zeigen. Genau dort entsteht der eigentliche Wow-Moment des Spiels.
 
