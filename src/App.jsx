@@ -188,9 +188,19 @@ const UI = {
     cards: {
       title: "🎴 Karten austeilen",
       desc: 'Jeder bekommt ein geheimes Wort und eine Aktion direkt aufs Handy. Danach muss jeder auf "Ich bin bereit" drücken bevor du die Geschichte generieren kannst.',
+      explainTitle: "Was stellst du hier ein?",
+      explainDesc: "Das sind keine verschiedenen Spielmodi. Du baust nur die nächste Runde zusammen: Sprache, Aktionsstil und Wortwelten.",
       gameLanguage: "Spielsprache",
+      gameLanguageHelp: "Bestimmt, in welcher Sprache Wörter, Aktionen und KI-Geschichte in dieser Runde erzeugt werden.",
       difficulty: "Aktions-Schwierigkeit",
+      difficultyHelp: {
+        easy: "Unauffällige, eher kleine Reaktionen",
+        medium: "Deutlichere Reaktionen mit mehr Risiko",
+        chaos: "Lauter, auffälliger und absurder",
+        mix: "Bunte Mischung aus allen Stufen",
+      },
       categories: "Wort-Kategorien",
+      categoriesHelp: "Hier legst du fest, aus welchen Themenbereichen die geheimen Wörter kommen.",
       minCategory: "Mindestens eine Kategorie auswählen!",
       players: (n) => `Mitspieler (${n})`,
       noPlayers: "Noch keine Mitspieler beigetreten.",
@@ -266,7 +276,7 @@ const UI = {
       allNarrators: "🎉 Alle waren Erzähler!",
       gameFinished: "Spiel beendet – Endstand im Punkte-Tab",
     },
-    hostTabs: { lobby: "Lobby", cards: "Karten", ready: "Bereit", story: "Story", timer: "Timer", resolve: "Lösung", scores: "Punkte", rounds: "Runden" },
+    hostTabs: { lobby: "Lobby", cards: "Karten", ready: "Bereit", story: "Story", resolve: "Lösung", scores: "Punkte", rounds: "Runden" },
     player: {
       inRoom: "Du bist in Raum",
       as: "als",
@@ -376,9 +386,19 @@ const UI = {
     cards: {
       title: "🎴 Deal cards",
       desc: 'Each player gets a secret word and a secret action right on their phone. After that, everyone must tap "I\'m ready" before you can generate the story.',
+      explainTitle: "What are you setting here?",
+      explainDesc: "These are not different game modes. You are just preparing the next round: language, action style, and word themes.",
       gameLanguage: "Game language",
+      gameLanguageHelp: "This decides the language for the secret words, actions, and AI story in this round.",
       difficulty: "Action difficulty",
+      difficultyHelp: {
+        easy: "Subtle and low-key reactions",
+        medium: "More obvious reactions with more risk",
+        chaos: "Louder, weirder, and much easier to spot",
+        mix: "A mixed pool from every difficulty",
+      },
       categories: "Word categories",
+      categoriesHelp: "Choose which theme buckets the secret words can come from.",
       minCategory: "Select at least one category!",
       players: (n) => `Players (${n})`,
       noPlayers: "No players have joined yet.",
@@ -454,7 +474,7 @@ const UI = {
       allNarrators: "🎉 Everyone has been the narrator!",
       gameFinished: "Game finished – final scores are in the score tab",
     },
-    hostTabs: { lobby: "Lobby", cards: "Cards", ready: "Ready", story: "Story", timer: "Timer", resolve: "Reveal", scores: "Scores", rounds: "Rounds" },
+    hostTabs: { lobby: "Lobby", cards: "Cards", ready: "Ready", story: "Story", resolve: "Reveal", scores: "Scores", rounds: "Rounds" },
     player: {
       inRoom: "You are in room",
       as: "as",
@@ -963,8 +983,14 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
         <p style={S.bt}>{ui.cards.desc}</p>
       </div>
 
+      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.26)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
+        <div style={{ ...S.st, marginBottom: 8 }}>{ui.cards.explainTitle}</div>
+        <p style={S.bt}>{ui.cards.explainDesc}</p>
+      </div>
+
       <div style={S.card}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.gameLanguage}</div>
+        <p style={{ ...S.bt, marginBottom: 12 }}>{ui.cards.gameLanguageHelp}</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {[{ id: "de", label: "Deutsch" }, { id: "en", label: "English" }].map((option) => (
             <button
@@ -981,6 +1007,13 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
 
       <div style={S.card}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.difficulty}</div>
+        <div style={{ display: "grid", gap: 6, marginBottom: 12 }}>
+          {Object.entries(content.diffLabels).map(([key, label]) => (
+            <div key={`${key}-help`} style={{ fontSize: 12, color: C.muted }}>
+              <span style={{ color: C.txt, fontWeight: 700 }}>{label}:</span> {ui.cards.difficultyHelp[key]}
+            </div>
+          ))}
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {Object.entries(content.diffLabels).map(([key, label]) => (
             <button key={key} onClick={() => setDiff(key)} aria-pressed={diff === key} style={{ minHeight: 48, padding: "10px 8px", borderRadius: 12, fontSize: 13, fontWeight: 700, border: `1.5px solid ${diff === key ? ACC.gold : C.bdr}`, background: diff === key ? "linear-gradient(180deg, rgba(251,191,36,.16), rgba(251,191,36,.08))" : C.sur2, color: diff === key ? ACC.gold : C.muted, cursor: "pointer" }}>
@@ -992,6 +1025,7 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
 
       <div style={S.card}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.categories}</div>
+        <p style={{ ...S.bt, marginBottom: 12 }}>{ui.cards.categoriesHelp}</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {Object.entries(content.categoryLabels).map(([key, label]) => {
             const active = cats.includes(key);
@@ -1494,7 +1528,6 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
     { id: "cards", icon: "🎴", label: ui.hostTabs.cards },
     { id: "ready", icon: "⏳", label: ui.hostTabs.ready },
     { id: "story", icon: "✨", label: ui.hostTabs.story },
-    { id: "timer", icon: "⏱", label: ui.hostTabs.timer },
     { id: "resolve", icon: "🎭", label: ui.hostTabs.resolve },
     { id: "scores", icon: "🏆", label: ui.hostTabs.scores },
     { id: "rounds", icon: "🔄", label: ui.hostTabs.rounds },
@@ -1523,7 +1556,6 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
       {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setTab("ready"); }} />}
       {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onAllReady={() => setTab("story")} />}
       {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} onOpenResolution={() => setTab("resolve")} />}
-      {tab === "timer" && <Timer ui={ui} C={C} S={S} />}
       {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onChooseNarrator={chooseNextNarrator} />}
       {tab === "scores" && <Scores room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} />}
       {tab === "rounds" && <RoundOverview room={room || { id: roomId, round: 1, past_narrators: [] }} players={players} ui={ui} C={C} S={S} />}
