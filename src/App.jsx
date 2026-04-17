@@ -186,7 +186,7 @@ const UI = {
       start: (n) => `Spiel starten mit ${n} Spieler${n !== 1 ? "n" : ""} →`,
     },
     cards: {
-      title: "🎴 Karten austeilen",
+      title: "🎴 Runde vorbereiten",
       desc: 'Jeder bekommt ein geheimes Wort und eine Aktion direkt aufs Handy. Danach muss jeder auf "Ich bin bereit" drücken bevor du die Geschichte generieren kannst.',
       explainTitle: "Was stellst du hier ein?",
       explainDesc: "Das sind keine verschiedenen Spielmodi. Du baust nur die nächste Runde zusammen: Sprache, Aktionsstil und Wortwelten.",
@@ -217,8 +217,10 @@ const UI = {
       continue: "Geschichte generieren →",
     },
     storyGen: {
-      title: "✨ KI-Geschichte",
+      title: "✨ Vorlesen",
       desc: "Wähle ein Thema. Die Geschichte enthält die Wörter aller Mitspieler. Du liest vor – beobachte die Reaktionen!",
+      flowTitle: "Ablauf dieser Runde",
+      flowSteps: ["Karten sind verteilt", "Alle sind bereit", "Geschichte vorlesen", "Danach auflösen und Punkte vergeben"],
       includedWords: "Einzubauende Wörter",
       theme: "Thema",
       generate: "Geschichte generieren",
@@ -236,6 +238,7 @@ const UI = {
     resolution: {
       title: "🎭 Auflösung",
       desc: "Wer hatte was? Hier die Karten aller Mitspieler auf einen Blick.",
+      scoringRule: "Der Erzähler vergibt die Punkte dieser Runde.",
       word: "🔵 Wort",
       action: "🔴 Aktion",
       pointsTitle: "Punkte vergeben",
@@ -248,6 +251,7 @@ const UI = {
       nextAuto: "Der nächste Erzähler steht schon fest.",
       nextRound: "Nächste Runde starten",
       chooseFirst: "Wähle zuerst den nächsten Erzähler.",
+      nextUp: (name) => `Nächste Runde: ${name} ist Erzähler`,
     },
     scores: {
       title: "🏆 Punktestand",
@@ -276,7 +280,7 @@ const UI = {
       allNarrators: "🎉 Alle waren Erzähler!",
       gameFinished: "Spiel beendet – Endstand im Punkte-Tab",
     },
-    hostTabs: { lobby: "Lobby", cards: "Karten", ready: "Bereit", story: "Story", resolve: "Lösung", scores: "Punkte", rounds: "Runden" },
+    hostTabs: { lobby: "Lobby", cards: "Runde", ready: "Bereit", story: "Vorlesen", resolve: "Auflösen", scores: "Punkte" },
     player: {
       inRoom: "Du bist in Raum",
       as: "als",
@@ -384,7 +388,7 @@ const UI = {
       start: (n) => `Start game with ${n} player${n !== 1 ? "s" : ""} →`,
     },
     cards: {
-      title: "🎴 Deal cards",
+      title: "🎴 Prepare round",
       desc: 'Each player gets a secret word and a secret action right on their phone. After that, everyone must tap "I\'m ready" before you can generate the story.',
       explainTitle: "What are you setting here?",
       explainDesc: "These are not different game modes. You are just preparing the next round: language, action style, and word themes.",
@@ -415,8 +419,10 @@ const UI = {
       continue: "Generate story →",
     },
     storyGen: {
-      title: "✨ AI story",
+      title: "✨ Read aloud",
       desc: "Choose a theme. The story includes every player's word. Read it aloud and watch the reactions!",
+      flowTitle: "Round flow",
+      flowSteps: ["Cards are dealt", "Everyone is ready", "Read the story aloud", "Then reveal and award points"],
       includedWords: "Words to include",
       theme: "Theme",
       generate: "Generate story",
@@ -434,6 +440,7 @@ const UI = {
     resolution: {
       title: "🎭 Reveal",
       desc: "Who had what? Here are all player cards at a glance.",
+      scoringRule: "The narrator awards the points for this round.",
       word: "🔵 Word",
       action: "🔴 Action",
       pointsTitle: "Award points",
@@ -446,6 +453,7 @@ const UI = {
       nextAuto: "The next narrator is already decided.",
       nextRound: "Start next round",
       chooseFirst: "Choose the next narrator first.",
+      nextUp: (name) => `Next round: ${name} is the narrator`,
     },
     scores: {
       title: "🏆 Scoreboard",
@@ -474,7 +482,7 @@ const UI = {
       allNarrators: "🎉 Everyone has been the narrator!",
       gameFinished: "Game finished – final scores are in the score tab",
     },
-    hostTabs: { lobby: "Lobby", cards: "Cards", ready: "Ready", story: "Story", resolve: "Reveal", scores: "Scores", rounds: "Rounds" },
+    hostTabs: { lobby: "Lobby", cards: "Round", ready: "Ready", story: "Read", resolve: "Reveal", scores: "Scores" },
     player: {
       inRoom: "You are in room",
       as: "as",
@@ -912,6 +920,13 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart }) {
         <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px" }}>{joinUrl}</div>
       </div>
 
+      {room?.round > 1 && room?.host_name && (
+        <div style={{ ...S.card, borderColor: "rgba(251,191,36,.35)", background: "linear-gradient(180deg, rgba(251,191,36,.12), rgba(251,191,36,.04))", textAlign: "center" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.resolution.title}</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{ui.resolution.nextUp(room.host_name)}</div>
+        </div>
+      )}
+
       <div style={S.card}>
         <div style={{ ...S.st, marginBottom: 10 }}>{ui.hostLobby.joined(others.length)}</div>
         {others.length === 0 ? (
@@ -1150,6 +1165,20 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
         <p style={S.bt}>{ui.storyGen.desc}</p>
       </div>
 
+      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.blue, marginBottom: 10 }}>{ui.storyGen.flowTitle}</div>
+        <div style={{ display: "grid", gap: 8 }}>
+          {ui.storyGen.flowSteps.map((step, index) => (
+            <div key={step} style={{ display: "flex", alignItems: "center", gap: 10, color: index < 2 || story ? C.txt : C.muted }}>
+              <span style={{ width: 24, height: 24, borderRadius: 999, display: "inline-flex", alignItems: "center", justifyContent: "center", background: index < 2 ? "rgba(74,222,128,.14)" : story && index === 2 ? "rgba(251,191,36,.14)" : C.sur2, border: `1px solid ${index < 2 ? "rgba(74,222,128,.35)" : story && index === 2 ? "rgba(251,191,36,.35)" : C.bdr}`, color: index < 2 ? ACC.greenl : story && index === 2 ? ACC.gold : C.muted, fontSize: 12, fontWeight: 800 }}>
+                {index + 1}
+              </span>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>{step}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <fieldset style={{ border: "none", margin: "0 0 14px", padding: 0 }}>
         <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10, display: "block" }}>{ui.storyGen.theme}</legend>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -1247,6 +1276,9 @@ function Resolution({ room, players, ui, C, S, onChooseNarrator }) {
       <div style={S.card}>
         <div style={S.st}>{ui.resolution.title}</div>
         <p style={S.bt}>{ui.resolution.desc}</p>
+        <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.24)", color: C.txt, fontSize: 14, fontWeight: 700 }}>
+          {ui.resolution.scoringRule}
+        </div>
       </div>
       {others.map((player) => (
         <div key={player.id} style={{ ...S.card, borderColor: player.ready ? "rgba(74,222,128,.25)" : C.bdr }}>
@@ -1530,7 +1562,6 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
     { id: "story", icon: "✨", label: ui.hostTabs.story },
     { id: "resolve", icon: "🎭", label: ui.hostTabs.resolve },
     { id: "scores", icon: "🏆", label: ui.hostTabs.scores },
-    { id: "rounds", icon: "🔄", label: ui.hostTabs.rounds },
   ];
 
   return (
@@ -1558,7 +1589,6 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
       {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} onOpenResolution={() => setTab("resolve")} />}
       {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onChooseNarrator={chooseNextNarrator} />}
       {tab === "scores" && <Scores room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} />}
-      {tab === "rounds" && <RoundOverview room={room || { id: roomId, round: 1, past_narrators: [] }} players={players} ui={ui} C={C} S={S} />}
     </div>
   );
 }
