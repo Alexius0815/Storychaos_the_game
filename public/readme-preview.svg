@@ -1,0 +1,51 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="720" rx="32" fill="#0D0D14"/>
+  <rect x="24" y="24" width="1152" height="672" rx="24" fill="url(#bg)" stroke="#2A2A3A" stroke-width="2"/>
+
+  <text x="72" y="112" fill="#F4F4F8" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="700">Story Chaos</text>
+  <text x="72" y="158" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="26">Realtime party game with QR join, secret cards, and AI-generated chaos.</text>
+
+  <rect x="72" y="220" width="250" height="360" rx="24" fill="#16161F" stroke="#2A2A3A"/>
+  <circle cx="122" cy="274" r="18" fill="#60A5FA"/>
+  <text x="156" y="282" fill="#F4F4F8" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">1. Create Room</text>
+  <text x="98" y="338" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="22">Host starts a round,</text>
+  <text x="98" y="370" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="22">shares a code, and</text>
+  <text x="98" y="402" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="22">opens the lobby.</text>
+  <rect x="98" y="452" width="198" height="72" rx="16" fill="#1E1E2A" stroke="#60A5FA"/>
+  <text x="136" y="498" fill="#BFDBFE" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700">AB123</text>
+
+  <rect x="342" y="220" width="250" height="360" rx="24" fill="#16161F" stroke="#2A2A3A"/>
+  <circle cx="392" cy="274" r="18" fill="#FBBF24"/>
+  <text x="426" y="282" fill="#F4F4F8" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">2. Join Fast</text>
+  <rect x="410" y="334" width="114" height="114" rx="12" fill="#F4F4F8"/>
+  <path d="M430 354H448V372H430V354ZM448 354H466V372H448V354ZM484 354H502V372H484V354ZM430 372H448V390H430V372ZM466 372H484V390H466V372ZM484 372H502V390H484V372ZM430 408H448V426H430V408ZM448 408H466V426H448V408ZM484 408H502V426H484V408Z" fill="#111118"/>
+  <text x="372" y="500" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="22">Players scan the QR code</text>
+  <text x="382" y="532" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="22">and join on mobile.</text>
+
+  <rect x="612" y="220" width="250" height="360" rx="24" fill="#16161F" stroke="#2A2A3A"/>
+  <circle cx="662" cy="274" r="18" fill="#F87171"/>
+  <text x="696" y="282" fill="#F4F4F8" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">3. Secret Cards</text>
+  <rect x="646" y="338" width="182" height="74" rx="16" fill="#1E1E2A" stroke="#60A5FA"/>
+  <rect x="646" y="428" width="182" height="74" rx="16" fill="#1E1E2A" stroke="#F87171"/>
+  <text x="676" y="384" fill="#BFDBFE" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Secret Word</text>
+  <text x="672" y="474" fill="#FECACA" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Secret Action</text>
+  <text x="638" y="534" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="22">Everyone gets a private</text>
+  <text x="654" y="566" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="22">mission to protect.</text>
+
+  <rect x="882" y="220" width="250" height="360" rx="24" fill="#16161F" stroke="#2A2A3A"/>
+  <circle cx="932" cy="274" r="18" fill="#4ADE80"/>
+  <text x="966" y="282" fill="#F4F4F8" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">4. Tell Story</text>
+  <text x="908" y="344" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="22">AI writes the story.</text>
+  <text x="908" y="376" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="22">Players react on cue.</text>
+  <text x="908" y="408" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="22">Narrator guesses who</text>
+  <text x="908" y="440" fill="#B8B8C8" font-family="Arial, Helvetica, sans-serif" font-size="22">had which word.</text>
+  <rect x="926" y="478" width="162" height="46" rx="23" fill="#143022" stroke="#4ADE80"/>
+  <text x="965" y="508" fill="#BBF7D0" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Round Reveal</text>
+
+  <defs>
+    <linearGradient id="bg" x1="64" y1="48" x2="1100" y2="672" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#13131C"/>
+      <stop offset="1" stop-color="#1A1821"/>
+    </linearGradient>
+  </defs>
+</svg>
