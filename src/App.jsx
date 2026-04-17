@@ -1679,22 +1679,28 @@ export default function App() {
   `;
 
   return (
-    <div style={{ background: C.bg, minHeight: "100vh", color: C.txt, fontFamily: FF }}>
+    <div style={{ background: `radial-gradient(circle at top, ${dark ? "rgba(96,165,250,.08)" : "rgba(96,165,250,.10)"} 0%, ${C.bg} 34%)`, minHeight: "100vh", color: C.txt, fontFamily: FF }}>
       <style>{GS}</style>
-      <div style={{ maxWidth: 500, margin: "0 auto", padding: "0 16px 60px" }}>
-        <header style={{ textAlign: "center", padding: "20px 0 12px", position: "relative" }}>
-          <div style={{ position: "absolute", right: 0, top: 20, display: "flex", gap: 8 }}>
-            <button onClick={() => setLang((current) => current === "de" ? "en" : "de")} aria-label={ui.aria.toggleLanguage} style={{ background: C.sur2, border: `1px solid ${C.bdr}`, color: C.muted, padding: "6px 10px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+      <div style={{ maxWidth: 500, margin: "0 auto", padding: "0 14px 64px" }}>
+        <header style={{ textAlign: "center", padding: "24px 0 16px" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
+            <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+              <h1 onClick={handleLogoTap} style={{ fontSize: "clamp(27px,8.8vw,50px)", fontWeight: 900, letterSpacing: "-0.06em", textTransform: "uppercase", background: "linear-gradient(135deg,#f59e0b,#facc15 45%,#60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", lineHeight: 0.94, margin: 0, cursor: "default", userSelect: "none" }}>
+                Story Chaos
+              </h1>
+              <p style={{ fontSize: 10, letterSpacing: 3.2, color: C.muted, textTransform: "uppercase", marginTop: 8, paddingLeft: 2 }}>
+                {ui.subtitle}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 6, flexShrink: 0, paddingTop: 2 }}>
+            <button onClick={() => setLang((current) => current === "de" ? "en" : "de")} aria-label={ui.aria.toggleLanguage} style={{ background: C.sur, border: `1px solid ${C.bdr}`, color: C.txt, minWidth: 42, height: 34, padding: "0 10px", borderRadius: 11, cursor: "pointer", fontSize: 11, fontWeight: 800, boxShadow: dark ? "inset 0 1px 0 rgba(255,255,255,.03)" : "0 8px 20px rgba(15,23,42,.06)" }}>
               {lang === "de" ? "DE" : "EN"}
             </button>
-            <button onClick={toggleTheme} aria-label={ui.aria.toggleTheme} style={{ background: C.sur2, border: `1px solid ${C.bdr}`, color: C.muted, padding: "6px 10px", borderRadius: 8, cursor: "pointer", fontSize: 16 }}>
+            <button onClick={toggleTheme} aria-label={ui.aria.toggleTheme} style={{ background: C.sur, border: `1px solid ${C.bdr}`, color: C.txt, width: 38, height: 34, padding: 0, borderRadius: 11, cursor: "pointer", fontSize: 15, boxShadow: dark ? "inset 0 1px 0 rgba(255,255,255,.03)" : "0 8px 20px rgba(15,23,42,.06)" }}>
               {dark ? "☀️" : "🌙"}
             </button>
           </div>
-          <h1 onClick={handleLogoTap} style={{ fontSize: "clamp(34px,9vw,54px)", fontWeight: 800, letterSpacing: -1, textTransform: "uppercase", background: "linear-gradient(135deg,#f87171,#fbbf24 50%,#60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", lineHeight: 1, margin: 0, cursor: "default", userSelect: "none" }}>
-            Story Chaos
-          </h1>
-          <p style={{ fontSize: 11, letterSpacing: 3, color: C.muted, textTransform: "uppercase", marginTop: 5 }}>{ui.subtitle}</p>
+          </div>
         </header>
 
         <OfflineBanner C={C} ui={ui} />
@@ -1702,19 +1708,19 @@ export default function App() {
         <main>
           {screen === "home" && (
             <div style={{ animation: "fadeIn .3s ease" }}>
-              <div style={{ ...S.card, textAlign: "center", padding: "28px 20px", marginBottom: 10 }}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>🎲</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: C.txt, marginBottom: 8 }}>{ui.home.welcome}</div>
-                <p style={{ ...S.bt, marginBottom: 20 }}>{ui.home.desc}</p>
-                <button onClick={() => setScreen("create")} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginBottom: 10 }}>{ui.home.newGame}</button>
-                <button onClick={() => setScreen("join")} style={S.pbtn(C.bdr, C.sur)}>{ui.home.joinRoom}</button>
+              <div style={{ ...S.card, textAlign: "center", padding: "26px 16px 18px", marginBottom: 14, borderRadius: 16, background: dark ? "linear-gradient(180deg, rgba(28,28,40,.96), rgba(22,22,31,.96))" : "linear-gradient(180deg, rgba(255,255,255,.98), rgba(244,246,252,.98))", boxShadow: dark ? "0 12px 40px rgba(0,0,0,.24)" : "0 18px 45px rgba(15,23,42,.08)" }}>
+                <div style={{ width: 70, height: 70, margin: "0 auto 14px", borderRadius: 20, display: "grid", placeItems: "center", fontSize: 38, background: dark ? "linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02))" : "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))", border: `1px solid ${dark ? "rgba(255,255,255,.08)" : "rgba(96,165,250,.18)"}` }}>🎲</div>
+                <div style={{ fontSize: 28, fontWeight: 800, color: C.txt, marginBottom: 8, letterSpacing: "-0.03em" }}>{ui.home.welcome}</div>
+                <p style={{ ...S.bt, fontSize: 15, lineHeight: 1.65, marginBottom: 22, maxWidth: 290, marginInline: "auto" }}>{ui.home.desc}</p>
+                <button onClick={() => setScreen("create")} style={{ ...S.pbtn(ACC.blue, dark ? "linear-gradient(180deg, rgba(96,165,250,.18), rgba(96,165,250,.08))" : "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))"), marginBottom: 10, minHeight: 56, borderRadius: 13, boxShadow: "0 0 0 1px rgba(96,165,250,.18) inset" }}>{ui.home.newGame}</button>
+                <button onClick={() => setScreen("join")} style={{ ...S.pbtn(C.bdr, C.sur), minHeight: 54, borderRadius: 13, color: C.txt, background: dark ? "rgba(255,255,255,.02)" : "rgba(255,255,255,.7)" }}>{ui.home.joinRoom}</button>
               </div>
-              <div style={{ ...S.card, padding: "14px 18px" }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.home.howItWorks}</div>
+              <div style={{ ...S.card, padding: "16px 16px 12px", borderRadius: 16, background: dark ? "rgba(24,24,35,.92)" : "rgba(255,255,255,.92)", boxShadow: dark ? "0 10px 30px rgba(0,0,0,.18)" : "0 16px 40px rgba(15,23,42,.06)" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2.2, textTransform: "uppercase", color: C.muted, marginBottom: 12 }}>{ui.home.howItWorks}</div>
                 {ui.home.steps.map((step, index) => (
-                  <div key={index} style={{ display: "flex", gap: 10, padding: "6px 0", borderBottom: index < ui.home.steps.length - 1 ? `1px solid ${C.bdr}` : "none" }}>
-                    <span style={{ fontSize: 13, color: ACC.blue, fontWeight: 700, minWidth: 20 }}>{index + 1}.</span>
-                    <span style={{ fontSize: 13, color: C.muted }}>{step}</span>
+                  <div key={index} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 0", borderBottom: index < ui.home.steps.length - 1 ? `1px solid ${C.bdr}` : "none" }}>
+                    <span style={{ fontSize: 13, color: ACC.blue, fontWeight: 800, minWidth: 22, paddingTop: 1 }}>{index + 1}.</span>
+                    <span style={{ fontSize: 13.5, color: C.txt, lineHeight: 1.45 }}>{step}</span>
                   </div>
                 ))}
               </div>
