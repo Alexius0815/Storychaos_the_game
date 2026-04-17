@@ -226,8 +226,21 @@ const UI = {
       desc: "Wer hatte was? Hier die Karten aller Mitspieler auf einen Blick.",
       word: "🔵 Wort",
       action: "🔴 Aktion",
+      pointsTitle: "Punkte vergeben",
+      pointsDesc: "Du entscheidest als Erzähler, wer für diese Runde Punkte bekommt.",
+      currentScore: "Punktestand",
+      addPoint: "+1 Punkt",
+      removePoint: "-1 Punkt",
+      nextTitle: "Nächsten Erzähler wählen",
+      nextDesc: "Bestimme jetzt, wer in der nächsten Runde die Hauptansicht bekommt.",
+      nextAuto: "Der nächste Erzähler steht schon fest.",
+      nextRound: "Nächste Runde starten",
+      chooseFirst: "Wähle zuerst den nächsten Erzähler.",
     },
-    scores: { title: "🏆 Punktestand" },
+    scores: {
+      title: "🏆 Punktestand",
+      desc: "Gespeicherte Punkte aller Mitspieler.",
+    },
     timer: {
       duration: "Dauer",
       minutes: "min",
@@ -399,8 +412,21 @@ const UI = {
       desc: "Who had what? Here are all player cards at a glance.",
       word: "🔵 Word",
       action: "🔴 Action",
+      pointsTitle: "Award points",
+      pointsDesc: "As the narrator, you decide who earns points this round.",
+      currentScore: "Score",
+      addPoint: "+1 point",
+      removePoint: "-1 point",
+      nextTitle: "Choose the next narrator",
+      nextDesc: "Decide who gets the main narrator view for the next round.",
+      nextAuto: "The next narrator is already decided.",
+      nextRound: "Start next round",
+      chooseFirst: "Choose the next narrator first.",
     },
-    scores: { title: "🏆 Scoreboard" },
+    scores: {
+      title: "🏆 Scoreboard",
+      desc: "Saved points for all players.",
+    },
     timer: {
       duration: "Duration",
       minutes: "min",
@@ -1135,9 +1161,41 @@ function HostStory({ room, storyWords, ui, contentLang, C, S }) {
   );
 }
 
-function Resolution({ room, players, ui, C, S }) {
+function Resolution({ room, players, ui, C, S, onChooseNarrator }) {
   const narratorId = getNarratorId(room, players);
   const others = getAudience(players, narratorId);
+  const [selectedNextId, setSelectedNextId] = useState("");
+  const [savingScoreId, setSavingScoreId] = useState(null);
+  const [startingNextRound, setStartingNextRound] = useState(false);
+
+  useEffect(() => {
+    const candidates = others.filter((player) => player.id !== narratorId);
+    if (candidates.length === 1) {
+      setSelectedNextId(candidates[0].id);
+      return;
+    }
+    setSelectedNextId((current) => (candidates.some((player) => player.id === current) ? current : ""));
+  }, [others, narratorId]);
+
+  async function changeScore(player, delta) {
+    const nextScore = Math.max(0, (player.score || 0) + delta);
+    setSavingScoreId(player.id);
+    await sb.from("players").update({ score: nextScore }).eq("id", player.id);
+    setSavingScoreId(null);
+  }
+
+  async function startNextRound() {
+    if (!onChooseNarrator) return;
+    const nextPlayer = others.find((player) => player.id === selectedNextId);
+    if (!nextPlayer) return;
+    setStartingNextRound(true);
+    await onChooseNarrator(nextPlayer);
+    setStartingNextRound(false);
+  }
+
+  const nextCandidates = others.filter((player) => player.id !== narratorId);
+  const canAdvance = !!selectedNextId;
+
   return (
     <div>
       <div style={S.card}>
@@ -1159,36 +1217,86 @@ function Resolution({ room, players, ui, C, S }) {
           </div>
         </div>
       ))}
+      <div style={{ ...S.card, marginTop: 12 }}>
+        <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.pointsTitle}</div>
+        <p style={S.bt}>{ui.resolution.pointsDesc}</p>
+        <div style={{ display: "grid", gap: 10 }}>
+          {others.map((player) => (
+            <div key={`${player.id}-score`} style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.bdr}` }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{player.name}</div>
+                  <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
+                    {ui.resolution.currentScore}: <span style={{ color: ACC.gold, fontWeight: 800 }}>{player.score || 0}</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => changeScore(player, -1)} disabled={savingScoreId === player.id} style={{ ...S.sbtn(C.muted), minWidth: 92 }}>
+                    {ui.resolution.removePoint}
+                  </button>
+                  <button onClick={() => changeScore(player, 1)} disabled={savingScoreId === player.id} style={{ ...S.sbtn(ACC.gold), minWidth: 92 }}>
+                    {ui.resolution.addPoint}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {nextCandidates.length > 0 && (
+        <div style={{ ...S.card, marginTop: 12 }}>
+          <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.nextTitle}</div>
+          <p style={S.bt}>{nextCandidates.length > 1 ? ui.resolution.nextDesc : ui.resolution.nextAuto}</p>
+          <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+            {nextCandidates.map((player) => {
+              const active = selectedNextId === player.id;
+              return (
+                <button
+                  key={`${player.id}-next`}
+                  onClick={() => setSelectedNextId(player.id)}
+                  aria-pressed={active}
+                  style={{
+                    background: active ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur2,
+                    border: `1.5px solid ${active ? ACC.blue : C.bdr}`,
+                    color: active ? ACC.bluel : C.txt,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    padding: "14px 16px",
+                    borderRadius: 12,
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  {player.name}
+                </button>
+              );
+            })}
+          </div>
+          <button onClick={startNextRound} disabled={!canAdvance || startingNextRound} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginTop: 14 }}>
+            {startingNextRound ? ui.common.loading : ui.resolution.nextRound}
+          </button>
+          {!canAdvance && <p style={{ fontSize: 12, color: C.muted, marginTop: 10 }}>{ui.resolution.chooseFirst}</p>}
+        </div>
+      )}
     </div>
   );
 }
 
 function Scores({ room, players, ui, C, S }) {
-  const narratorId = getNarratorId(room, players);
-  const [scores, setScores] = useState(() => {
-    const map = {};
-    getAudience(players, narratorId).forEach((player) => { map[player.id] = player.score || 0; });
-    return map;
-  });
-  function change(id, delta) {
-    setScores((current) => ({ ...current, [id]: Math.max(0, (current[id] || 0) + delta) }));
-  }
-  const others = getAudience(players, narratorId);
-  const sorted = [...others].sort((a, b) => (scores[b.id] || 0) - (scores[a.id] || 0));
+  const sorted = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
   const medals = ["🥇", "🥈", "🥉"];
 
   return (
     <div>
       <div style={S.card}>
         <div style={S.st}>{ui.scores.title}</div>
+        <p style={{ ...S.bt, marginBottom: 12 }}>{ui.scores.desc}</p>
         <ul style={{ listStyle: "none", padding: 0 }}>
           {sorted.map((player, index) => (
             <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 8, background: C.sur2, borderRadius: 8, padding: "10px 12px", marginBottom: 8 }}>
               <span style={{ fontSize: 16, minWidth: 26 }}>{medals[index] || `${index + 1}.`}</span>
               <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: C.txt }}>{player.name}</span>
-              <button onClick={() => change(player.id, -1)} style={{ background: C.bdr, border: "none", color: C.txt, width: 32, height: 32, borderRadius: 6, fontSize: 18, fontWeight: 700, cursor: "pointer" }}>-</button>
-              <span style={{ fontSize: 24, fontWeight: 800, color: ACC.gold, minWidth: 36, textAlign: "center" }}>{scores[player.id] || 0}</span>
-              <button onClick={() => change(player.id, +1)} style={{ background: C.bdr, border: "none", color: C.txt, width: 32, height: 32, borderRadius: 6, fontSize: 18, fontWeight: 700, cursor: "pointer" }}>+</button>
+              <span style={{ fontSize: 24, fontWeight: 800, color: ACC.gold, minWidth: 36, textAlign: "center" }}>{player.score || 0}</span>
             </li>
           ))}
         </ul>
@@ -1267,7 +1375,7 @@ function Timer({ ui, C, S }) {
   );
 }
 
-function RoundOverview({ room, players, ui, C, S, onChooseNarrator }) {
+function RoundOverview({ room, players, ui, C, S }) {
   const narratorId = getNarratorId(room, players);
   const others = getAudience(players, narratorId);
   const narrator = players.find((player) => player.id === narratorId);
@@ -1301,11 +1409,6 @@ function RoundOverview({ room, players, ui, C, S, onChooseNarrator }) {
                 <span style={{ fontSize: 14, color: C.txt, flex: 1 }}>{player.name}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 11, color: C.muted }}>{current ? ui.rounds.current : was ? ui.rounds.done : ui.rounds.waiting}</span>
-                  {!current && onChooseNarrator && (
-                    <button onClick={() => onChooseNarrator(player)} style={S.sbtn(ACC.blue)}>
-                      {ui.rounds.chooseNext}
-                    </button>
-                  )}
                 </div>
               </li>
             );
@@ -1412,9 +1515,9 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
       {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onAllReady={() => setTab("story")} />}
       {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} />}
       {tab === "timer" && <Timer ui={ui} C={C} S={S} />}
-      {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} />}
+      {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onChooseNarrator={chooseNextNarrator} />}
       {tab === "scores" && <Scores room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} />}
-      {tab === "rounds" && <RoundOverview room={room || { id: roomId, round: 1, past_narrators: [] }} players={players} ui={ui} C={C} S={S} onChooseNarrator={chooseNextNarrator} />}
+      {tab === "rounds" && <RoundOverview room={room || { id: roomId, round: 1, past_narrators: [] }} players={players} ui={ui} C={C} S={S} />}
     </div>
   );
 }
