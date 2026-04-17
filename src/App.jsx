@@ -125,6 +125,8 @@ const UI = {
       leave: "Verlassen",
       deleteRoom: "Raum löschen",
       deleting: "Lösche…",
+      takeOverRoom: "Raum übernehmen",
+      takingOver: "Übernehme…",
       leaveRoom: "Raum verlassen",
       back: "← Zurück",
       loading: "Verbinde…",
@@ -337,6 +339,8 @@ const UI = {
       phaseStory: "Reagieren",
       phaseVoting: "Abstimmen",
       phaseResult: "Runde beendet",
+      takeOverTitle: "Kein aktiver Erzähler",
+      takeOverDesc: "Der bisherige Erzähler scheint nicht mehr verbunden zu sein. Du kannst den Raum übernehmen und weiterspielen.",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -356,6 +360,14 @@ const UI = {
       fail: "FEHLER",
       deletedRooms: "Alte Räume gelöscht",
       debugOpened: "Debug geöffnet",
+      sessions: "Sessions",
+      checkSessions: "Sessions prüfen",
+      checkingSessions: "Prüfe Sessions…",
+      activeSessions: (n) => `${n} aktiv`,
+      noActiveSessions: "Keine aktiven Sessions",
+      narratorMissing: "Kein aktiver Erzähler",
+      deleteInactive: "Inaktive löschen",
+      roomDeleted: "Raum gelöscht",
     },
   },
   en: {
@@ -366,6 +378,8 @@ const UI = {
       leave: "Leave",
       deleteRoom: "Delete room",
       deleting: "Deleting…",
+      takeOverRoom: "Take over room",
+      takingOver: "Taking over…",
       leaveRoom: "Leave room",
       back: "← Back",
       loading: "Connecting…",
@@ -578,6 +592,8 @@ const UI = {
       phaseStory: "React",
       phaseVoting: "Vote",
       phaseResult: "Round complete",
+      takeOverTitle: "No active narrator",
+      takeOverDesc: "The previous narrator seems to be offline. You can take over the room and continue the game.",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -597,6 +613,14 @@ const UI = {
       fail: "FAIL",
       deletedRooms: "Deleted old rooms",
       debugOpened: "Opened debug panel",
+      sessions: "Sessions",
+      checkSessions: "Check sessions",
+      checkingSessions: "Checking sessions…",
+      activeSessions: (n) => `${n} active`,
+      noActiveSessions: "No active sessions",
+      narratorMissing: "No active narrator",
+      deleteInactive: "Delete inactive",
+      roomDeleted: "Deleted room",
     },
   },
 };
@@ -740,6 +764,31 @@ function getHostPhase(tab, ui) {
   return phases[tab] || ui.hostTabs.lobby;
 }
 
+function flattenPresence(state = {}) {
+  return Object.values(state).flatMap((entries) => entries || []);
+}
+
+async function inspectRoomPresence(roomId) {
+  return await new Promise((resolve) => {
+    const channel = sb.channel(`presence-room-${roomId}`, { config: { presence: { key: `inspect-${roomId}-${Math.random().toString(36).slice(2, 8)}` } } });
+    let done = false;
+
+    const finish = (snapshot = {}) => {
+      if (done) return;
+      done = true;
+      sb.removeChannel(channel);
+      resolve(flattenPresence(snapshot));
+    };
+
+    channel.subscribe((status) => {
+      if (status === "SUBSCRIBED") finish(channel.presenceState());
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") finish({});
+    });
+
+    setTimeout(() => finish(channel.presenceState?.() || {}), 1200);
+  });
+}
+
 const debugLog = [];
 function addLog(level, msg, detail = "") {
   debugLog.unshift({ time: new Date().toLocaleTimeString(), level, msg, detail: String(detail).slice(0, 200) });
@@ -868,6 +917,8 @@ function DebugPanel({ onClose, C, S, ui }) {
   const [sbStatus, setSbStatus] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [testing, setTesting] = useState(false);
+  const [checkingSessions, setCheckingSessions] = useState(false);
+  const [roomSessions, setRoomSessions] = useState({});
 
   useEffect(() => { checkSb(); loadRooms(); }, []);
 
@@ -882,8 +933,19 @@ function DebugPanel({ onClose, C, S, ui }) {
   }
 
   async function loadRooms() {
-    const { data } = await sb.from("rooms").select("id,host_name,status,created_at,round").order("created_at", { ascending: false }).limit(15);
+    const { data } = await sb.from("rooms").select("id,host_name,status,created_at,round,narrator_id").order("created_at", { ascending: false }).limit(15);
     setRooms(data || []);
+  }
+
+  async function checkSessions() {
+    setCheckingSessions(true);
+    const entries = await Promise.all((rooms || []).map(async (room) => {
+      const members = await inspectRoomPresence(room.id);
+      const activeIds = members.map((member) => member.playerId).filter(Boolean);
+      return [room.id, { count: members.length, narratorOnline: !!room.narrator_id && activeIds.includes(room.narrator_id), members }];
+    }));
+    setRoomSessions(Object.fromEntries(entries));
+    setCheckingSessions(false);
   }
 
   async function testApis() {
@@ -939,6 +1001,31 @@ function DebugPanel({ onClose, C, S, ui }) {
     addLog("info", ui.debug.deletedRooms);
   }
 
+  async function deleteRoomById(roomId) {
+    await sb.from("players").delete().eq("room_id", roomId);
+    await sb.from("rooms").delete().eq("id", roomId);
+    setRoomSessions((current) => {
+      const next = { ...current };
+      delete next[roomId];
+      return next;
+    });
+    loadRooms();
+    addLog("info", ui.debug.roomDeleted, roomId);
+  }
+
+  async function deleteInactiveRooms() {
+    const source = Object.keys(roomSessions).length > 0 ? roomSessions : Object.fromEntries(await Promise.all((rooms || []).map(async (room) => {
+      const members = await inspectRoomPresence(room.id);
+      const activeIds = members.map((member) => member.playerId).filter(Boolean);
+      return [room.id, { count: members.length, narratorOnline: !!room.narrator_id && activeIds.includes(room.narrator_id), members }];
+    })));
+    for (const room of rooms) {
+      if ((source[room.id]?.count || 0) === 0) {
+        await deleteRoomById(room.id);
+      }
+    }
+  }
+
   const badge = (ok) => (
     <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10, background: ok === undefined ? "transparent" : ok ? "rgba(74,222,128,.15)" : "rgba(248,113,113,.15)", color: ok === undefined ? C.muted : ok ? ACC.greenl : ACC.redl, border: `1px solid ${ok === undefined ? C.bdr : ok ? "rgba(74,222,128,.3)" : "rgba(248,113,113,.3)"}` }}>
       {ok === undefined ? "–" : ok ? ui.debug.ok : ui.debug.fail}
@@ -984,6 +1071,31 @@ function DebugPanel({ onClose, C, S, ui }) {
 
         <div style={S.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted }}>{ui.debug.sessions}</div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button onClick={checkSessions} disabled={checkingSessions} style={S.sbtn(ACC.blue)}>{checkingSessions ? ui.debug.checkingSessions : ui.debug.checkSessions}</button>
+              <button onClick={deleteInactiveRooms} style={S.sbtn(ACC.red)}>{ui.debug.deleteInactive}</button>
+            </div>
+          </div>
+          {Object.keys(roomSessions).length === 0 ? <p style={{ fontSize: 13, color: C.muted }}>{ui.debug.notTested}</p> : rooms.map((room) => {
+            const session = roomSessions[room.id];
+            if (!session) return null;
+            return (
+              <div key={`${room.id}-session`} style={{ padding: "8px 0", borderBottom: `1px solid ${C.bdr}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 13, color: C.txt, fontWeight: 700 }}>{room.id}</span>
+                  <span style={{ fontSize: 11, color: session.count > 0 ? ACC.greenl : C.muted }}>
+                    {session.count > 0 ? ui.debug.activeSessions(session.count) : ui.debug.noActiveSessions}
+                  </span>
+                </div>
+                {!session.narratorOnline && <div style={{ fontSize: 11, color: ACC.gold, marginTop: 4 }}>{ui.debug.narratorMissing}</div>}
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={S.card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted }}>{ui.debug.rooms(rooms.length)}</div>
             <div style={{ display: "flex", gap: 6 }}>
               <button onClick={loadRooms} style={S.sbtn(C.muted)}>↻</button>
@@ -999,6 +1111,7 @@ function DebugPanel({ onClose, C, S, ui }) {
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 10, background: C.sur2, color: C.muted }}>{room.status}</span>
                 <span style={{ fontSize: 10, color: C.muted }}>{timeAgo(room.created_at)}</span>
+                <button onClick={() => deleteRoomById(room.id)} style={S.sbtn(ACC.red)}>✕</button>
               </div>
             </div>
           ))}
@@ -2210,6 +2323,9 @@ function CreateRoom({ onCreated, ui, C, S }) {
 function RoomShell({ roomId, playerName, onLeave, lang, ui, contentLang, setContentLang, C, S }) {
   const [player, setPlayer] = useState(null);
   const [room, setRoom] = useState(null);
+  const [activeSessions, setActiveSessions] = useState([]);
+  const [presenceReady, setPresenceReady] = useState(false);
+  const [takingOver, setTakingOver] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -2226,6 +2342,22 @@ function RoomShell({ roomId, playerName, onLeave, lang, ui, contentLang, setCont
     return () => sb.removeChannel(channel);
   }, [roomId, playerName]);
 
+  useEffect(() => {
+    if (!player || !room) return undefined;
+    const presenceChannel = sb.channel(`presence-room-${roomId}`, { config: { presence: { key: `player-${player.id}` } } });
+    presenceChannel
+      .on("presence", { event: "sync" }, () => {
+        setActiveSessions(flattenPresence(presenceChannel.presenceState()));
+        setPresenceReady(true);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await presenceChannel.track({ playerId: player.id, playerName: player.name, narrator: room.narrator_id === player.id, joinedAt: new Date().toISOString() });
+        }
+      });
+    return () => sb.removeChannel(presenceChannel);
+  }, [roomId, player?.id, player?.name, room?.id, room?.narrator_id]);
+
   if (!player || !room) {
     return (
       <div style={{ textAlign: "center", padding: 40 }}>
@@ -2236,12 +2368,35 @@ function RoomShell({ roomId, playerName, onLeave, lang, ui, contentLang, setCont
   }
 
   const isNarrator = room.narrator_id ? room.narrator_id === player.id : player.is_host;
+  const activeIds = activeSessions.map((session) => session.playerId).filter(Boolean);
+  const narratorOnline = !!room.narrator_id && activeIds.includes(room.narrator_id);
+  const canTakeOver = presenceReady && !isNarrator && (!room.narrator_id || !narratorOnline);
+
+  async function takeOverRoom() {
+    if (!player || takingOver) return;
+    setTakingOver(true);
+    await sb.from("rooms").update({ narrator_id: player.id, host_name: player.name }).eq("id", roomId);
+    setTakingOver(false);
+  }
 
   if (isNarrator) {
     return <HostApp roomId={roomId} hostName={playerName} onLeave={onLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} />;
   }
 
-  return <PlayerView roomId={roomId} playerName={playerName} onLeave={onLeave} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} />;
+  return (
+    <div>
+      {canTakeOver && (
+        <div style={{ ...S.card, borderColor: "rgba(251,191,36,.35)", background: "linear-gradient(180deg, rgba(251,191,36,.12), rgba(251,191,36,.04))" }}>
+          <div style={{ ...S.st, marginBottom: 8 }}>{ui.player.takeOverTitle}</div>
+          <p style={{ ...S.bt, marginBottom: 14 }}>{ui.player.takeOverDesc}</p>
+          <button onClick={takeOverRoom} disabled={takingOver} style={S.pbtn(ACC.gold, "rgba(251,191,36,.10)")}>
+            {takingOver ? ui.common.takingOver : ui.common.takeOverRoom}
+          </button>
+        </div>
+      )}
+      <PlayerView roomId={roomId} playerName={playerName} onLeave={onLeave} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} />
+    </div>
+  );
 }
 
 export default function App() {
