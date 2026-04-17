@@ -627,6 +627,25 @@ function useLanguage(initial) {
   return [lang, setLang];
 }
 
+function useViewport() {
+  const [width, setWidth] = useState(() => window.innerWidth);
+
+  useEffect(() => {
+    function onResize() {
+      setWidth(window.innerWidth);
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  return {
+    width,
+    isPhone: width < 640,
+    isTablet: width >= 640 && width < 1024,
+    isDesktop: width >= 1024,
+  };
+}
+
 function makeStyles(C) {
   return {
     card: { background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 16, padding: 18, marginBottom: 14, boxShadow: C.bg === "#0d0d14" ? "0 12px 32px rgba(0,0,0,.18)" : "0 16px 40px rgba(15,23,42,.06)" },
@@ -1165,6 +1184,7 @@ function ReadyCheck({ room, players, ui, C, S, onAllReady }) {
 }
 
 function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }) {
+  const viewport = useViewport();
   const [genre, setGenre] = useState(null);
   const [story, setStory] = useState(room.story || "");
   const [loading, setLoading] = useState(false);
@@ -1211,78 +1231,85 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
         <p style={S.bt}>{ui.storyGen.desc}</p>
       </div>
 
-      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.blue, marginBottom: 10 }}>{ui.storyGen.flowTitle}</div>
-        <div style={{ display: "grid", gap: 8 }}>
-          {ui.storyGen.flowSteps.map((step, index) => (
-            <div key={step} style={{ display: "flex", alignItems: "center", gap: 10, color: index < 2 || story ? C.txt : C.muted }}>
-              <span style={{ width: 24, height: 24, borderRadius: 999, display: "inline-flex", alignItems: "center", justifyContent: "center", background: index < 2 ? "rgba(74,222,128,.14)" : story && index === 2 ? "rgba(251,191,36,.14)" : C.sur2, border: `1px solid ${index < 2 ? "rgba(74,222,128,.35)" : story && index === 2 ? "rgba(251,191,36,.35)" : C.bdr}`, color: index < 2 ? ACC.greenl : story && index === 2 ? ACC.gold : C.muted, fontSize: 12, fontWeight: 800 }}>
-                {index + 1}
-              </span>
-              <span style={{ fontSize: 14, fontWeight: 600 }}>{step}</span>
+      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(320px, 0.95fr) minmax(0, 1.25fr)" : "1fr", gap: 14, alignItems: "start" }}>
+        <div>
+          <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.blue, marginBottom: 10 }}>{ui.storyGen.flowTitle}</div>
+            <div style={{ display: "grid", gap: 8 }}>
+              {ui.storyGen.flowSteps.map((step, index) => (
+                <div key={step} style={{ display: "flex", alignItems: "center", gap: 10, color: index < 2 || story ? C.txt : C.muted }}>
+                  <span style={{ width: 24, height: 24, borderRadius: 999, display: "inline-flex", alignItems: "center", justifyContent: "center", background: index < 2 ? "rgba(74,222,128,.14)" : story && index === 2 ? "rgba(251,191,36,.14)" : C.sur2, border: `1px solid ${index < 2 ? "rgba(74,222,128,.35)" : story && index === 2 ? "rgba(251,191,36,.35)" : C.bdr}`, color: index < 2 ? ACC.greenl : story && index === 2 ? ACC.gold : C.muted, fontSize: 12, fontWeight: 800 }}>
+                    {index + 1}
+                  </span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>{step}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
-
-      <fieldset style={{ border: "none", margin: "0 0 14px", padding: 0 }}>
-        <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10, display: "block" }}>{ui.storyGen.theme}</legend>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {content.genres.map((entry) => (
-            <button key={entry.id} onClick={() => setGenre(entry.id)} aria-pressed={genre === entry.id} style={{ background: genre === entry.id ? "rgba(251,191,36,.1)" : C.sur, border: `2px solid ${genre === entry.id ? ACC.gold : C.bdr}`, borderRadius: 8, padding: 12, cursor: "pointer", textAlign: "left", gridColumn: entry.id === "random" ? "span 2" : "span 1", transition: "all .15s", display: "block" }}>
-              <div style={{ fontSize: 17, marginBottom: 3 }}>{entry.emoji}</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: genre === entry.id ? ACC.gold : C.txt }}>{entry.label}</div>
-              <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{entry.desc}</div>
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      <button onClick={generate} disabled={!genre || loading || words.length === 0} style={S.pbtn(genre ? ACC.gold : C.bdr, genre ? "rgba(251,191,36,.08)" : C.sur)}>
-        {loading ? ui.storyGen.generating : ui.storyGen.generate}
-      </button>
-
-      {loading && <div style={{ textAlign: "center", padding: 24 }}><div style={{ fontSize: 28, display: "inline-block", animation: "spin 1.5s linear infinite" }}>✍️</div><div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>{ui.storyGen.writing}</div></div>}
-      {error && <div style={{ ...S.card, borderColor: "rgba(248,113,113,.4)", background: "rgba(248,113,113,.06)", marginTop: 12 }}><p style={{ ...S.bt, color: ACC.redl }}>{error}</p></div>}
-
-      {story && !loading && (
-        <div style={{ animation: "fadeIn .3s ease", marginTop: 12 }}>
-          <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.04)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold }}>{ui.storyGen.readNow}</span>
-              <button onClick={generate} style={S.sbtn(C.muted)}>{ui.storyGen.regenerate}</button>
-            </div>
-            <p style={{ ...S.bt, marginBottom: 14, fontStyle: "italic" }}>{ui.storyGen.hiddenHint}</p>
-            <div style={{ fontSize: 16, lineHeight: 2.1, color: C.txt }}>{story.replace(/\*\*(.*?)\*\*/g, "$1")}</div>
           </div>
-          <div style={{ ...S.card, borderColor: "rgba(248,113,113,.3)", background: "rgba(248,113,113,.05)" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 12 }}>{ui.storyGen.revealTitle}</div>
-            {!revealed ? (
-              <button onClick={() => setRevealed(true)} style={S.pbtn(ACC.red, "rgba(248,113,113,.08)")}>{ui.storyGen.revealWords}</button>
-            ) : (
-              <div>
-                <div style={{ fontSize: 15, lineHeight: 2.1, color: C.txt, marginBottom: 14 }}>{renderStory(story, words)}</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 12, borderTop: `1px solid ${C.bdr}` }}>
-                  {words.map((word) => <span key={word} style={{ fontSize: 12, fontWeight: 600, color: ACC.gold, background: "rgba(251,191,36,.1)", padding: "4px 12px", borderRadius: 20, border: "1px solid rgba(251,191,36,.3)" }}>{word}</span>)}
+
+          <fieldset style={{ border: "none", margin: "0 0 14px", padding: 0 }}>
+            <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10, display: "block" }}>{ui.storyGen.theme}</legend>
+            <div style={{ display: "grid", gridTemplateColumns: viewport.isPhone ? "1fr 1fr" : viewport.isDesktop ? "1fr 1fr" : "1fr 1fr", gap: 8 }}>
+              {content.genres.map((entry) => (
+                <button key={entry.id} onClick={() => setGenre(entry.id)} aria-pressed={genre === entry.id} style={{ background: genre === entry.id ? "rgba(251,191,36,.1)" : C.sur, border: `2px solid ${genre === entry.id ? ACC.gold : C.bdr}`, borderRadius: 12, padding: viewport.isDesktop ? 14 : 12, cursor: "pointer", textAlign: "left", gridColumn: entry.id === "random" ? "span 2" : "span 1", transition: "all .15s", display: "block", minHeight: viewport.isDesktop ? 104 : 92 }}>
+                  <div style={{ fontSize: 17, marginBottom: 3 }}>{entry.emoji}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: genre === entry.id ? ACC.gold : C.txt }}>{entry.label}</div>
+                  <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{entry.desc}</div>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <button onClick={generate} disabled={!genre || loading || words.length === 0} style={S.pbtn(genre ? ACC.gold : C.bdr, genre ? "rgba(251,191,36,.08)" : C.sur)}>
+            {loading ? ui.storyGen.generating : ui.storyGen.generate}
+          </button>
+
+          {loading && <div style={{ textAlign: "center", padding: 24 }}><div style={{ fontSize: 28, display: "inline-block", animation: "spin 1.5s linear infinite" }}>✍️</div><div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>{ui.storyGen.writing}</div></div>}
+          {error && <div style={{ ...S.card, borderColor: "rgba(248,113,113,.4)", background: "rgba(248,113,113,.06)", marginTop: 12 }}><p style={{ ...S.bt, color: ACC.redl }}>{error}</p></div>}
+        </div>
+
+        {story && !loading && (
+          <div style={{ animation: "fadeIn .3s ease" }}>
+            <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
+              <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.04)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold }}>{ui.storyGen.readNow}</span>
+                  <button onClick={generate} style={S.sbtn(C.muted)}>{ui.storyGen.regenerate}</button>
                 </div>
-                <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.bdr}` }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 8 }}>
-                    {ui.storyGen.resolveReady}
-                  </div>
-                  <button onClick={onOpenResolution} style={S.pbtn(ACC.red, "rgba(248,113,113,.08)")}>
-                    {ui.storyGen.resolveCta}
-                  </button>
-                </div>
+                <p style={{ ...S.bt, marginBottom: 14, fontStyle: "italic" }}>{ui.storyGen.hiddenHint}</p>
+                <div style={{ fontSize: viewport.isDesktop ? 17 : 16, lineHeight: viewport.isDesktop ? 2.05 : 2.1, color: C.txt }}>{story.replace(/\*\*(.*?)\*\*/g, "$1")}</div>
               </div>
-            )}
+              <div style={{ ...S.card, borderColor: "rgba(248,113,113,.3)", background: "rgba(248,113,113,.05)" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 12 }}>{ui.storyGen.revealTitle}</div>
+                {!revealed ? (
+                  <button onClick={() => setRevealed(true)} style={S.pbtn(ACC.red, "rgba(248,113,113,.08)")}>{ui.storyGen.revealWords}</button>
+                ) : (
+                  <div>
+                    <div style={{ fontSize: 15, lineHeight: 2.1, color: C.txt, marginBottom: 14 }}>{renderStory(story, words)}</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 12, borderTop: `1px solid ${C.bdr}` }}>
+                      {words.map((word) => <span key={word} style={{ fontSize: 12, fontWeight: 600, color: ACC.gold, background: "rgba(251,191,36,.1)", padding: "4px 12px", borderRadius: 20, border: "1px solid rgba(251,191,36,.3)" }}>{word}</span>)}
+                    </div>
+                    <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.bdr}` }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 8 }}>
+                        {ui.storyGen.resolveReady}
+                      </div>
+                      <button onClick={onOpenResolution} style={S.pbtn(ACC.red, "rgba(248,113,113,.08)")}>
+                        {ui.storyGen.resolveCta}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
 function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onChooseNarrator, onFinalizeNarratorVote, finalizingNarratorVote }) {
+  const viewport = useViewport();
   const narratorId = getNarratorId(room, players);
   const narrator = players.find((player) => player.id === narratorId);
   const others = getAudience(players, narratorId);
@@ -1330,29 +1357,36 @@ function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onCh
 
   return (
     <div>
-      <div style={S.card}>
-        <div style={S.st}>{ui.resolution.title}</div>
-        <p style={S.bt}>{ui.resolution.desc}</p>
-        <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.24)", color: C.txt, fontSize: 14, fontWeight: 700 }}>
-          {ui.resolution.scoringRule}
-        </div>
-      </div>
-      {others.map((player) => (
-        <div key={player.id} style={{ ...S.card, borderColor: player.ready ? "rgba(74,222,128,.25)" : C.bdr }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.txt, marginBottom: 10 }}>{player.name}</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div style={{ background: C.sur2, borderRadius: 8, padding: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.blue, marginBottom: 6 }}>{ui.resolution.word}</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: ACC.bluel }}>{player.secret_word || "–"}</div>
-            </div>
-            <div style={{ background: C.sur2, borderRadius: 8, padding: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.red, marginBottom: 6 }}>{ui.resolution.action}</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: ACC.redl }}>{player.secret_action || "–"}</div>
+      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1.1fr) minmax(320px, 0.9fr)" : "1fr", gap: 14, alignItems: "start" }}>
+        <div>
+          <div style={S.card}>
+            <div style={S.st}>{ui.resolution.title}</div>
+            <p style={S.bt}>{ui.resolution.desc}</p>
+            <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.24)", color: C.txt, fontSize: 14, fontWeight: 700 }}>
+              {ui.resolution.scoringRule}
             </div>
           </div>
+          <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 12 }}>
+            {others.map((player) => (
+              <div key={player.id} style={{ ...S.card, marginBottom: 0, borderColor: player.ready ? "rgba(74,222,128,.25)" : C.bdr }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.txt, marginBottom: 10 }}>{player.name}</div>
+                <div style={{ display: "grid", gridTemplateColumns: viewport.isPhone ? "1fr" : "1fr 1fr", gap: 10 }}>
+                  <div style={{ background: C.sur2, borderRadius: 8, padding: 12 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.blue, marginBottom: 6 }}>{ui.resolution.word}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: ACC.bluel }}>{player.secret_word || "–"}</div>
+                  </div>
+                  <div style={{ background: C.sur2, borderRadius: 8, padding: 12 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.red, marginBottom: 6 }}>{ui.resolution.action}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: ACC.redl }}>{player.secret_action || "–"}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
-      <div style={{ ...S.card, marginTop: 12 }}>
+
+        <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
+          <div style={{ ...S.card, marginTop: viewport.isDesktop ? 0 : 12 }}>
         <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.pointsTitle}</div>
         <p style={S.bt}>{ui.resolution.pointsDesc}</p>
         <div style={{ display: "grid", gap: 10 }}>
@@ -1374,8 +1408,8 @@ function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onCh
             </div>
           ))}
         </div>
-      </div>
-      <div style={{ ...S.card, marginTop: 12 }}>
+          </div>
+          <div style={{ ...S.card, marginTop: 12 }}>
         <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.narratorVoteTitle}</div>
         <p style={S.bt}>{ui.resolution.narratorVoteDesc}</p>
         {narrator && (
@@ -1422,42 +1456,44 @@ function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onCh
             )}
           </div>
         )}
-      </div>
-      {nextCandidates.length > 0 && (
-        <div style={{ ...S.card, marginTop: 12 }}>
-          <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.nextTitle}</div>
-          <p style={S.bt}>{nextCandidates.length > 1 ? ui.resolution.nextDesc : ui.resolution.nextAuto}</p>
-          <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
-            {nextCandidates.map((player) => {
-              const active = selectedNextId === player.id;
-              return (
-                <button
-                  key={`${player.id}-next`}
-                  onClick={() => setSelectedNextId(player.id)}
-                  aria-pressed={active}
-                  style={{
-                    background: active ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur2,
-                    border: `1.5px solid ${active ? ACC.blue : C.bdr}`,
-                    color: active ? ACC.bluel : C.txt,
-                    fontSize: 14,
-                    fontWeight: 700,
-                    padding: "14px 16px",
-                    borderRadius: 12,
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  {player.name}
-                </button>
-              );
-            })}
           </div>
-          <button onClick={startNextRound} disabled={!canAdvance || startingNextRound} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginTop: 14 }}>
-            {startingNextRound ? ui.common.loading : ui.resolution.nextRound}
-          </button>
-          {!canAdvance && <p style={{ fontSize: 12, color: C.muted, marginTop: 10 }}>{ui.resolution.chooseFirst}</p>}
+          {nextCandidates.length > 0 && (
+            <div style={{ ...S.card, marginTop: 12 }}>
+              <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.nextTitle}</div>
+              <p style={S.bt}>{nextCandidates.length > 1 ? ui.resolution.nextDesc : ui.resolution.nextAuto}</p>
+              <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+                {nextCandidates.map((player) => {
+                  const active = selectedNextId === player.id;
+                  return (
+                    <button
+                      key={`${player.id}-next`}
+                      onClick={() => setSelectedNextId(player.id)}
+                      aria-pressed={active}
+                      style={{
+                        background: active ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur2,
+                        border: `1.5px solid ${active ? ACC.blue : C.bdr}`,
+                        color: active ? ACC.bluel : C.txt,
+                        fontSize: 14,
+                        fontWeight: 700,
+                        padding: "14px 16px",
+                        borderRadius: 12,
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      {player.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <button onClick={startNextRound} disabled={!canAdvance || startingNextRound} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginTop: 14 }}>
+                {startingNextRound ? ui.common.loading : ui.resolution.nextRound}
+              </button>
+              {!canAdvance && <p style={{ fontSize: 12, color: C.muted, marginTop: 10 }}>{ui.resolution.chooseFirst}</p>}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -1614,6 +1650,7 @@ function RoundOverview({ room, players, ui, C, S }) {
 }
 
 function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentLang, C, S }) {
+  const viewport = useViewport();
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
   const [tab, setTab] = useState("lobby");
@@ -1742,10 +1779,10 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
         <button onClick={onLeave} style={S.sbtn(C.muted)}>{ui.common.leave}</button>
       </div>
       <nav>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6, marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "repeat(6,1fr)" : viewport.isTablet ? "repeat(3,1fr)" : "repeat(4,1fr)", gap: 6, marginBottom: 16 }}>
           {tabs.map((tabEntry) => (
-            <button key={tabEntry.id} onClick={() => setTab(tabEntry.id)} aria-selected={tab === tabEntry.id} style={{ background: tab === tabEntry.id ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur, border: `1.5px solid ${tab === tabEntry.id ? ACC.blue : C.bdr}`, color: tab === tabEntry.id ? ACC.bluel : C.muted, fontSize: 9, fontWeight: 700, padding: "10px 4px 8px", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer", minHeight: 62 }}>
-              <span style={{ fontSize: 15 }}>{tabEntry.icon}</span><span>{tabEntry.label}</span>
+            <button key={tabEntry.id} onClick={() => setTab(tabEntry.id)} aria-selected={tab === tabEntry.id} style={{ background: tab === tabEntry.id ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur, border: `1.5px solid ${tab === tabEntry.id ? ACC.blue : C.bdr}`, color: tab === tabEntry.id ? ACC.bluel : C.muted, fontSize: viewport.isDesktop ? 11 : 9, fontWeight: 700, padding: viewport.isDesktop ? "12px 8px 10px" : "10px 4px 8px", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer", minHeight: viewport.isDesktop ? 72 : 62 }}>
+              <span style={{ fontSize: viewport.isDesktop ? 17 : 15 }}>{tabEntry.icon}</span><span>{tabEntry.label}</span>
             </button>
           ))}
         </div>
@@ -1761,6 +1798,7 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
 }
 
 function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLang, C, S }) {
+  const viewport = useViewport();
   const [player, setPlayer] = useState(null);
   const [room, setRoom] = useState(null);
   const [cardRevealed, setCardRevealed] = useState({ word: false, action: false });
@@ -1874,7 +1912,8 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
           <p style={S.bt}>{ui.player.hostDealing}</p>
         </div>
       ) : (
-        <div>
+        <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1.15fr) minmax(320px, 0.85fr)" : "1fr", gap: 14, alignItems: "start" }}>
+          <div>
           <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: C.txt }}>{ui.player.secretCards}</div>
@@ -1882,18 +1921,18 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
                 {rerolled ? ui.player.rerolled : ui.player.reroll}
               </button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
+            <div style={{ display: "grid", gridTemplateColumns: viewport.isPhone ? "1fr" : "1fr 1fr", gap: 0 }}>
               {[
                 { key: "word", type: ui.player.secretWord, value: player.secret_word, blue: true },
                 { key: "action", type: ui.player.secretAction, value: player.secret_action, blue: false },
               ].map((cell, index) => {
                 const revealed = cardRevealed[cell.key];
                 return (
-                  <button key={cell.key} onClick={() => setCardRevealed((current) => ({ ...current, [cell.key]: !current[cell.key] }))} style={{ padding: 14, cursor: "pointer", minHeight: 90, textAlign: "left", background: "transparent", border: "none", borderRight: index === 0 ? `1px solid ${C.bdr}` : "none", display: "block", width: "100%" }}>
+                  <button key={cell.key} onClick={() => setCardRevealed((current) => ({ ...current, [cell.key]: !current[cell.key] }))} style={{ padding: 14, cursor: "pointer", minHeight: viewport.isDesktop ? 130 : 90, textAlign: "left", background: "transparent", border: "none", borderRight: !viewport.isPhone && index === 0 ? `1px solid ${C.bdr}` : "none", borderBottom: viewport.isPhone && index === 0 ? `1px solid ${C.bdr}` : "none", display: "block", width: "100%" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6, color: cell.blue ? ACC.blue : ACC.red }}>
                       <span aria-hidden="true">{cell.blue ? "🔵" : "🔴"} </span>{cell.type}
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4, color: cell.blue ? ACC.bluel : ACC.redl, filter: revealed ? "none" : "blur(7px)", transition: "filter .25s", userSelect: revealed ? "auto" : "none" }}>{cell.value}</div>
+                    <div style={{ fontSize: viewport.isDesktop ? 17 : 15, fontWeight: 700, lineHeight: 1.4, color: cell.blue ? ACC.bluel : ACC.redl, filter: revealed ? "none" : "blur(7px)", transition: "filter .25s", userSelect: revealed ? "auto" : "none" }}>{cell.value}</div>
                     {!revealed && <div style={{ fontSize: 11, color: C.muted, marginTop: 6 }}>{ui.player.tapReveal}</div>}
                   </button>
                 );
@@ -1926,9 +1965,11 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
               <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: ACC.bluel }}>{ui.player.yourWord} <span style={{ background: "rgba(96,165,250,.15)", padding: "2px 10px", borderRadius: 20 }}>{player.secret_word}</span></div>
             </div>
           )}
+          </div>
 
+          <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
           {room.status === "voting" && (
-            <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", marginTop: 12 }}>
+            <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", marginTop: viewport.isDesktop ? 0 : 12 }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.player.narratorVoteTitle}</div>
               <p style={S.bt}>{ui.player.narratorVoteDesc}</p>
               {narratorVote === null ? (
@@ -1960,6 +2001,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
               <div style={{ fontSize: 14, fontWeight: 700, color: ACC.bluel }}>{ui.player.narratorVotePending}</div>
             </div>
           )}
+          </div>
         </div>
       )}
 
@@ -2110,6 +2152,7 @@ export default function App() {
 
   const [lang, setLang] = useLanguage(urlLang);
   const [contentLang, setContentLang] = useState(() => urlLang || lang);
+  const viewport = useViewport();
   const [C, dark, toggleTheme] = useTheme();
   const S = makeStyles(C);
   const ui = UI[lang];
@@ -2173,7 +2216,7 @@ export default function App() {
   return (
     <div style={{ background: `radial-gradient(circle at top, ${dark ? "rgba(96,165,250,.08)" : "rgba(96,165,250,.10)"} 0%, ${C.bg} 34%)`, minHeight: "100vh", color: C.txt, fontFamily: FF }}>
       <style>{GS}</style>
-      <div style={{ maxWidth: 500, margin: "0 auto", padding: "0 14px 64px" }}>
+      <div style={{ maxWidth: viewport.isDesktop ? 1160 : viewport.isTablet ? 760 : 500, margin: "0 auto", padding: viewport.isDesktop ? "0 20px 80px" : "0 14px 64px" }}>
         <header style={{ textAlign: "center", padding: "24px 0 16px" }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
             <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
