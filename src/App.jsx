@@ -239,6 +239,14 @@ const UI = {
       title: "🎭 Auflösung",
       desc: "Wer hatte was? Hier die Karten aller Mitspieler auf einen Blick.",
       scoringRule: "Der Erzähler vergibt die Punkte dieser Runde.",
+      narratorVoteTitle: "Abstimmung für den Erzähler",
+      narratorVoteDesc: "Die Mitspieler stimmen ab, ob der Erzähler 1 Punkt bekommt.",
+      narratorVoteWaiting: (a, b) => `${a} von ${b} Stimmen eingegangen`,
+      narratorVoteYes: "Ja",
+      narratorVoteNo: "Nein",
+      narratorVoteApproved: "Mehrheit dafür: Der Erzähler bekommt 1 Punkt.",
+      narratorVoteRejected: "Keine Mehrheit: Der Erzähler bekommt keinen Punkt.",
+      narratorVotePending: "Warte auf die Stimmen der Mitspieler.",
       word: "🔵 Wort",
       action: "🔴 Aktion",
       pointsTitle: "Punkte vergeben",
@@ -298,6 +306,13 @@ const UI = {
       storyRunning: "Story läuft!",
       reactHint: "Reagiere wenn dein Wort fällt. Bleib unauffällig 😏",
       yourWord: "Dein Wort:",
+      narratorVoteTitle: "Abstimmung",
+      narratorVoteDesc: "Soll der Erzähler für diese Runde 1 Punkt bekommen?",
+      narratorVoteYes: "Ja, +1",
+      narratorVoteNo: "Nein",
+      narratorVoteSent: "Deine Stimme wurde gezählt.",
+      narratorVoteApproved: "Die Gruppe gibt dem Erzähler 1 Punkt.",
+      narratorVoteRejected: "Die Gruppe gibt dem Erzähler keinen Punkt.",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -441,6 +456,14 @@ const UI = {
       title: "🎭 Reveal",
       desc: "Who had what? Here are all player cards at a glance.",
       scoringRule: "The narrator awards the points for this round.",
+      narratorVoteTitle: "Vote for the narrator",
+      narratorVoteDesc: "The players vote on whether the narrator gets 1 point.",
+      narratorVoteWaiting: (a, b) => `${a} of ${b} votes received`,
+      narratorVoteYes: "Yes",
+      narratorVoteNo: "No",
+      narratorVoteApproved: "Majority says yes: the narrator gets 1 point.",
+      narratorVoteRejected: "No majority: the narrator gets no point.",
+      narratorVotePending: "Waiting for the players to vote.",
       word: "🔵 Word",
       action: "🔴 Action",
       pointsTitle: "Award points",
@@ -500,6 +523,13 @@ const UI = {
       storyRunning: "Story in progress!",
       reactHint: "React when your word appears. Stay subtle 😏",
       yourWord: "Your word:",
+      narratorVoteTitle: "Vote",
+      narratorVoteDesc: "Should the narrator get 1 point for this round?",
+      narratorVoteYes: "Yes, +1",
+      narratorVoteNo: "No",
+      narratorVoteSent: "Your vote has been counted.",
+      narratorVoteApproved: "The group gives the narrator 1 point.",
+      narratorVoteRejected: "The group gives the narrator no point.",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -1236,12 +1266,18 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
   );
 }
 
-function Resolution({ room, players, ui, C, S, onChooseNarrator }) {
+function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onChooseNarrator, onFinalizeNarratorVote, finalizingNarratorVote }) {
   const narratorId = getNarratorId(room, players);
+  const narrator = players.find((player) => player.id === narratorId);
   const others = getAudience(players, narratorId);
   const [selectedNextId, setSelectedNextId] = useState("");
   const [savingScoreId, setSavingScoreId] = useState(null);
   const [startingNextRound, setStartingNextRound] = useState(false);
+  const audienceCount = others.length;
+  const voteEntries = Object.values(votes);
+  const yesVotes = voteEntries.filter((entry) => entry.vote).length;
+  const noVotes = voteEntries.filter((entry) => entry.vote === false).length;
+  const allVoted = audienceCount > 0 && voteEntries.length >= audienceCount;
 
   useEffect(() => {
     const candidates = others.filter((player) => player.id !== narratorId);
@@ -1270,6 +1306,11 @@ function Resolution({ room, players, ui, C, S, onChooseNarrator }) {
 
   const nextCandidates = others.filter((player) => player.id !== narratorId);
   const canAdvance = !!selectedNextId;
+
+  useEffect(() => {
+    if (!allVoted || room?.status !== "voting" || !onFinalizeNarratorVote || finalizingNarratorVote) return;
+    onFinalizeNarratorVote(yesVotes > noVotes);
+  }, [allVoted, room?.status, onFinalizeNarratorVote, finalizingNarratorVote, yesVotes, noVotes]);
 
   return (
     <div>
@@ -1317,6 +1358,34 @@ function Resolution({ room, players, ui, C, S, onChooseNarrator }) {
             </div>
           ))}
         </div>
+      </div>
+      <div style={{ ...S.card, marginTop: 12 }}>
+        <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.narratorVoteTitle}</div>
+        <p style={S.bt}>{ui.resolution.narratorVoteDesc}</p>
+        {narrator && (
+          <div style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.bdr}`, marginTop: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{narrator.name}</div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{ui.resolution.currentScore}: <span style={{ color: ACC.gold, fontWeight: 800 }}>{narrator.score || 0}</span></div>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <span style={{ ...S.sbtn(ACC.green), cursor: "default" }}>{ui.resolution.narratorVoteYes}: {yesVotes}</span>
+                <span style={{ ...S.sbtn(C.muted), cursor: "default" }}>{ui.resolution.narratorVoteNo}: {noVotes}</span>
+              </div>
+            </div>
+            <p style={{ ...S.bt, marginTop: 12 }}>{ui.resolution.narratorVoteWaiting(voteEntries.length, audienceCount)}</p>
+            {room?.status === "voted" ? (
+              <div style={{ marginTop: 10, padding: "12px 14px", borderRadius: 12, background: narratorAwarded ? "rgba(74,222,128,.08)" : "rgba(148,163,184,.10)", border: `1px solid ${narratorAwarded ? "rgba(74,222,128,.28)" : C.bdr}`, color: narratorAwarded ? ACC.greenl : C.txt, fontSize: 14, fontWeight: 700 }}>
+                {narratorAwarded ? ui.resolution.narratorVoteApproved : ui.resolution.narratorVoteRejected}
+              </div>
+            ) : (
+              <div style={{ marginTop: 10, padding: "12px 14px", borderRadius: 12, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.24)", color: C.txt, fontSize: 14, fontWeight: 600 }}>
+                {finalizingNarratorVote ? ui.common.loading : ui.resolution.narratorVotePending}
+              </div>
+            )}
+          </div>
+        )}
       </div>
       {nextCandidates.length > 0 && (
         <div style={{ ...S.card, marginTop: 12 }}>
@@ -1505,6 +1574,10 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
   const [players, setPlayers] = useState([]);
   const [tab, setTab] = useState("lobby");
   const [storyWords, setStoryWords] = useState([]);
+  const [narratorVotes, setNarratorVotes] = useState({});
+  const [narratorAwarded, setNarratorAwarded] = useState(false);
+  const [finalizingNarratorVote, setFinalizingNarratorVote] = useState(false);
+  const voteChannelRef = useRef(null);
 
   useEffect(() => {
     async function load() {
@@ -1523,6 +1596,27 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
       })
       .subscribe();
     return () => sb.removeChannel(channel);
+  }, [roomId]);
+
+  useEffect(() => {
+    const voteChannel = sb.channel(`room-votes-${roomId}`)
+      .on("broadcast", { event: "narrator-vote" }, ({ payload }) => {
+        setNarratorVotes((current) => ({ ...current, [payload.playerId]: payload }));
+      })
+      .on("broadcast", { event: "vote-reset" }, () => {
+        setNarratorVotes({});
+        setNarratorAwarded(false);
+        setFinalizingNarratorVote(false);
+      })
+      .on("broadcast", { event: "vote-result" }, ({ payload }) => {
+        setNarratorAwarded(!!payload.awarded);
+      })
+      .subscribe();
+    voteChannelRef.current = voteChannel;
+    return () => {
+      voteChannelRef.current = null;
+      sb.removeChannel(voteChannel);
+    };
   }, [roomId]);
 
   const narratorId = getNarratorId(room, players);
@@ -1552,7 +1646,36 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
     }).eq("room_id", roomId);
 
     setStoryWords([]);
+    setNarratorVotes({});
+    setNarratorAwarded(false);
+    setFinalizingNarratorVote(false);
     setTab("lobby");
+  }
+
+  async function openResolution() {
+    setNarratorVotes({});
+    setNarratorAwarded(false);
+    setFinalizingNarratorVote(false);
+    await sb.from("rooms").update({ status: "voting" }).eq("id", roomId);
+    if (voteChannelRef.current) {
+      await voteChannelRef.current.send({ type: "broadcast", event: "vote-reset", payload: {} });
+    }
+    setTab("resolve");
+  }
+
+  async function finalizeNarratorVote(awarded) {
+    if (finalizingNarratorVote || room?.status === "voted") return;
+    setFinalizingNarratorVote(true);
+    const narrator = players.find((player) => player.id === narratorId);
+    if (awarded && narrator) {
+      await sb.from("players").update({ score: (narrator.score || 0) + 1 }).eq("id", narrator.id);
+    }
+    await sb.from("rooms").update({ status: "voted" }).eq("id", roomId);
+    setNarratorAwarded(!!awarded);
+    if (voteChannelRef.current) {
+      await voteChannelRef.current.send({ type: "broadcast", event: "vote-result", payload: { awarded: !!awarded } });
+    }
+    setFinalizingNarratorVote(false);
   }
 
   const tabs = [
@@ -1586,8 +1709,8 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
       {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} onStart={() => setTab("cards")} />}
       {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setTab("ready"); }} />}
       {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onAllReady={() => setTab("story")} />}
-      {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} onOpenResolution={() => setTab("resolve")} />}
-      {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onChooseNarrator={chooseNextNarrator} />}
+      {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} onOpenResolution={openResolution} />}
+      {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} votes={narratorVotes} narratorAwarded={narratorAwarded} finalizingNarratorVote={finalizingNarratorVote} onFinalizeNarratorVote={finalizeNarratorVote} onChooseNarrator={chooseNextNarrator} />}
       {tab === "scores" && <Scores room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} />}
     </div>
   );
@@ -1600,6 +1723,9 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
   const [rerolled, setRerolled] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [markingReady, setMarkingReady] = useState(false);
+  const [narratorVote, setNarratorVote] = useState(null);
+  const [voteResult, setVoteResult] = useState(null);
+  const voteChannelRef = useRef(null);
 
   useEffect(() => {
     async function load() {
@@ -1629,7 +1755,19 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "rooms", filter: `id=eq.${roomId}` }, (payload) => setRoom(payload.new))
       .subscribe();
-    return () => sb.removeChannel(channel);
+    const voteChannel = sb.channel(`room-votes-${roomId}`)
+      .on("broadcast", { event: "vote-reset" }, () => {
+        setNarratorVote(null);
+        setVoteResult(null);
+      })
+      .on("broadcast", { event: "vote-result" }, ({ payload }) => setVoteResult(!!payload.awarded))
+      .subscribe();
+    voteChannelRef.current = voteChannel;
+    return () => {
+      voteChannelRef.current = null;
+      sb.removeChannel(channel);
+      sb.removeChannel(voteChannel);
+    };
   }, [roomId, playerName, setContentLang]);
 
   async function doReroll() {
@@ -1656,6 +1794,13 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
     setIsReady(true);
     vibrate([100, 50, 200]);
     setMarkingReady(false);
+  }
+
+  async function castNarratorVote(vote) {
+    if (!player || narratorVote !== null || !voteChannelRef.current) return;
+    await voteChannelRef.current.send({ type: "broadcast", event: "narrator-vote", payload: { playerId: player.id, playerName: player.name, vote } });
+    setNarratorVote(vote);
+    setVoteResult(null);
   }
 
   if (!player || !room) {
@@ -1735,6 +1880,31 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.player.storyRunning}</div>
               <p style={{ ...S.bt, fontStyle: "italic" }}>{ui.player.reactHint}</p>
               <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: ACC.bluel }}>{ui.player.yourWord} <span style={{ background: "rgba(96,165,250,.15)", padding: "2px 10px", borderRadius: 20 }}>{player.secret_word}</span></div>
+            </div>
+          )}
+
+          {room.status === "voting" && (
+            <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", marginTop: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.player.narratorVoteTitle}</div>
+              <p style={S.bt}>{ui.player.narratorVoteDesc}</p>
+              {narratorVote === null ? (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+                  <button onClick={() => castNarratorVote(true)} style={S.pbtn(ACC.green, "rgba(74,222,128,.1)")}>{ui.player.narratorVoteYes}</button>
+                  <button onClick={() => castNarratorVote(false)} style={S.pbtn(C.bdr, C.sur2)}>{ui.player.narratorVoteNo}</button>
+                </div>
+              ) : (
+                <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(74,222,128,.08)", border: "1px solid rgba(74,222,128,.24)", color: ACC.greenl, fontSize: 14, fontWeight: 700 }}>
+                  {ui.player.narratorVoteSent}
+                </div>
+              )}
+            </div>
+          )}
+
+          {room.status === "voted" && voteResult !== null && (
+            <div style={{ ...S.card, borderColor: voteResult ? "rgba(74,222,128,.3)" : C.bdr, background: voteResult ? "rgba(74,222,128,.06)" : C.sur2, marginTop: 12 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: voteResult ? ACC.greenl : C.txt }}>
+                {voteResult ? ui.player.narratorVoteApproved : ui.player.narratorVoteRejected}
+              </div>
             </div>
           )}
         </div>
