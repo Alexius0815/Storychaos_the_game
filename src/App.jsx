@@ -220,6 +220,8 @@ const UI = {
       hiddenHint: "Wörter sind versteckt – beobachte wer wann reagiert!",
       revealTitle: "Auflösen – erst nach dem Raten!",
       revealWords: "Wörter aufdecken",
+      resolveReady: "Auflösung bereit",
+      resolveCta: "Zur Auflösung und Punktevergabe",
     },
     resolution: {
       title: "🎭 Auflösung",
@@ -406,6 +408,8 @@ const UI = {
       hiddenHint: "The words are hidden – watch who reacts and when!",
       revealTitle: "Reveal – only after the guesses!",
       revealWords: "Reveal words",
+      resolveReady: "Reveal ready",
+      resolveCta: "Go to reveal and scoring",
     },
     resolution: {
       title: "🎭 Reveal",
@@ -1065,7 +1069,7 @@ function ReadyCheck({ room, players, ui, C, S, onAllReady }) {
   );
 }
 
-function HostStory({ room, storyWords, ui, contentLang, C, S }) {
+function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }) {
   const [genre, setGenre] = useState(null);
   const [story, setStory] = useState(room.story || "");
   const [loading, setLoading] = useState(false);
@@ -1152,6 +1156,14 @@ function HostStory({ room, storyWords, ui, contentLang, C, S }) {
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 12, borderTop: `1px solid ${C.bdr}` }}>
                   {words.map((word) => <span key={word} style={{ fontSize: 12, fontWeight: 600, color: ACC.gold, background: "rgba(251,191,36,.1)", padding: "4px 12px", borderRadius: 20, border: "1px solid rgba(251,191,36,.3)" }}>{word}</span>)}
                 </div>
+                <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.bdr}` }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 8 }}>
+                    {ui.storyGen.resolveReady}
+                  </div>
+                  <button onClick={onOpenResolution} style={S.pbtn(ACC.red, "rgba(248,113,113,.08)")}>
+                    {ui.storyGen.resolveCta}
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -1231,9 +1243,6 @@ function Resolution({ room, players, ui, C, S, onChooseNarrator }) {
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => changeScore(player, -1)} disabled={savingScoreId === player.id} style={{ ...S.sbtn(C.muted), minWidth: 92 }}>
-                    {ui.resolution.removePoint}
-                  </button>
                   <button onClick={() => changeScore(player, 1)} disabled={savingScoreId === player.id} style={{ ...S.sbtn(ACC.gold), minWidth: 92 }}>
                     {ui.resolution.addPoint}
                   </button>
@@ -1513,7 +1522,7 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
       {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} onStart={() => setTab("cards")} />}
       {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setTab("ready"); }} />}
       {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onAllReady={() => setTab("story")} />}
-      {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} />}
+      {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} onOpenResolution={() => setTab("resolve")} />}
       {tab === "timer" && <Timer ui={ui} C={C} S={S} />}
       {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onChooseNarrator={chooseNextNarrator} />}
       {tab === "scores" && <Scores room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} />}
