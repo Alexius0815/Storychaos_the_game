@@ -522,13 +522,13 @@ function useLanguage(initial) {
 
 function makeStyles(C) {
   return {
-    card: { background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 10, padding: 18, marginBottom: 12 },
-    card2: { background: C.sur2, border: `1px solid ${C.bdr}`, borderRadius: 10, padding: 18, marginBottom: 12 },
-    st: { fontSize: 16, fontWeight: 700, color: C.txt, display: "flex", alignItems: "center", gap: 8, marginBottom: 12 },
+    card: { background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 16, padding: 18, marginBottom: 14, boxShadow: C.bg === "#0d0d14" ? "0 12px 32px rgba(0,0,0,.18)" : "0 16px 40px rgba(15,23,42,.06)" },
+    card2: { background: C.sur2, border: `1px solid ${C.bdr}`, borderRadius: 16, padding: 18, marginBottom: 14 },
+    st: { fontSize: 16, fontWeight: 800, color: C.txt, display: "flex", alignItems: "center", gap: 8, marginBottom: 12, letterSpacing: "-0.02em" },
     bt: { fontSize: 14, lineHeight: 1.7, color: C.muted },
-    input: { width: "100%", background: C.sur2, border: `1.5px solid ${C.bdr}`, color: C.txt, fontFamily: FF, fontSize: 16, padding: "12px 14px", borderRadius: 8, outline: "none" },
-    pbtn: (col, bg) => ({ width: "100%", padding: 14, borderRadius: 8, fontSize: 16, fontWeight: 700, border: `2px solid ${col}`, background: bg, color: col, cursor: "pointer", transition: "all .15s", display: "block" }),
-    sbtn: (col) => ({ fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 6, border: `1px solid ${col}`, background: "transparent", color: col, cursor: "pointer" }),
+    input: { width: "100%", background: C.sur2, border: `1.5px solid ${C.bdr}`, color: C.txt, fontFamily: FF, fontSize: 16, padding: "14px 15px", borderRadius: 13, outline: "none", boxShadow: "inset 0 1px 0 rgba(255,255,255,.03)" },
+    pbtn: (col, bg) => ({ width: "100%", minHeight: 54, padding: "14px 16px", borderRadius: 13, fontSize: 16, fontWeight: 800, border: `1.5px solid ${col}`, background: bg, color: col, cursor: "pointer", transition: "all .15s", display: "block", boxShadow: `0 0 0 1px ${col}18 inset` }),
+    sbtn: (col) => ({ fontSize: 12, fontWeight: 700, padding: "7px 12px", borderRadius: 10, border: `1px solid ${col}`, background: "transparent", color: col, cursor: "pointer" }),
   };
 }
 
@@ -831,12 +831,12 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart }) {
 
   return (
     <div>
-      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.3)", background: "rgba(96,165,250,.05)", textAlign: "center" }}>
+      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.3)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.02))", textAlign: "center" }}>
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 6 }}>{ui.common.roomCode}</div>
         <div style={{ fontSize: 44, fontWeight: 800, letterSpacing: 6, color: C.txt, marginBottom: 4 }}>{room.id}</div>
         <div style={{ fontSize: 12, color: C.muted, marginBottom: 16 }}>{ui.hostLobby.joinHint}</div>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}><QRCode url={joinUrl} size={180} C={C} lang={lang} /></div>
-        <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all" }}>{joinUrl}</div>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}><div style={{ padding: 12, borderRadius: 18, background: C.sur, border: `1px solid ${C.bdr}` }}><QRCode url={joinUrl} size={176} C={C} lang={lang} /></div></div>
+        <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px" }}>{joinUrl}</div>
       </div>
 
       <div style={S.card}>
@@ -846,7 +846,7 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart }) {
         ) : (
           <ul style={{ listStyle: "none", padding: 0 }}>
             {others.map((player) => (
-              <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: `1px solid ${C.bdr}` }}>
+              <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: `1px solid ${C.bdr}` }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: ACC.green, flexShrink: 0 }} />
                 <span style={{ fontSize: 15, fontWeight: 600, color: C.txt, flex: 1 }}>{player.name}</span>
               </li>
@@ -904,7 +904,7 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
 
   return (
     <div>
-      <div style={S.card}>
+      <div style={{ ...S.card, background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))", borderColor: "rgba(251,191,36,.26)" }}>
         <div style={S.st}>{ui.cards.title}</div>
         <p style={S.bt}>{ui.cards.desc}</p>
       </div>
@@ -917,7 +917,7 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
               key={option.id}
               onClick={() => setContentLang(option.id)}
               aria-pressed={contentLang === option.id}
-              style={{ padding: "10px 8px", borderRadius: 7, fontSize: 13, fontWeight: 600, border: `2px solid ${contentLang === option.id ? ACC.blue : C.bdr}`, background: contentLang === option.id ? "rgba(96,165,250,.1)" : C.sur2, color: contentLang === option.id ? ACC.bluel : C.muted, cursor: "pointer" }}
+              style={{ minHeight: 48, padding: "10px 8px", borderRadius: 12, fontSize: 13, fontWeight: 700, border: `1.5px solid ${contentLang === option.id ? ACC.blue : C.bdr}`, background: contentLang === option.id ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur2, color: contentLang === option.id ? ACC.bluel : C.muted, cursor: "pointer" }}
             >
               {option.label}
             </button>
@@ -929,7 +929,7 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.difficulty}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {Object.entries(content.diffLabels).map(([key, label]) => (
-            <button key={key} onClick={() => setDiff(key)} aria-pressed={diff === key} style={{ padding: "10px 8px", borderRadius: 7, fontSize: 13, fontWeight: 600, border: `2px solid ${diff === key ? ACC.gold : C.bdr}`, background: diff === key ? "rgba(251,191,36,.1)" : C.sur2, color: diff === key ? ACC.gold : C.muted, cursor: "pointer" }}>
+            <button key={key} onClick={() => setDiff(key)} aria-pressed={diff === key} style={{ minHeight: 48, padding: "10px 8px", borderRadius: 12, fontSize: 13, fontWeight: 700, border: `1.5px solid ${diff === key ? ACC.gold : C.bdr}`, background: diff === key ? "linear-gradient(180deg, rgba(251,191,36,.16), rgba(251,191,36,.08))" : C.sur2, color: diff === key ? ACC.gold : C.muted, cursor: "pointer" }}>
               {label}
             </button>
           ))}
@@ -942,7 +942,7 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
           {Object.entries(content.categoryLabels).map(([key, label]) => {
             const active = cats.includes(key);
             return (
-              <button key={key} onClick={() => toggleCat(key)} style={{ padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600, border: `1.5px solid ${active ? ACC.blue : C.bdr}`, background: active ? "rgba(96,165,250,.1)" : C.sur2, color: active ? ACC.bluel : C.muted, cursor: "pointer" }}>
+              <button key={key} onClick={() => toggleCat(key)} style={{ padding: "7px 12px", borderRadius: 999, fontSize: 12, fontWeight: 700, border: `1.5px solid ${active ? ACC.blue : C.bdr}`, background: active ? "linear-gradient(180deg, rgba(96,165,250,.14), rgba(96,165,250,.08))" : C.sur2, color: active ? ACC.bluel : C.muted, cursor: "pointer" }}>
                 {label}
               </button>
             );
@@ -979,7 +979,7 @@ function ReadyCheck({ players, ui, C, S, onAllReady }) {
 
   return (
     <div>
-      <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.04)" }}>
+      <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))" }}>
         <div style={S.st}>{ui.ready.title}</div>
         <p style={S.bt}>{ui.ready.desc}</p>
       </div>
@@ -1003,7 +1003,7 @@ function ReadyCheck({ players, ui, C, S, onAllReady }) {
 
       {allReady && (
         <div style={{ animation: "fadeIn .3s ease" }}>
-          <div style={{ ...S.card, borderColor: "rgba(74,222,128,.3)", background: "rgba(74,222,128,.06)", textAlign: "center", padding: "20px 18px", marginBottom: 12 }}>
+          <div style={{ ...S.card, borderColor: "rgba(74,222,128,.3)", background: "linear-gradient(180deg, rgba(74,222,128,.12), rgba(74,222,128,.05))", textAlign: "center", padding: "20px 18px", marginBottom: 12 }}>
             <div style={{ fontSize: 28, marginBottom: 8 }}>🎉</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: ACC.greenl }}>{ui.ready.allReady}</div>
           </div>
@@ -1338,7 +1338,7 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
 
   return (
     <div>
-      <div style={{ background: C.sur2, borderRadius: 8, padding: "8px 14px", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 14, padding: "10px 14px", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: C.bg === "#0d0d14" ? "0 10px 24px rgba(0,0,0,.14)" : "0 12px 26px rgba(15,23,42,.05)" }}>
         <div>
           <span style={{ fontSize: 11, color: C.muted }}>{ui.common.room} </span>
           <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: 3, color: C.txt }}>{roomId}</span>
@@ -1347,10 +1347,10 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
         <button onClick={onLeave} style={S.sbtn(C.muted)}>{ui.common.leave}</button>
       </div>
       <nav>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 4, marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6, marginBottom: 16 }}>
           {tabs.map((tabEntry) => (
-            <button key={tabEntry.id} onClick={() => setTab(tabEntry.id)} aria-selected={tab === tabEntry.id} style={{ background: tab === tabEntry.id ? "#1a1a2e" : C.sur, border: `1.5px solid ${tab === tabEntry.id ? ACC.blue : C.bdr}`, color: tab === tabEntry.id ? ACC.bluel : C.muted, fontSize: 8, fontWeight: 600, padding: "8px 2px 6px", borderRadius: 6, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}>
-              <span style={{ fontSize: 14 }}>{tabEntry.icon}</span><span>{tabEntry.label}</span>
+            <button key={tabEntry.id} onClick={() => setTab(tabEntry.id)} aria-selected={tab === tabEntry.id} style={{ background: tab === tabEntry.id ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur, border: `1.5px solid ${tab === tabEntry.id ? ACC.blue : C.bdr}`, color: tab === tabEntry.id ? ACC.bluel : C.muted, fontSize: 9, fontWeight: 700, padding: "10px 4px 8px", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer", minHeight: 62 }}>
+              <span style={{ fontSize: 15 }}>{tabEntry.icon}</span><span>{tabEntry.label}</span>
             </button>
           ))}
         </div>
@@ -1446,21 +1446,21 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
 
   return (
     <div>
-      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.3)", background: "rgba(96,165,250,.05)", textAlign: "center", padding: "12px 18px" }}>
+      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.3)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))", textAlign: "center", padding: "12px 18px" }}>
         <div style={{ fontSize: 11, color: C.muted, marginBottom: 2 }}>{ui.player.inRoom}</div>
         <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: 4, color: C.txt }}>{roomId}</div>
         <div style={{ fontSize: 13, color: ACC.blue, marginTop: 2 }}>{ui.player.as} {playerName}</div>
       </div>
 
       {!hasCards ? (
-        <div style={{ ...S.card, textAlign: "center", padding: "28px 20px" }}>
+        <div style={{ ...S.card, textAlign: "center", padding: "28px 20px", borderStyle: "dashed" }}>
           <div style={{ fontSize: 32, marginBottom: 12, animation: "pulse 2s infinite" }}>⏳</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: C.txt, marginBottom: 6 }}>{ui.player.waitingCards}</div>
           <p style={S.bt}>{ui.player.hostDealing}</p>
         </div>
       ) : (
         <div>
-          <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.04)" }}>
+          <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: C.txt }}>{ui.player.secretCards}</div>
               <button onClick={doReroll} disabled={rerolled} style={{ fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 10, cursor: rerolled ? "not-allowed" : "pointer", border: `1px solid ${rerolled ? C.bdr : "rgba(251,191,36,.4)"}`, background: rerolled ? "rgba(90,90,110,.2)" : "rgba(251,191,36,.12)", color: rerolled ? C.muted : ACC.gold }}>
@@ -1514,7 +1514,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
         </div>
       )}
 
-      <button onClick={onLeave} style={{ ...S.pbtn(C.bdr, "transparent"), color: C.muted, marginTop: 8 }}>{ui.common.leaveRoom}</button>
+      <button onClick={onLeave} style={{ ...S.pbtn(C.bdr, "transparent"), color: C.muted, marginTop: 8, background: C.sur }}>{ui.common.leaveRoom}</button>
     </div>
   );
 }
@@ -1544,21 +1544,21 @@ function JoinScreen({ initialCode, onJoined, ui, C, S }) {
 
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
-      <div style={{ ...S.card, textAlign: "center" }}>
-        <div style={{ fontSize: 36, marginBottom: 8 }}>🎮</div>
-        <div style={{ fontSize: 18, fontWeight: 700, color: C.txt, marginBottom: 6 }}>{ui.join.title}</div>
+      <div style={{ ...S.card, textAlign: "center", padding: "24px 18px 18px", background: C.bg === "#0d0d14" ? "linear-gradient(180deg, rgba(96,165,250,.10), rgba(96,165,250,.03))" : "linear-gradient(180deg, rgba(96,165,250,.10), rgba(255,255,255,.9))" }}>
+        <div style={{ width: 64, height: 64, margin: "0 auto 12px", borderRadius: 18, display: "grid", placeItems: "center", fontSize: 33, background: C.sur, border: `1px solid ${C.bdr}` }}>🎮</div>
+        <div style={{ fontSize: 24, fontWeight: 800, color: C.txt, marginBottom: 6, letterSpacing: "-0.03em" }}>{ui.join.title}</div>
         <p style={S.bt}>{ui.join.desc}</p>
       </div>
-      <div style={S.card}>
-        <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.roomCode}</label>
+      <div style={{ ...S.card, padding: "18px 16px" }}>
+        <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.roomCode}</label>
         <input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder={ui.join.roomPlaceholder} maxLength={5} style={{ ...S.input, fontSize: 22, fontWeight: 800, letterSpacing: 6, textAlign: "center", marginBottom: 14 }} />
-        <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.yourName}</label>
+        <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.yourName}</label>
         <input value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && !needPw && join()} placeholder={ui.join.namePlaceholder} maxLength={20} style={{ ...S.input, marginBottom: needPw ? 14 : 0 }} />
         {needPw && <>
-          <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.password}</label>
+          <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.password}</label>
           <input type="password" value={pw} onChange={(event) => setPw(event.target.value)} onKeyDown={(event) => event.key === "Enter" && join()} placeholder={ui.join.passwordPlaceholder} style={S.input} />
         </>}
-        {error && <p style={{ fontSize: 13, color: ACC.redl, margin: "10px 0 0" }}>{error}</p>}
+        {error && <p style={{ fontSize: 13, color: ACC.redl, margin: "12px 0 0", padding: "11px 12px", borderRadius: 12, background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.18)" }}>{error}</p>}
         <button onClick={join} disabled={loading} style={{ ...S.pbtn(ACC.green, "rgba(74,222,128,.1)"), marginTop: 16 }}>
           {loading ? ui.join.connecting : ui.join.button}
         </button>
@@ -1589,19 +1589,19 @@ function CreateRoom({ onCreated, ui, C, S }) {
 
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
-      <div style={{ ...S.card, textAlign: "center" }}>
-        <div style={{ fontSize: 36, marginBottom: 8 }}>🎲</div>
-        <div style={{ fontSize: 18, fontWeight: 700, color: C.txt, marginBottom: 6 }}>{ui.create.title}</div>
+      <div style={{ ...S.card, textAlign: "center", padding: "24px 18px 18px", background: C.bg === "#0d0d14" ? "linear-gradient(180deg, rgba(251,191,36,.11), rgba(251,191,36,.03))" : "linear-gradient(180deg, rgba(251,191,36,.10), rgba(255,255,255,.9))" }}>
+        <div style={{ width: 64, height: 64, margin: "0 auto 12px", borderRadius: 18, display: "grid", placeItems: "center", fontSize: 33, background: C.sur, border: `1px solid ${C.bdr}` }}>🎲</div>
+        <div style={{ fontSize: 24, fontWeight: 800, color: C.txt, marginBottom: 6, letterSpacing: "-0.03em" }}>{ui.create.title}</div>
         <p style={S.bt}>{ui.create.desc}</p>
       </div>
-      <div style={S.card}>
-        <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.create.hostName}</label>
+      <div style={{ ...S.card, padding: "18px 16px" }}>
+        <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.create.hostName}</label>
         <input value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && create()} placeholder={ui.create.namePlaceholder} maxLength={20} style={{ ...S.input, marginBottom: 14 }} />
-        <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>
+        <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>
           {ui.common.password} <span style={{ fontSize: 10, fontWeight: 400, color: C.muted }}>({ui.common.optional})</span>
         </label>
         <input type="password" value={pw} onChange={(event) => setPw(event.target.value)} placeholder={ui.create.emptyPassword} maxLength={20} style={S.input} />
-        {error && <p style={{ fontSize: 13, color: ACC.redl, margin: "10px 0 0" }}>{error}</p>}
+        {error && <p style={{ fontSize: 13, color: ACC.redl, margin: "12px 0 0", padding: "11px 12px", borderRadius: 12, background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.18)" }}>{error}</p>}
         <button onClick={create} disabled={loading} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginTop: 16 }}>
           {loading ? ui.create.creating : ui.create.button}
         </button>
