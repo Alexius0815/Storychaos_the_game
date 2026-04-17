@@ -123,6 +123,8 @@ const UI = {
     common: {
       room: "Raum",
       leave: "Verlassen",
+      deleteRoom: "Raum löschen",
+      deleting: "Lösche…",
       leaveRoom: "Raum verlassen",
       back: "← Zurück",
       loading: "Verbinde…",
@@ -138,6 +140,8 @@ const UI = {
       story: "Story",
       phaseTitle: "Rundenphase",
     },
+    confirmDeleteRoom: "Willst du diesen Raum wirklich löschen? Alle Spieler und der aktuelle Spielstand werden entfernt.",
+    deleteRoomError: "Der Raum konnte nicht gelöscht werden. Bitte nochmal versuchen.",
     offline: "Keine Verbindung – bitte WLAN pruefen",
     home: {
       welcome: "Willkommen!",
@@ -360,6 +364,8 @@ const UI = {
     common: {
       room: "Room",
       leave: "Leave",
+      deleteRoom: "Delete room",
+      deleting: "Deleting…",
       leaveRoom: "Leave room",
       back: "← Back",
       loading: "Connecting…",
@@ -375,6 +381,8 @@ const UI = {
       story: "Story",
       phaseTitle: "Round phase",
     },
+    confirmDeleteRoom: "Do you really want to delete this room? All players and the current game state will be removed.",
+    deleteRoomError: "The room could not be deleted. Please try again.",
     offline: "No connection – please check your Wi-Fi",
     home: {
       welcome: "Welcome!",
@@ -1712,6 +1720,7 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
   const [narratorVotes, setNarratorVotes] = useState({});
   const [narratorAwarded, setNarratorAwarded] = useState(false);
   const [finalizingNarratorVote, setFinalizingNarratorVote] = useState(false);
+  const [deletingRoom, setDeletingRoom] = useState(false);
   const voteChannelRef = useRef(null);
 
   useEffect(() => {
@@ -1813,6 +1822,27 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
     setFinalizingNarratorVote(false);
   }
 
+  async function deleteRoom() {
+    if (deletingRoom) return;
+    const confirmed = window.confirm(ui.confirmDeleteRoom);
+    if (!confirmed) return;
+    setDeletingRoom(true);
+    const { error: deletePlayersError } = await sb.from("players").delete().eq("room_id", roomId);
+    if (deletePlayersError) {
+      setDeletingRoom(false);
+      window.alert(ui.deleteRoomError);
+      return;
+    }
+    const { error: deleteRoomError } = await sb.from("rooms").delete().eq("id", roomId);
+    if (deleteRoomError) {
+      setDeletingRoom(false);
+      window.alert(ui.deleteRoomError);
+      return;
+    }
+    setDeletingRoom(false);
+    onLeave();
+  }
+
   const tabs = [
     { id: "lobby", icon: "🏠", label: ui.hostTabs.lobby },
     { id: "cards", icon: "🎴", label: ui.hostTabs.cards },
@@ -1830,7 +1860,12 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
           <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: 3, color: C.txt }}>{roomId}</span>
           <span style={{ fontSize: 11, color: C.muted }}> · {hostName}</span>
         </div>
-        <button onClick={onLeave} style={S.sbtn(C.muted)}>{ui.common.leave}</button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button onClick={deleteRoom} disabled={deletingRoom} style={{ ...S.sbtn(ACC.red), opacity: deletingRoom ? 0.7 : 1 }}>
+            {deletingRoom ? ui.common.deleting : ui.common.deleteRoom}
+          </button>
+          <button onClick={onLeave} style={S.sbtn(C.muted)}>{ui.common.leave}</button>
+        </div>
       </div>
       <nav>
         <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "repeat(6,1fr)" : viewport.isTablet ? "repeat(3,1fr)" : "repeat(4,1fr)", gap: 6, marginBottom: 16 }}>
