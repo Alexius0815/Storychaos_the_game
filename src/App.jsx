@@ -1231,7 +1231,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
         <p style={S.bt}>{ui.storyGen.desc}</p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(320px, 0.95fr) minmax(0, 1.25fr)" : "1fr", gap: 14, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop && (story || loading) ? "minmax(360px, 0.95fr) minmax(0, 1.25fr)" : "1fr", gap: 14, alignItems: "start" }}>
         <div>
           <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.blue, marginBottom: 10 }}>{ui.storyGen.flowTitle}</div>
