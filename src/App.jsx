@@ -1810,11 +1810,21 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
       {!hasStoryStage ? (
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14, alignItems: "start" }}>
         <div>
+          <div style={{ ...S.card2, marginBottom: 14, padding: 12, display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 4 }}>{ui.storyGen.title}</div>
+              <div style={{ fontSize: 13, color: C.txt, fontWeight: 700 }}>{genre ? content.genres.find((entry) => entry.id === genre)?.label || ui.storyGen.theme : ui.storyGen.theme}</div>
+            </div>
+            <button onClick={() => buildStory("local")} disabled={!genre || loading || words.length === 0} style={{ ...S.sbtn(genre ? ACC.gold : C.muted), minHeight: 40, padding: "8px 12px", fontSize: 12, whiteSpace: "nowrap", background: genre ? "rgba(251,191,36,.10)" : "transparent" }}>
+              {loading && loadingMode === "local" ? ui.storyGen.generating : ui.storyGen.generate}
+            </button>
+          </div>
+
           <fieldset style={{ border: "none", margin: "0 0 14px", padding: 0 }}>
             <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10, display: "block" }}>{ui.storyGen.theme}</legend>
             <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr 1fr", gap: 8 }}>
               {content.genres.map((entry) => (
-                <button key={entry.id} onClick={() => setGenre(entry.id)} aria-pressed={genre === entry.id} style={{ background: genre === entry.id ? "rgba(251,191,36,.1)" : C.sur, border: `2px solid ${genre === entry.id ? ACC.gold : C.bdr}`, borderRadius: 12, padding: viewport.isDesktop ? 12 : 12, cursor: "pointer", textAlign: "left", gridColumn: entry.id === "random" ? "span 2" : "span 1", transition: "all .15s", display: "block", minHeight: viewport.isDesktop ? 82 : 88 }}>
+                <button key={entry.id} onClick={() => setGenre(entry.id)} aria-pressed={genre === entry.id} style={{ background: genre === entry.id ? "rgba(251,191,36,.1)" : C.sur, border: `2px solid ${genre === entry.id ? ACC.gold : C.bdr}`, borderRadius: 12, padding: viewport.isDesktop ? 12 : 10, cursor: "pointer", textAlign: "left", gridColumn: entry.id === "random" ? "span 2" : "span 1", transition: "all .15s", display: "block", minHeight: viewport.isDesktop ? 82 : 74 }}>
                   <div style={{ fontSize: 15, marginBottom: 3 }}>{entry.emoji}</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: genre === entry.id ? ACC.gold : C.txt }}>{entry.label}</div>
                   <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{entry.desc}</div>
@@ -1837,10 +1847,6 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
             />
             <p style={{ ...S.bt, marginTop: 10 }}>{ui.storyGen.storyLengthHelp}</p>
           </div>
-
-          <button onClick={() => buildStory("local")} disabled={!genre || loading || words.length === 0} style={S.pbtn(genre ? ACC.gold : C.bdr, genre ? "rgba(251,191,36,.08)" : C.sur)}>
-            {loading && loadingMode === "local" ? ui.storyGen.generating : ui.storyGen.generate}
-          </button>
 
           {loading && (
             <div style={{ ...S.card2, marginTop: 12, padding: 16, textAlign: "center" }}>
