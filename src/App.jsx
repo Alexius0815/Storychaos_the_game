@@ -142,6 +142,7 @@ const UI = {
       story: "Story",
       phaseTitle: "Rundenphase",
       focusView: "Fokusansicht",
+      help: "Hilfe",
     },
     confirmDeleteRoom: "Willst du diesen Raum wirklich löschen? Alle Spieler und der aktuelle Spielstand werden entfernt.",
     deleteRoomError: "Der Raum konnte nicht gelöscht werden. Bitte nochmal versuchen.",
@@ -194,6 +195,8 @@ const UI = {
       start: (n) => `Spiel starten mit ${n} Spieler${n !== 1 ? "n" : ""} →`,
       nextRoundTitle: "Nächste Runde",
       nextRoundDesc: "Der nächste Erzähler übernimmt jetzt und bereitet die neue Runde vor.",
+      inviteView: "Einladen",
+      playersView: "Mitspieler",
     },
     cards: {
       title: "🎴 Runde vorbereiten",
@@ -216,6 +219,8 @@ const UI = {
       noPlayers: "Noch keine Mitspieler beigetreten.",
       deal: "🃏 Karten austeilen",
       dealing: "Verteile…",
+      setupView: "Einstellungen",
+      playersView: "Mitspieler",
     },
     ready: {
       title: "⏳ Warte auf Bereitschaft",
@@ -284,6 +289,8 @@ const UI = {
       nextUp: (name) => `Nächste Runde: ${name} ist Erzähler`,
       roundSummaryTitle: "Runde abgeschlossen",
       roundSummaryDesc: "Vergib oben Punkte, prüfe den Erzählerpunkt und bestimme dann den nächsten Erzähler.",
+      actionView: "Vergabe",
+      boardView: "Punktestand",
     },
     timer: {
       duration: "Dauer",
@@ -343,6 +350,8 @@ const UI = {
       phaseResult: "Runde beendet",
       pointsTitle: "Punkte dieser Runde",
       pointsDesc: "Die Geschichte ist vorbei. Jetzt vergibt der Erzähler Punkte und ihr stimmt über seinen Punkt ab.",
+      cardView: "Deine Karte",
+      voteView: "Abstimmen",
       takeOverTitle: "Kein aktiver Erzähler",
       takeOverDesc: "Der bisherige Erzähler scheint nicht mehr verbunden zu sein. Du kannst den Raum übernehmen und weiterspielen.",
     },
@@ -399,6 +408,7 @@ const UI = {
       story: "Story",
       phaseTitle: "Round phase",
       focusView: "Focus view",
+      help: "Help",
     },
     confirmDeleteRoom: "Do you really want to delete this room? All players and the current game state will be removed.",
     deleteRoomError: "The room could not be deleted. Please try again.",
@@ -451,6 +461,8 @@ const UI = {
       start: (n) => `Start game with ${n} player${n !== 1 ? "s" : ""} →`,
       nextRoundTitle: "Next round",
       nextRoundDesc: "The next narrator takes over now and prepares the new round.",
+      inviteView: "Invite",
+      playersView: "Players",
     },
     cards: {
       title: "🎴 Prepare round",
@@ -473,6 +485,8 @@ const UI = {
       noPlayers: "No players have joined yet.",
       deal: "🃏 Deal cards",
       dealing: "Dealing…",
+      setupView: "Setup",
+      playersView: "Players",
     },
     ready: {
       title: "⏳ Waiting for readiness",
@@ -541,6 +555,8 @@ const UI = {
       nextUp: (name) => `Next round: ${name} is the narrator`,
       roundSummaryTitle: "Round complete",
       roundSummaryDesc: "Award points above, check the narrator vote, then choose the next narrator.",
+      actionView: "Scoring",
+      boardView: "Scoreboard",
     },
     timer: {
       duration: "Duration",
@@ -600,6 +616,8 @@ const UI = {
       phaseResult: "Round complete",
       pointsTitle: "Round scoring",
       pointsDesc: "The story is over. The narrator is now awarding points and you vote on the narrator point.",
+      cardView: "Your card",
+      voteView: "Vote",
       takeOverTitle: "No active narrator",
       takeOverDesc: "The previous narrator seems to be offline. You can take over the room and continue the game.",
     },
@@ -836,6 +854,49 @@ function OfflineBanner({ C, ui }) {
     <div style={{ background: "rgba(248,113,113,.15)", border: `1px solid ${ACC.red}`, borderRadius: 8, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
       <span>📡</span>
       <span style={{ fontSize: 13, color: ACC.redl, fontWeight: 600 }}>{ui.offline}</span>
+    </div>
+  );
+}
+
+function HelpPopover({ title, children, ui, C, S, align = "right" }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen((current) => !current)}
+        aria-label={ui.common.help}
+        style={{
+          width: 30,
+          height: 30,
+          borderRadius: 999,
+          border: "1px solid rgba(251,191,36,.36)",
+          background: "rgba(251,191,36,.12)",
+          color: ACC.gold,
+          fontSize: 16,
+          fontWeight: 900,
+          cursor: "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 0 0 1px rgba(251,191,36,.12) inset",
+        }}
+      >
+        ?
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 10px)", [align]: 0, zIndex: 40, width: "min(320px, calc(100vw - 48px))" }}>
+          <div style={{ ...S.card, marginBottom: 0, padding: 14, background: C.bg === "#0d0d14" ? "rgba(22,22,31,.96)" : "rgba(255,255,255,.98)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 18px 40px rgba(0,0,0,.2)" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.3, textTransform: "uppercase", color: ACC.gold }}>{title}</div>
+              <button onClick={() => setOpen(false)} style={S.sbtn(C.muted)}>{ui.common.close}</button>
+            </div>
+            <div style={{ display: "grid", gap: 8, fontSize: 13, color: C.txt, lineHeight: 1.6 }}>
+              {children}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1150,38 +1211,52 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart }) {
   const narratorId = getNarratorId(room, players);
   const others = getAudience(players, narratorId);
   const joinUrl = `${APP_URL}?room=${room.id}&lang=${gameLang}`;
+  const [view, setView] = useState("invite");
 
   return (
     <div>
-      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.3)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.02))", textAlign: "center" }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 6 }}>{ui.common.roomCode}</div>
-        <div style={{ fontSize: 44, fontWeight: 800, letterSpacing: 6, color: C.txt, marginBottom: 4 }}>{room.id}</div>
-        <div style={{ fontSize: 12, color: C.muted, marginBottom: 16 }}>{ui.hostLobby.joinHint}</div>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}><div style={{ padding: 12, borderRadius: 18, background: C.sur, border: `1px solid ${C.bdr}` }}><QRCode url={joinUrl} size={176} C={C} lang={lang} /></div></div>
-        <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px" }}>{joinUrl}</div>
-      </div>
-
-      {room?.round > 1 && room?.host_name && (
-        <div style={{ ...S.card, borderColor: "rgba(251,191,36,.35)", background: "linear-gradient(180deg, rgba(251,191,36,.12), rgba(251,191,36,.04))", textAlign: "center" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.hostLobby.nextRoundTitle}</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{ui.resolution.nextUp(room.host_name)}</div>
-          <div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>{ui.hostLobby.nextRoundDesc}</div>
+      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.3)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.02))" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 6 }}>{ui.common.roomCode}</div>
+            <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: 6, color: C.txt }}>{room.id}</div>
+          </div>
+          <HelpPopover title={ui.hostTabs.lobby} ui={ui} C={C} S={S}>
+            <div>{ui.hostLobby.joinHint}</div>
+            <div>{ui.hostLobby.start(Math.max(others.length, 1)).replace(" →", "")}</div>
+          </HelpPopover>
         </div>
-      )}
-
-      <div style={S.card}>
-        <div style={{ ...S.st, marginBottom: 10 }}>{ui.hostLobby.joined(others.length)}</div>
-        {others.length === 0 ? (
-          <p style={{ ...S.bt, textAlign: "center", padding: "12px 0", fontStyle: "italic" }}>{ui.hostLobby.empty}</p>
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          <button onClick={() => setView("invite")} style={{ ...S.sbtn(view === "invite" ? ACC.blue : C.muted), background: view === "invite" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.inviteView}</button>
+          <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? ACC.blue : C.muted), background: view === "players" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.playersView}</button>
+        </div>
+        {view === "invite" ? (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}><div style={{ padding: 12, borderRadius: 18, background: C.sur, border: `1px solid ${C.bdr}` }}><QRCode url={joinUrl} size={176} C={C} lang={lang} /></div></div>
+            <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px" }}>{joinUrl}</div>
+          </div>
         ) : (
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {others.map((player) => (
-              <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: `1px solid ${C.bdr}` }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: ACC.green, flexShrink: 0 }} />
-                <span style={{ fontSize: 15, fontWeight: 600, color: C.txt, flex: 1 }}>{player.name}</span>
-              </li>
-            ))}
-          </ul>
+          <div>
+            {room?.round > 1 && room?.host_name && (
+              <div style={{ ...S.card2, borderColor: "rgba(251,191,36,.35)", background: "linear-gradient(180deg, rgba(251,191,36,.12), rgba(251,191,36,.04))", textAlign: "center", marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.hostLobby.nextRoundTitle}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{ui.scores.nextUp(room.host_name)}</div>
+              </div>
+            )}
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.txt, marginBottom: 10 }}>{ui.hostLobby.joined(others.length)}</div>
+            {others.length === 0 ? (
+              <p style={{ ...S.bt, textAlign: "center", padding: "12px 0", fontStyle: "italic" }}>{ui.hostLobby.empty}</p>
+            ) : (
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {others.map((player) => (
+                  <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: `1px solid ${C.bdr}` }}>
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: ACC.green, flexShrink: 0 }} />
+                    <span style={{ fontSize: 15, fontWeight: 600, color: C.txt, flex: 1 }}>{player.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </div>
 
@@ -1196,6 +1271,7 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
   const [diff, setDiff] = useState("mix");
   const [cats, setCats] = useState(Object.keys(CONTENT[contentLang].words));
   const [loading, setLoading] = useState(false);
+  const [view, setView] = useState("setup");
   const narratorId = getNarratorId(room, players);
   const others = getAudience(players, narratorId);
   const content = CONTENT[contentLang];
@@ -1236,18 +1312,25 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
   return (
     <div>
       <div style={{ ...S.card, background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))", borderColor: "rgba(251,191,36,.26)" }}>
-        <div style={S.st}>{ui.cards.title}</div>
-        <p style={S.bt}>{ui.cards.desc}</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={S.st}>{ui.cards.title}</div>
+          <HelpPopover title={ui.cards.explainTitle} ui={ui} C={C} S={S}>
+            <div>{ui.cards.desc}</div>
+            <div>{ui.cards.explainDesc}</div>
+            <div>{ui.cards.gameLanguageHelp}</div>
+            <div>{ui.cards.categoriesHelp}</div>
+          </HelpPopover>
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+          <button onClick={() => setView("setup")} style={{ ...S.sbtn(view === "setup" ? ACC.blue : C.muted), background: view === "setup" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.cards.setupView}</button>
+          <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? ACC.blue : C.muted), background: view === "players" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.cards.playersView}</button>
+        </div>
       </div>
 
-      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.26)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
-        <div style={{ ...S.st, marginBottom: 8 }}>{ui.cards.explainTitle}</div>
-        <p style={S.bt}>{ui.cards.explainDesc}</p>
-      </div>
-
+      {view === "setup" ? (
+      <>
       <div style={S.card}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.gameLanguage}</div>
-        <p style={{ ...S.bt, marginBottom: 12 }}>{ui.cards.gameLanguageHelp}</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {[{ id: "de", label: "Deutsch" }, { id: "en", label: "English" }].map((option) => (
             <button
@@ -1264,13 +1347,6 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
 
       <div style={S.card}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.difficulty}</div>
-        <div style={{ display: "grid", gap: 6, marginBottom: 12 }}>
-          {Object.entries(content.diffLabels).map(([key, label]) => (
-            <div key={`${key}-help`} style={{ fontSize: 12, color: C.muted }}>
-              <span style={{ color: C.txt, fontWeight: 700 }}>{label}:</span> {ui.cards.difficultyHelp[key]}
-            </div>
-          ))}
-        </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {Object.entries(content.diffLabels).map(([key, label]) => (
             <button key={key} onClick={() => setDiff(key)} aria-pressed={diff === key} style={{ minHeight: 48, padding: "10px 8px", borderRadius: 12, fontSize: 13, fontWeight: 700, border: `1.5px solid ${diff === key ? ACC.gold : C.bdr}`, background: diff === key ? "linear-gradient(180deg, rgba(251,191,36,.16), rgba(251,191,36,.08))" : C.sur2, color: diff === key ? ACC.gold : C.muted, cursor: "pointer" }}>
@@ -1282,7 +1358,6 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
 
       <div style={S.card}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.categories}</div>
-        <p style={{ ...S.bt, marginBottom: 12 }}>{ui.cards.categoriesHelp}</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {Object.entries(content.categoryLabels).map(([key, label]) => {
             const active = cats.includes(key);
@@ -1295,7 +1370,8 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
         </div>
         {cats.length === 0 && <p style={{ fontSize: 12, color: ACC.redl, marginTop: 8 }}>{ui.cards.minCategory}</p>}
       </div>
-
+      </>
+      ) : (
       <div style={{ ...S.card, marginBottom: 12 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.txt, marginBottom: 8 }}>{ui.cards.players(others.length)}</div>
         {others.length === 0 ? <p style={S.bt}>{ui.cards.noPlayers}</p> : others.map((player) => (
@@ -1305,6 +1381,7 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
           </div>
         ))}
       </div>
+      )}
 
       <button onClick={deal} disabled={loading || others.length === 0 || cats.length === 0} style={S.pbtn(ACC.blue, "rgba(96,165,250,.1)")}>
         {loading ? ui.cards.dealing : ui.cards.deal}
@@ -1326,8 +1403,12 @@ function ReadyCheck({ room, players, ui, C, S, onAllReady }) {
   return (
     <div>
       <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))" }}>
-        <div style={S.st}>{ui.ready.title}</div>
-        <p style={S.bt}>{ui.ready.desc}</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={S.st}>{ui.ready.title}</div>
+          <HelpPopover title={ui.ready.title} ui={ui} C={C} S={S}>
+            <div>{ui.ready.desc}</div>
+          </HelpPopover>
+        </div>
       </div>
 
       <div style={S.card}>
@@ -1397,36 +1478,19 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
               <img src={APP_ICON} alt="Story Chaos" style={{ width: 30, height: 30, borderRadius: 8 }} />
             </div>
             <div>
-              <div style={{ ...S.st, marginBottom: 4 }}>{ui.storyGen.title}</div>
-              <p style={{ ...S.bt, margin: 0, maxWidth: 700 }}>{ui.storyGen.desc}</p>
+              <div style={{ ...S.st, marginBottom: 0 }}>{ui.storyGen.title}</div>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {ui.storyGen.flowSteps.slice(0, 4).map((step, index) => (
-              <span key={step} style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: index < 2 || story ? C.txt : C.muted, background: index === 2 && story ? "rgba(251,191,36,.14)" : C.sur, border: `1px solid ${index === 2 && story ? "rgba(251,191,36,.3)" : C.bdr}`, padding: "7px 10px", borderRadius: 999 }}>
-                {index + 1}. {step}
-              </span>
-            ))}
-          </div>
+          <HelpPopover title={ui.storyGen.title} ui={ui} C={C} S={S}>
+            <div>{ui.storyGen.desc}</div>
+            {ui.storyGen.flowSteps.map((step, index) => <div key={step}>{index + 1}. {step}</div>)}
+            <div>{ui.storyGen.hiddenHint}</div>
+          </HelpPopover>
         </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop && (story || loading) ? "minmax(340px, 0.9fr) minmax(0, 1.1fr)" : "1fr", gap: 14, alignItems: "start" }}>
         <div>
-          <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))", marginBottom: 10, padding: viewport.isDesktop ? 14 : 18 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.blue, marginBottom: 10 }}>{ui.storyGen.flowTitle}</div>
-            <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 8 }}>
-              {ui.storyGen.flowSteps.map((step, index) => (
-                <div key={step} style={{ display: "flex", alignItems: "center", gap: 10, color: index < 2 || story ? C.txt : C.muted }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 999, display: "inline-flex", alignItems: "center", justifyContent: "center", background: index < 2 ? "rgba(74,222,128,.14)" : story && index === 2 ? "rgba(251,191,36,.14)" : C.sur2, border: `1px solid ${index < 2 ? "rgba(74,222,128,.35)" : story && index === 2 ? "rgba(251,191,36,.35)" : C.bdr}`, color: index < 2 ? ACC.greenl : story && index === 2 ? ACC.gold : C.muted, fontSize: 12, fontWeight: 800 }}>
-                    {index + 1}
-                  </span>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>{step}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <fieldset style={{ border: "none", margin: "0 0 14px", padding: 0 }}>
             <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10, display: "block" }}>{ui.storyGen.theme}</legend>
             <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr 1fr", gap: 8 }}>
@@ -1508,10 +1572,13 @@ function Resolution({ room, players, storyWords, ui, C, S, onOpenScores }) {
               <img src={APP_ICON} alt="Story Chaos" style={{ width: 30, height: 30, borderRadius: 8 }} />
             </div>
             <div>
-              <div style={{ ...S.st, marginBottom: 4 }}>{ui.resolution.title}</div>
-              <p style={{ ...S.bt, margin: 0, maxWidth: 700 }}>{ui.resolution.desc}</p>
+              <div style={{ ...S.st, marginBottom: 0 }}>{ui.resolution.title}</div>
             </div>
           </div>
+          <HelpPopover title={ui.resolution.title} ui={ui} C={C} S={S}>
+            <div>{ui.resolution.desc}</div>
+            <div>{ui.resolution.revealStoryDesc}</div>
+          </HelpPopover>
           <button onClick={onOpenScores} style={{ ...S.pbtn(ACC.gold, "rgba(251,191,36,.08)"), width: viewport.isDesktop ? 220 : "100%" }}>
             {ui.resolution.continueToPoints}
           </button>
@@ -1574,6 +1641,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
   const [selectedNextId, setSelectedNextId] = useState("");
   const [savingScoreId, setSavingScoreId] = useState(null);
   const [startingNextRound, setStartingNextRound] = useState(false);
+  const [view, setView] = useState("action");
   const audienceCount = others.length;
   const voteEntries = Object.values(votes);
   const yesVotes = voteEntries.filter((entry) => entry.vote).length;
@@ -1623,29 +1691,25 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
               <img src={APP_ICON} alt="Story Chaos" style={{ width: 30, height: 30, borderRadius: 8 }} />
             </div>
             <div>
-              <div style={{ ...S.st, marginBottom: 4 }}>{ui.scores.title}</div>
-              <p style={{ ...S.bt, margin: 0, maxWidth: 760 }}>{ui.scores.desc}</p>
+              <div style={{ ...S.st, marginBottom: 0 }}>{ui.scores.title}</div>
             </div>
           </div>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: ACC.blue, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.24)", padding: "8px 12px", borderRadius: 999 }}>
-            {ui.common.focusView}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <button onClick={() => setView("action")} style={{ ...S.sbtn(view === "action" ? ACC.blue : C.muted), background: view === "action" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.scores.actionView}</button>
+            <button onClick={() => setView("board")} style={{ ...S.sbtn(view === "board" ? ACC.blue : C.muted), background: view === "board" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.scores.boardView}</button>
+            <HelpPopover title={ui.scores.title} ui={ui} C={C} S={S}>
+              <div>{ui.scores.desc}</div>
+              {ui.scores.rules.map((rule) => <div key={rule}>{rule}</div>)}
+            </HelpPopover>
           </div>
         </div>
       </div>
 
+      {view === "action" ? (
       <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1.08fr) minmax(330px, 0.92fr)" : "1fr", gap: 14, alignItems: "start" }}>
         <div>
           <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", minHeight: compactScoreHeight }}>
-            <div style={{ marginBottom: 12, padding: "12px 14px", borderRadius: 14, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.22)" }}>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.scores.rulesTitle}</div>
-              <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 8 }}>
-                {ui.scores.rules.map((rule) => (
-                  <div key={rule} style={{ fontSize: 13, color: C.txt }}>{rule}</div>
-                ))}
-              </div>
-            </div>
             <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.pointsTitle}</div>
-            <p style={S.bt}>{ui.scores.pointsDesc}</p>
             <div style={{ marginTop: 10, marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.22)", color: C.txt, fontSize: 13, fontWeight: 700 }}>
               {ui.scores.pointsRule}
             </div>
@@ -1669,17 +1733,6 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
                 );
               })}
             </div>
-          </div>
-          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", padding: 14 }}>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 8 }}>
-              {sorted.map((player, index) => (
-                <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 8, background: C.sur2, borderRadius: 8, padding: "10px 12px", marginBottom: 0 }}>
-                  <span style={{ fontSize: 16, minWidth: 26 }}>{medals[index] || `${index + 1}.`}</span>
-                  <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: C.txt }}>{player.name}</span>
-                  <span style={{ fontSize: 24, fontWeight: 800, color: ACC.gold, minWidth: 36, textAlign: "center" }}>{player.score || 0}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
 
@@ -1773,6 +1826,19 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
           )}
         </div>
       </div>
+      ) : (
+      <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", padding: 14 }}>
+        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 8 }}>
+          {sorted.map((player, index) => (
+            <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 8, background: C.sur2, borderRadius: 8, padding: "10px 12px", marginBottom: 0 }}>
+              <span style={{ fontSize: 16, minWidth: 26 }}>{medals[index] || `${index + 1}.`}</span>
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: C.txt }}>{player.name}</span>
+              <span style={{ fontSize: 24, fontWeight: 800, color: ACC.gold, minWidth: 36, textAlign: "center" }}>{player.score || 0}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      )}
     </div>
   );
 }
@@ -2115,6 +2181,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
   const [markingReady, setMarkingReady] = useState(false);
   const [narratorVote, setNarratorVote] = useState(null);
   const [voteResult, setVoteResult] = useState(null);
+  const [pointsView, setPointsView] = useState("vote");
   const voteChannelRef = useRef(null);
 
   useEffect(() => {
@@ -2218,8 +2285,16 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
       </div>
 
       <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.common.phaseTitle}</div>
-        <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{playerPhase}</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.common.phaseTitle}</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{playerPhase}</div>
+          </div>
+          <HelpPopover title={playerPhase} ui={ui} C={C} S={S} align="left">
+            <div>{inPointsView ? ui.player.pointsDesc : ui.player.reactHint}</div>
+            <div>{ui.player.revealBoth}</div>
+          </HelpPopover>
+        </div>
       </div>
 
       {!hasCards ? (
@@ -2232,21 +2307,26 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
         <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1fr) minmax(320px, 0.9fr)" : "1fr", gap: 14, alignItems: "start" }}>
           <div>
             <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
-              <div style={{ ...S.st, marginBottom: 8 }}>{ui.player.pointsTitle}</div>
-              <p style={S.bt}>{ui.player.pointsDesc}</p>
-            </div>
-            <div style={{ ...S.card, borderColor: "rgba(96,165,250,.2)", background: "rgba(96,165,250,.04)" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.player.storyRunning}</div>
-              <p style={{ ...S.bt, fontStyle: "italic" }}>{ui.player.reactHint}</p>
-              <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: ACC.bluel }}>{ui.player.yourWord} <span style={{ background: "rgba(96,165,250,.15)", padding: "2px 10px", borderRadius: 20 }}>{player.secret_word}</span></div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+                <div style={{ ...S.st, marginBottom: 0 }}>{ui.player.pointsTitle}</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => setPointsView("vote")} style={{ ...S.sbtn(pointsView === "vote" ? ACC.blue : C.muted), background: pointsView === "vote" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.player.voteView}</button>
+                  <button onClick={() => setPointsView("card")} style={{ ...S.sbtn(pointsView === "card" ? ACC.blue : C.muted), background: pointsView === "card" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.player.cardView}</button>
+                </div>
+              </div>
+              {pointsView === "card" && (
+                <div style={{ ...S.card2, marginBottom: 0 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.player.secretWord}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: ACC.bluel }}>{player.secret_word}</div>
+                </div>
+              )}
             </div>
           </div>
 
           <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
-            {room.status === "voting" && (
+            {pointsView === "vote" && room.status === "voting" && (
               <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.player.narratorVoteTitle}</div>
-                <p style={S.bt}>{ui.player.narratorVoteDesc}</p>
                 {narratorVote === null ? (
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
                     <button onClick={() => castNarratorVote(true)} style={S.pbtn(ACC.green, "rgba(74,222,128,.1)")}>{ui.player.narratorVoteYes}</button>
@@ -2260,7 +2340,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
               </div>
             )}
 
-            {room.status === "voted" && voteResult !== null && (
+            {pointsView === "vote" && room.status === "voted" && voteResult !== null && (
               <div style={{ ...S.card, borderColor: voteResult ? "rgba(74,222,128,.3)" : C.bdr, background: voteResult ? "linear-gradient(180deg, rgba(74,222,128,.12), rgba(74,222,128,.05))" : "linear-gradient(180deg, rgba(148,163,184,.14), rgba(148,163,184,.06))", marginTop: 12, padding: "18px 18px", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: voteResult ? ACC.green : C.muted, marginBottom: 8 }}>
                   {ui.player.narratorVoteTitle}
@@ -2271,7 +2351,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
               </div>
             )}
 
-            {room.status === "voted" && voteResult === null && (
+            {pointsView === "vote" && room.status === "voted" && voteResult === null && (
               <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "rgba(96,165,250,.06)", marginTop: 12 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: ACC.bluel }}>{ui.player.narratorVotePending}</div>
               </div>
