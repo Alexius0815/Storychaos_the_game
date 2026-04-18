@@ -229,8 +229,7 @@ const UI = {
       title: "✨ Vorlesen",
       desc: "Wähle ein Thema. Die Geschichte enthält die Wörter aller Mitspieler. Du liest vor – beobachte die Reaktionen!",
       flowTitle: "Ablauf dieser Runde",
-      flowSteps: ["Karten sind verteilt", "Alle sind bereit", "Geschichte vorlesen", "Danach auflösen und Punkte vergeben"],
-      includedWords: "Einzubauende Wörter",
+      flowSteps: ["Karten sind verteilt", "Alle sind bereit", "Geschichte vorlesen", "Danach getrennt auflösen und Punkte vergeben"],
       theme: "Thema",
       generate: "Geschichte generieren",
       generating: "Wird geschrieben…",
@@ -240,14 +239,32 @@ const UI = {
       regenerate: "Neu ↻",
       hiddenHint: "Wörter sind versteckt – beobachte wer wann reagiert!",
       revealTitle: "Auflösen – erst nach dem Raten!",
-      revealWords: "Wörter aufdecken",
-      resolveReady: "Auflösung bereit",
-      resolveCta: "Zur Auflösung und Punktevergabe",
+      revealDesc: "Wechsle danach in die Auflösung. Dort siehst du die Geschichte mit markierten Wörtern und alle Karten der Mitspieler.",
+      resolveCta: "Zur Auflösung",
     },
     resolution: {
       title: "🎭 Auflösung",
-      desc: "Wer hatte was? Hier die Karten aller Mitspieler auf einen Blick.",
-      scoringRule: "Der Erzähler vergibt die Punkte dieser Runde.",
+      desc: "Hier wird die Geschichte aufgedeckt. Erst danach geht es weiter zur Punktevergabe.",
+      revealStoryTitle: "Aufgedeckte Geschichte",
+      revealStoryDesc: "Jetzt siehst du die Geschichte mit den markierten Wörtern aller Mitspieler.",
+      word: "🔵 Wort",
+      action: "🔴 Aktion",
+      continueToPoints: "Zur Punktevergabe",
+    },
+    scores: {
+      title: "🏆 Punktevergabe",
+      desc: "Hier vergibst du als Erzähler die Runde und die Mitspieler stimmen über deinen Punkt ab.",
+      rulesTitle: "Punkteregeln",
+      rules: [
+        "Der Erzähler kann jedem Mitspieler in dieser Runde höchstens 1 Punkt geben.",
+        "Die Mitspieler stimmen am Ende ab, ob der Erzähler 1 Punkt bekommt.",
+      ],
+      pointsTitle: "Punkte vergeben",
+      pointsDesc: "Du entscheidest als Erzähler, wer für diese Runde Punkte bekommt.",
+      pointsRule: "Jeder Mitspieler kann in dieser Runde höchstens 1 Punkt von dir bekommen.",
+      currentScore: "Punktestand",
+      addPoint: "+1 Punkt",
+      pointGiven: "Punkt vergeben",
       narratorVoteTitle: "Abstimmung für den Erzähler",
       narratorVoteDesc: "Die Mitspieler stimmen ab, ob der Erzähler 1 Punkt bekommt.",
       narratorVoteWaiting: (a, b) => `${a} von ${b} Stimmen eingegangen`,
@@ -258,14 +275,6 @@ const UI = {
       narratorVotePending: "Warte auf die Stimmen der Mitspieler.",
       narratorVoteLive: "Live-Ergebnis",
       narratorVoteDone: "Abstimmung abgeschlossen",
-      word: "🔵 Wort",
-      action: "🔴 Aktion",
-      pointsTitle: "Punkte vergeben",
-      pointsDesc: "Du entscheidest als Erzähler, wer für diese Runde Punkte bekommt.",
-      pointsRule: "Jeder Mitspieler kann in dieser Runde höchstens 1 Punkt von dir bekommen.",
-      currentScore: "Punktestand",
-      addPoint: "+1 Punkt",
-      removePoint: "-1 Punkt",
       nextTitle: "Nächsten Erzähler wählen",
       nextDesc: "Bestimme jetzt, wer in der nächsten Runde die Hauptansicht bekommt.",
       nextAuto: "Der nächste Erzähler steht schon fest.",
@@ -274,15 +283,6 @@ const UI = {
       nextUp: (name) => `Nächste Runde: ${name} ist Erzähler`,
       roundSummaryTitle: "Runde abgeschlossen",
       roundSummaryDesc: "Vergib oben Punkte, prüfe den Erzählerpunkt und bestimme dann den nächsten Erzähler.",
-    },
-    scores: {
-      title: "🏆 Punktestand",
-      desc: "Gespeicherte Punkte aller Mitspieler.",
-      rulesTitle: "Punkteregeln",
-      rules: [
-        "Der Erzähler kann jedem Mitspieler in der Auflösung 1 Punkt geben.",
-        "Die Mitspieler stimmen am Ende ab, ob der Erzähler 1 Punkt bekommt.",
-      ],
     },
     timer: {
       duration: "Dauer",
@@ -337,8 +337,11 @@ const UI = {
       phaseCards: "Karten anschauen",
       phaseReady: "Bereit machen",
       phaseStory: "Reagieren",
+      phaseReveal: "Auflösung läuft",
       phaseVoting: "Abstimmen",
       phaseResult: "Runde beendet",
+      pointsTitle: "Punkte dieser Runde",
+      pointsDesc: "Die Geschichte ist vorbei. Jetzt vergibt der Erzähler Punkte und ihr stimmt über seinen Punkt ab.",
       takeOverTitle: "Kein aktiver Erzähler",
       takeOverDesc: "Der bisherige Erzähler scheint nicht mehr verbunden zu sein. Du kannst den Raum übernehmen und weiterspielen.",
     },
@@ -482,8 +485,7 @@ const UI = {
       title: "✨ Read aloud",
       desc: "Choose a theme. The story includes every player's word. Read it aloud and watch the reactions!",
       flowTitle: "Round flow",
-      flowSteps: ["Cards are dealt", "Everyone is ready", "Read the story aloud", "Then reveal and award points"],
-      includedWords: "Words to include",
+      flowSteps: ["Cards are dealt", "Everyone is ready", "Read the story aloud", "Then reveal and award points in separate steps"],
       theme: "Theme",
       generate: "Generate story",
       generating: "Writing…",
@@ -493,14 +495,32 @@ const UI = {
       regenerate: "New ↻",
       hiddenHint: "The words are hidden – watch who reacts and when!",
       revealTitle: "Reveal – only after the guesses!",
-      revealWords: "Reveal words",
-      resolveReady: "Reveal ready",
-      resolveCta: "Go to reveal and scoring",
+      revealDesc: "Then switch to the reveal screen. There you see the story with highlighted words and all player cards.",
+      resolveCta: "Go to reveal",
     },
     resolution: {
       title: "🎭 Reveal",
-      desc: "Who had what? Here are all player cards at a glance.",
-      scoringRule: "The narrator awards the points for this round.",
+      desc: "This is the reveal step. Scoring happens afterwards in its own screen.",
+      revealStoryTitle: "Revealed story",
+      revealStoryDesc: "You now see the story with every highlighted player word.",
+      word: "🔵 Word",
+      action: "🔴 Action",
+      continueToPoints: "Go to scoring",
+    },
+    scores: {
+      title: "🏆 Scoring",
+      desc: "Here the narrator awards player points and the group votes on the narrator point.",
+      rulesTitle: "Scoring rules",
+      rules: [
+        "The narrator can give each player at most 1 point this round.",
+        "At the end, the players vote on whether the narrator gets 1 point.",
+      ],
+      pointsTitle: "Award points",
+      pointsDesc: "As the narrator, you decide who earns points this round.",
+      pointsRule: "Each player can get at most 1 point from you this round.",
+      currentScore: "Score",
+      addPoint: "+1 point",
+      pointGiven: "Point given",
       narratorVoteTitle: "Vote for the narrator",
       narratorVoteDesc: "The players vote on whether the narrator gets 1 point.",
       narratorVoteWaiting: (a, b) => `${a} of ${b} votes received`,
@@ -511,14 +531,6 @@ const UI = {
       narratorVotePending: "Waiting for the players to vote.",
       narratorVoteLive: "Live result",
       narratorVoteDone: "Vote finished",
-      word: "🔵 Word",
-      action: "🔴 Action",
-      pointsTitle: "Award points",
-      pointsDesc: "As the narrator, you decide who earns points this round.",
-      pointsRule: "Each player can get at most 1 point from you this round.",
-      currentScore: "Score",
-      addPoint: "+1 point",
-      removePoint: "-1 point",
       nextTitle: "Choose the next narrator",
       nextDesc: "Decide who gets the main narrator view for the next round.",
       nextAuto: "The next narrator is already decided.",
@@ -527,15 +539,6 @@ const UI = {
       nextUp: (name) => `Next round: ${name} is the narrator`,
       roundSummaryTitle: "Round complete",
       roundSummaryDesc: "Award points above, check the narrator vote, then choose the next narrator.",
-    },
-    scores: {
-      title: "🏆 Scoreboard",
-      desc: "Saved points for all players.",
-      rulesTitle: "Scoring rules",
-      rules: [
-        "The narrator can give each player 1 point during the reveal.",
-        "At the end, the players vote on whether the narrator gets 1 point.",
-      ],
     },
     timer: {
       duration: "Duration",
@@ -590,8 +593,11 @@ const UI = {
       phaseCards: "Check your cards",
       phaseReady: "Get ready",
       phaseStory: "React",
+      phaseReveal: "Reveal in progress",
       phaseVoting: "Vote",
       phaseResult: "Round complete",
+      pointsTitle: "Round scoring",
+      pointsDesc: "The story is over. The narrator is now awarding points and you vote on the narrator point.",
       takeOverTitle: "No active narrator",
       takeOverDesc: "The previous narrator seems to be offline. You can take over the room and continue the game.",
     },
@@ -746,6 +752,7 @@ function getPlayerPhase(room, player, bothRevealed, isReady, ui) {
   if (!player?.secret_word || !player?.secret_action) return ui.player.phaseWaiting;
   if (!bothRevealed) return ui.player.phaseCards;
   if (!isReady) return ui.player.phaseReady;
+  if (room?.status === "revealed") return ui.player.phaseReveal;
   if (room?.status === "voting") return ui.player.phaseVoting;
   if (room?.status === "voted") return ui.player.phaseResult;
   if (room?.story) return ui.player.phaseStory;
@@ -1357,7 +1364,6 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
   const [story, setStory] = useState(room.story || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [revealed, setRevealed] = useState(false);
   const words = storyWords || [];
   const content = CONTENT[contentLang];
 
@@ -1366,7 +1372,6 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
     setLoading(true);
     setError("");
     setStory("");
-    setRevealed(false);
     const selection = genre === "random" ? content.genres[Math.floor(Math.random() * (content.genres.length - 1))].label : content.genres.find((entry) => entry.id === genre)?.label;
     const prompt = content.aiPrompt(selection, words);
     const text = await generateStory(prompt, contentLang);
@@ -1378,18 +1383,6 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
     setStory(text);
     await sb.from("rooms").update({ story: text, status: "playing" }).eq("id", room.id);
     setLoading(false);
-  }
-
-  function renderStory(text, highlightWords) {
-    const clean = text.replace(/\*\*(.*?)\*\*/g, "$1");
-    if (!highlightWords?.length) return clean;
-    const escaped = highlightWords.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-    const pattern = new RegExp(`(${escaped.join("|")})`, "gi");
-    return clean.split(pattern).map((part, index) => (
-      highlightWords.some((word) => word.toLowerCase() === part.toLowerCase())
-        ? <strong key={index} style={{ color: ACC.gold, textDecoration: "underline dotted", textUnderlineOffset: 3 }}>{part}</strong>
-        : part
-    ));
   }
 
   return (
@@ -1449,24 +1442,10 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
               </div>
               <div style={{ ...S.card, borderColor: "rgba(248,113,113,.3)", background: "rgba(248,113,113,.05)" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 12 }}>{ui.storyGen.revealTitle}</div>
-                {!revealed ? (
-                  <button onClick={() => setRevealed(true)} style={S.pbtn(ACC.red, "rgba(248,113,113,.08)")}>{ui.storyGen.revealWords}</button>
-                ) : (
-                  <div>
-                    <div style={{ fontSize: 15, lineHeight: 2.1, color: C.txt, marginBottom: 14 }}>{renderStory(story, words)}</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 12, borderTop: `1px solid ${C.bdr}` }}>
-                      {words.map((word) => <span key={word} style={{ fontSize: 12, fontWeight: 600, color: ACC.gold, background: "rgba(251,191,36,.1)", padding: "4px 12px", borderRadius: 20, border: "1px solid rgba(251,191,36,.3)" }}>{word}</span>)}
-                    </div>
-                    <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.bdr}` }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 8 }}>
-                        {ui.storyGen.resolveReady}
-                      </div>
-                      <button onClick={onOpenResolution} style={S.pbtn(ACC.red, "rgba(248,113,113,.08)")}>
-                        {ui.storyGen.resolveCta}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <p style={{ ...S.bt, marginBottom: 14 }}>{ui.storyGen.revealDesc}</p>
+                <button onClick={onOpenResolution} style={S.pbtn(ACC.red, "rgba(248,113,113,.08)")}>
+                  {ui.storyGen.resolveCta}
+                </button>
               </div>
             </div>
           </div>
@@ -1476,11 +1455,86 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
   );
 }
 
-function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onChooseNarrator, onFinalizeNarratorVote, finalizingNarratorVote }) {
+function Resolution({ room, players, storyWords, ui, C, S, onOpenScores }) {
+  const viewport = useViewport();
+  const narratorId = getNarratorId(room, players);
+  const others = getAudience(players, narratorId);
+  const words = storyWords || [];
+
+  function renderStory(text, highlightWords) {
+    const clean = (text || "").replace(/\*\*(.*?)\*\*/g, "$1");
+    if (!highlightWords?.length) return clean;
+    const escaped = highlightWords.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    const pattern = new RegExp(`(${escaped.join("|")})`, "gi");
+    return clean.split(pattern).map((part, index) => (
+      highlightWords.some((word) => word.toLowerCase() === part.toLowerCase())
+        ? <strong key={index} style={{ color: ACC.gold, textDecoration: "underline dotted", textUnderlineOffset: 3 }}>{part}</strong>
+        : part
+    ));
+  }
+
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1.05fr) minmax(320px, 0.95fr)" : "1fr", gap: 14, alignItems: "start" }}>
+        <div>
+          <div style={S.card}>
+            <div style={S.st}>{ui.resolution.title}</div>
+            <p style={S.bt}>{ui.resolution.desc}</p>
+          </div>
+          <div style={{ ...S.card, borderColor: "rgba(248,113,113,.3)", background: "rgba(248,113,113,.05)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 10 }}>{ui.resolution.revealStoryTitle}</div>
+            <p style={{ ...S.bt, marginBottom: 14 }}>{ui.resolution.revealStoryDesc}</p>
+            <div style={{ fontSize: viewport.isDesktop ? 16 : 15, lineHeight: viewport.isDesktop ? 2.05 : 1.95, color: C.txt }}>
+              {renderStory(room.story || "", words)}
+            </div>
+            {words.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 14, marginTop: 14, borderTop: `1px solid ${C.bdr}` }}>
+                {words.map((word) => (
+                  <span key={word} style={{ fontSize: 12, fontWeight: 700, color: ACC.gold, background: "rgba(251,191,36,.1)", padding: "4px 12px", borderRadius: 999, border: "1px solid rgba(251,191,36,.3)" }}>
+                    {word}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
+          <div style={{ ...S.card, marginTop: viewport.isDesktop ? 0 : 12 }}>
+            <div style={{ display: "grid", gap: 12 }}>
+              {others.map((player) => (
+                <div key={player.id} style={{ background: C.sur2, borderRadius: 14, padding: 14, border: `1px solid ${player.ready ? "rgba(74,222,128,.25)" : C.bdr}` }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: C.txt, marginBottom: 10 }}>{player.name}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: viewport.isPhone ? "1fr" : "1fr 1fr", gap: 10 }}>
+                    <div style={{ background: C.sur, borderRadius: 10, padding: 12 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.blue, marginBottom: 6 }}>{ui.resolution.word}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: ACC.bluel }}>{player.secret_word || "–"}</div>
+                    </div>
+                    <div style={{ background: C.sur, borderRadius: 10, padding: 12 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.red, marginBottom: 6 }}>{ui.resolution.action}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: ACC.redl }}>{player.secret_action || "–"}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button onClick={onOpenScores} style={{ ...S.pbtn(ACC.gold, "rgba(251,191,36,.08)"), marginTop: 14 }}>
+              {ui.resolution.continueToPoints}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChooseNarrator, onFinalizeNarratorVote, finalizingNarratorVote, awardedPlayerIds = [], onAwardPlayer }) {
   const viewport = useViewport();
   const narratorId = getNarratorId(room, players);
   const narrator = players.find((player) => player.id === narratorId);
   const others = getAudience(players, narratorId);
+  const sorted = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
+  const medals = ["🥇", "🥈", "🥉"];
   const [selectedNextId, setSelectedNextId] = useState("");
   const [savingScoreId, setSavingScoreId] = useState(null);
   const [startingNextRound, setStartingNextRound] = useState(false);
@@ -1499,10 +1553,15 @@ function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onCh
     setSelectedNextId((current) => (candidates.some((player) => player.id === current) ? current : ""));
   }, [others, narratorId]);
 
-  async function changeScore(player, delta) {
-    const nextScore = Math.max(0, (player.score || 0) + delta);
+  useEffect(() => {
+    if (!allVoted || room?.status !== "voting" || !onFinalizeNarratorVote || finalizingNarratorVote) return;
+    onFinalizeNarratorVote(yesVotes > noVotes);
+  }, [allVoted, room?.status, onFinalizeNarratorVote, finalizingNarratorVote, yesVotes, noVotes]);
+
+  async function givePoint(player) {
+    if (!onAwardPlayer || savingScoreId === player.id || awardedPlayerIds.includes(player.id)) return;
     setSavingScoreId(player.id);
-    await sb.from("players").update({ score: nextScore }).eq("id", player.id);
+    await onAwardPlayer(player);
     setSavingScoreId(null);
   }
 
@@ -1518,124 +1577,117 @@ function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onCh
   const nextCandidates = others.filter((player) => player.id !== narratorId);
   const canAdvance = !!selectedNextId;
 
-  useEffect(() => {
-    if (!allVoted || room?.status !== "voting" || !onFinalizeNarratorVote || finalizingNarratorVote) return;
-    onFinalizeNarratorVote(yesVotes > noVotes);
-  }, [allVoted, room?.status, onFinalizeNarratorVote, finalizingNarratorVote, yesVotes, noVotes]);
-
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1.1fr) minmax(320px, 0.9fr)" : "1fr", gap: 14, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1fr) minmax(340px, 0.92fr)" : "1fr", gap: 14, alignItems: "start" }}>
         <div>
-          <div style={S.card}>
-            <div style={S.st}>{ui.resolution.title}</div>
-            <p style={S.bt}>{ui.resolution.desc}</p>
-            <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.24)", color: C.txt, fontSize: 14, fontWeight: 700 }}>
-              {ui.resolution.scoringRule}
+          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)" }}>
+            <div style={S.st}>{ui.scores.title}</div>
+            <p style={{ ...S.bt, marginBottom: 12 }}>{ui.scores.desc}</p>
+            <div style={{ marginBottom: 14, padding: "14px 16px", borderRadius: 14, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.22)" }}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.scores.rulesTitle}</div>
+              <div style={{ display: "grid", gap: 8 }}>
+                {ui.scores.rules.map((rule) => (
+                  <div key={rule} style={{ fontSize: 13, color: C.txt }}>{rule}</div>
+                ))}
+              </div>
+            </div>
+            <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.pointsTitle}</div>
+            <p style={S.bt}>{ui.scores.pointsDesc}</p>
+            <div style={{ marginTop: 10, marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.22)", color: C.txt, fontSize: 13, fontWeight: 700 }}>
+              {ui.scores.pointsRule}
+            </div>
+            <div style={{ display: "grid", gap: 10 }}>
+              {others.map((player) => {
+                const alreadyAwarded = awardedPlayerIds.includes(player.id);
+                return (
+                  <div key={`${player.id}-score`} style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.bdr}` }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                      <div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{player.name}</div>
+                        <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
+                          {ui.scores.currentScore}: <span style={{ color: ACC.gold, fontWeight: 800 }}>{player.score || 0}</span>
+                        </div>
+                      </div>
+                      <button onClick={() => givePoint(player)} disabled={savingScoreId === player.id || alreadyAwarded} style={{ ...S.sbtn(alreadyAwarded ? ACC.green : ACC.gold), minWidth: 120, opacity: savingScoreId === player.id ? 0.7 : 1, cursor: alreadyAwarded ? "default" : "pointer" }}>
+                        {alreadyAwarded ? ui.scores.pointGiven : ui.scores.addPoint}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 12 }}>
-            {others.map((player) => (
-              <div key={player.id} style={{ ...S.card, marginBottom: 0, borderColor: player.ready ? "rgba(74,222,128,.25)" : C.bdr }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.txt, marginBottom: 10 }}>{player.name}</div>
-                <div style={{ display: "grid", gridTemplateColumns: viewport.isPhone ? "1fr" : "1fr 1fr", gap: 10 }}>
-                  <div style={{ background: C.sur2, borderRadius: 8, padding: 12 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.blue, marginBottom: 6 }}>{ui.resolution.word}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: ACC.bluel }}>{player.secret_word || "–"}</div>
-                  </div>
-                  <div style={{ background: C.sur2, borderRadius: 8, padding: 12 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.red, marginBottom: 6 }}>{ui.resolution.action}</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: ACC.redl }}>{player.secret_action || "–"}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)" }}>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {sorted.map((player, index) => (
+                <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 8, background: C.sur2, borderRadius: 8, padding: "10px 12px", marginBottom: 8 }}>
+                  <span style={{ fontSize: 16, minWidth: 26 }}>{medals[index] || `${index + 1}.`}</span>
+                  <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: C.txt }}>{player.name}</span>
+                  <span style={{ fontSize: 24, fontWeight: 800, color: ACC.gold, minWidth: 36, textAlign: "center" }}>{player.score || 0}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
         <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
-          <div style={{ ...S.card, marginTop: viewport.isDesktop ? 0 : 12 }}>
-        <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.pointsTitle}</div>
-        <p style={S.bt}>{ui.resolution.pointsDesc}</p>
-        <div style={{ marginTop: 10, marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.22)", color: C.txt, fontSize: 13, fontWeight: 700 }}>
-          {ui.resolution.pointsRule}
-        </div>
-        <div style={{ display: "grid", gap: 10 }}>
-          {others.map((player) => (
-            <div key={`${player.id}-score`} style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.bdr}` }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{player.name}</div>
-                  <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
-                    {ui.resolution.currentScore}: <span style={{ color: ACC.gold, fontWeight: 800 }}>{player.score || 0}</span>
+          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)" }}>
+            <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.narratorVoteTitle}</div>
+            <p style={S.bt}>{ui.scores.narratorVoteDesc}</p>
+            {narrator && (
+              <div style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.bdr}`, marginTop: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{narrator.name}</div>
+                    <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{ui.scores.currentScore}: <span style={{ color: ACC.gold, fontWeight: 800 }}>{narrator.score || 0}</span></div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <span style={{ ...S.sbtn(ACC.green), cursor: "default" }}>{ui.scores.narratorVoteYes}: {yesVotes}</span>
+                    <span style={{ ...S.sbtn(C.muted), cursor: "default" }}>{ui.scores.narratorVoteNo}: {noVotes}</span>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => changeScore(player, 1)} disabled={savingScoreId === player.id} style={{ ...S.sbtn(ACC.gold), minWidth: 92 }}>
-                    {ui.resolution.addPoint}
-                  </button>
+                <p style={{ ...S.bt, marginTop: 12 }}>{ui.scores.narratorVoteWaiting(voteEntries.length, audienceCount)}</p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+                  <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(74,222,128,.10)", border: "1px solid rgba(74,222,128,.26)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.green, marginBottom: 6 }}>{ui.scores.narratorVoteYes}</div>
+                    <div style={{ fontSize: 30, fontWeight: 800, color: ACC.greenl, lineHeight: 1 }}>{yesVotes}</div>
+                  </div>
+                  <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(148,163,184,.10)", border: `1px solid ${C.bdr}` }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 6 }}>{ui.scores.narratorVoteNo}</div>
+                    <div style={{ fontSize: 30, fontWeight: 800, color: C.txt, lineHeight: 1 }}>{noVotes}</div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-          </div>
-          <div style={{ ...S.card, marginTop: 12 }}>
-        <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.narratorVoteTitle}</div>
-        <p style={S.bt}>{ui.resolution.narratorVoteDesc}</p>
-        {narrator && (
-          <div style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.bdr}`, marginTop: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{narrator.name}</div>
-                <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{ui.resolution.currentScore}: <span style={{ color: ACC.gold, fontWeight: 800 }}>{narrator.score || 0}</span></div>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <span style={{ ...S.sbtn(ACC.green), cursor: "default" }}>{ui.resolution.narratorVoteYes}: {yesVotes}</span>
-                <span style={{ ...S.sbtn(C.muted), cursor: "default" }}>{ui.resolution.narratorVoteNo}: {noVotes}</span>
-              </div>
-            </div>
-            <p style={{ ...S.bt, marginTop: 12 }}>{ui.resolution.narratorVoteWaiting(voteEntries.length, audienceCount)}</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-              <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(74,222,128,.10)", border: "1px solid rgba(74,222,128,.26)" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.green, marginBottom: 6 }}>{ui.resolution.narratorVoteYes}</div>
-                <div style={{ fontSize: 30, fontWeight: 800, color: ACC.greenl, lineHeight: 1 }}>{yesVotes}</div>
-              </div>
-              <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(148,163,184,.10)", border: `1px solid ${C.bdr}` }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 6 }}>{ui.resolution.narratorVoteNo}</div>
-                <div style={{ fontSize: 30, fontWeight: 800, color: C.txt, lineHeight: 1 }}>{noVotes}</div>
-              </div>
-            </div>
-            {room?.status === "voted" ? (
-              <div style={{ marginTop: 14, padding: "18px 18px", borderRadius: 16, background: narratorAwarded ? "linear-gradient(180deg, rgba(74,222,128,.16), rgba(74,222,128,.06))" : "linear-gradient(180deg, rgba(148,163,184,.14), rgba(148,163,184,.06))", border: `1px solid ${narratorAwarded ? "rgba(74,222,128,.30)" : C.bdr}`, color: narratorAwarded ? ACC.greenl : C.txt }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 8 }}>
-                  {ui.resolution.narratorVoteDone}
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.35 }}>
-                  {narratorAwarded ? ui.resolution.narratorVoteApproved : ui.resolution.narratorVoteRejected}
-                </div>
-              </div>
-            ) : (
-              <div style={{ marginTop: 14, padding: "16px 18px", borderRadius: 16, background: "linear-gradient(180deg, rgba(96,165,250,.10), rgba(96,165,250,.04))", border: "1px solid rgba(96,165,250,.24)", color: C.txt }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>
-                  {ui.resolution.narratorVoteLive}
-                </div>
-                <div style={{ fontSize: 16, fontWeight: 700 }}>
-                  {finalizingNarratorVote ? ui.common.loading : ui.resolution.narratorVotePending}
-                </div>
+                {room?.status === "voted" ? (
+                  <div style={{ marginTop: 14, padding: "18px 18px", borderRadius: 16, background: narratorAwarded ? "linear-gradient(180deg, rgba(74,222,128,.16), rgba(74,222,128,.06))" : "linear-gradient(180deg, rgba(148,163,184,.14), rgba(148,163,184,.06))", border: `1px solid ${narratorAwarded ? "rgba(74,222,128,.30)" : C.bdr}`, color: narratorAwarded ? ACC.greenl : C.txt }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 8 }}>
+                      {ui.scores.narratorVoteDone}
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.35 }}>
+                      {narratorAwarded ? ui.scores.narratorVoteApproved : ui.scores.narratorVoteRejected}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 14, padding: "16px 18px", borderRadius: 16, background: "linear-gradient(180deg, rgba(96,165,250,.10), rgba(96,165,250,.04))", border: "1px solid rgba(96,165,250,.24)", color: C.txt }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>
+                      {ui.scores.narratorVoteLive}
+                    </div>
+                    <div style={{ fontSize: 16, fontWeight: 700 }}>
+                      {finalizingNarratorVote ? ui.common.loading : ui.scores.narratorVotePending}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-          </div>
           {nextCandidates.length > 0 && (
-            <div style={{ ...S.card, marginTop: 12 }}>
+            <div style={{ ...S.card, marginTop: 12, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)" }}>
               <div style={{ marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.22)" }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.resolution.roundSummaryTitle}</div>
-                <div style={{ fontSize: 13, color: C.txt, lineHeight: 1.6 }}>{ui.resolution.roundSummaryDesc}</div>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.scores.roundSummaryTitle}</div>
+                <div style={{ fontSize: 13, color: C.txt, lineHeight: 1.6 }}>{ui.scores.roundSummaryDesc}</div>
               </div>
-              <div style={{ ...S.st, marginBottom: 8 }}>{ui.resolution.nextTitle}</div>
-              <p style={S.bt}>{nextCandidates.length > 1 ? ui.resolution.nextDesc : ui.resolution.nextAuto}</p>
+              <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.nextTitle}</div>
+              <p style={S.bt}>{nextCandidates.length > 1 ? ui.scores.nextDesc : ui.scores.nextAuto}</p>
               <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
                 {nextCandidates.map((player) => {
                   const active = selectedNextId === player.id;
@@ -1662,43 +1714,12 @@ function Resolution({ room, players, ui, C, S, votes = {}, narratorAwarded, onCh
                 })}
               </div>
               <button onClick={startNextRound} disabled={!canAdvance || startingNextRound} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginTop: 14 }}>
-                {startingNextRound ? ui.common.loading : ui.resolution.nextRound}
+                {startingNextRound ? ui.common.loading : ui.scores.nextRound}
               </button>
-              {!canAdvance && <p style={{ fontSize: 12, color: C.muted, marginTop: 10 }}>{ui.resolution.chooseFirst}</p>}
+              {!canAdvance && <p style={{ fontSize: 12, color: C.muted, marginTop: 10 }}>{ui.scores.chooseFirst}</p>}
             </div>
           )}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function Scores({ room, players, ui, C, S }) {
-  const sorted = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
-  const medals = ["🥇", "🥈", "🥉"];
-
-  return (
-    <div>
-      <div style={S.card}>
-        <div style={S.st}>{ui.scores.title}</div>
-        <p style={{ ...S.bt, marginBottom: 12 }}>{ui.scores.desc}</p>
-        <div style={{ marginBottom: 14, padding: "14px 16px", borderRadius: 14, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.22)" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.scores.rulesTitle}</div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {ui.scores.rules.map((rule) => (
-              <div key={rule} style={{ fontSize: 13, color: C.txt }}>{rule}</div>
-            ))}
-          </div>
-        </div>
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {sorted.map((player, index) => (
-            <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 8, background: C.sur2, borderRadius: 8, padding: "10px 12px", marginBottom: 8 }}>
-              <span style={{ fontSize: 16, minWidth: 26 }}>{medals[index] || `${index + 1}.`}</span>
-              <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: C.txt }}>{player.name}</span>
-              <span style={{ fontSize: 24, fontWeight: 800, color: ACC.gold, minWidth: 36, textAlign: "center" }}>{player.score || 0}</span>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   );
@@ -1834,6 +1855,7 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
   const [narratorAwarded, setNarratorAwarded] = useState(false);
   const [finalizingNarratorVote, setFinalizingNarratorVote] = useState(false);
   const [deletingRoom, setDeletingRoom] = useState(false);
+  const [awardedPlayerIds, setAwardedPlayerIds] = useState([]);
   const voteChannelRef = useRef(null);
 
   useEffect(() => {
@@ -1906,6 +1928,7 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
     setNarratorVotes({});
     setNarratorAwarded(false);
     setFinalizingNarratorVote(false);
+    setAwardedPlayerIds([]);
     setTab("lobby");
   }
 
@@ -1913,11 +1936,26 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
     setNarratorVotes({});
     setNarratorAwarded(false);
     setFinalizingNarratorVote(false);
+    setAwardedPlayerIds([]);
+    await sb.from("rooms").update({ status: "revealed" }).eq("id", roomId);
+    setTab("resolve");
+  }
+
+  async function openScores() {
+    setNarratorVotes({});
+    setNarratorAwarded(false);
+    setFinalizingNarratorVote(false);
     await sb.from("rooms").update({ status: "voting" }).eq("id", roomId);
     if (voteChannelRef.current) {
       await voteChannelRef.current.send({ type: "broadcast", event: "vote-reset", payload: {} });
     }
-    setTab("resolve");
+    setTab("scores");
+  }
+
+  async function awardPlayer(player) {
+    if (awardedPlayerIds.includes(player.id)) return;
+    await sb.from("players").update({ score: (player.score || 0) + 1 }).eq("id", player.id);
+    setAwardedPlayerIds((current) => [...current, player.id]);
   }
 
   async function finalizeNarratorVote(awarded) {
@@ -1965,6 +2003,18 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
     { id: "scores", icon: "🏆", label: ui.hostTabs.scores },
   ];
 
+  async function handleTabChange(nextTab) {
+    if (nextTab === "resolve") {
+      await openResolution();
+      return;
+    }
+    if (nextTab === "scores") {
+      await openScores();
+      return;
+    }
+    setTab(nextTab);
+  }
+
   return (
     <div>
       <div style={{ background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 14, padding: "10px 14px", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: C.bg === "#0d0d14" ? "0 10px 24px rgba(0,0,0,.14)" : "0 12px 26px rgba(15,23,42,.05)" }}>
@@ -1983,7 +2033,7 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
       <nav>
         <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "repeat(6,1fr)" : viewport.isTablet ? "repeat(3,1fr)" : "repeat(4,1fr)", gap: 6, marginBottom: 16 }}>
           {tabs.map((tabEntry) => (
-            <button key={tabEntry.id} onClick={() => setTab(tabEntry.id)} aria-selected={tab === tabEntry.id} style={{ background: tab === tabEntry.id ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur, border: `1.5px solid ${tab === tabEntry.id ? ACC.blue : C.bdr}`, color: tab === tabEntry.id ? ACC.bluel : C.muted, fontSize: viewport.isDesktop ? 11 : 9, fontWeight: 700, padding: viewport.isDesktop ? "12px 8px 10px" : "10px 4px 8px", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer", minHeight: viewport.isDesktop ? 72 : 62 }}>
+            <button key={tabEntry.id} onClick={() => handleTabChange(tabEntry.id)} aria-selected={tab === tabEntry.id} style={{ background: tab === tabEntry.id ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur, border: `1.5px solid ${tab === tabEntry.id ? ACC.blue : C.bdr}`, color: tab === tabEntry.id ? ACC.bluel : C.muted, fontSize: viewport.isDesktop ? 11 : 9, fontWeight: 700, padding: viewport.isDesktop ? "12px 8px 10px" : "10px 4px 8px", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer", minHeight: viewport.isDesktop ? 72 : 62 }}>
               <span style={{ fontSize: viewport.isDesktop ? 17 : 15 }}>{tabEntry.icon}</span><span>{tabEntry.label}</span>
             </button>
           ))}
@@ -1994,11 +2044,11 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
         <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{getHostPhase(tab, ui)}</div>
       </div>
       {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} onStart={() => setTab("cards")} />}
-      {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setTab("ready"); }} />}
+      {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setAwardedPlayerIds([]); setTab("ready"); }} />}
       {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onAllReady={() => setTab("story")} />}
       {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} onOpenResolution={openResolution} />}
-      {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} votes={narratorVotes} narratorAwarded={narratorAwarded} finalizingNarratorVote={finalizingNarratorVote} onFinalizeNarratorVote={finalizeNarratorVote} onChooseNarrator={chooseNextNarrator} />}
-      {tab === "scores" && <Scores room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} />}
+      {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} C={C} S={S} onOpenScores={openScores} />}
+      {tab === "scores" && <Scores room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} votes={narratorVotes} narratorAwarded={narratorAwarded} finalizingNarratorVote={finalizingNarratorVote} onFinalizeNarratorVote={finalizeNarratorVote} onChooseNarrator={chooseNextNarrator} awardedPlayerIds={awardedPlayerIds} onAwardPlayer={awardPlayer} />}
     </div>
   );
 }
@@ -2059,7 +2109,8 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
   }, [roomId, playerName, setContentLang]);
 
   async function doReroll() {
-    if (rerolled || !player) return;
+    const storyStarted = !!room?.story || ["playing", "revealed", "voting", "voted"].includes(room?.status);
+    if (rerolled || !player || storyStarted) return;
     const { data: all } = await sb.from("players").select("secret_word,secret_action").eq("room_id", roomId);
     const usedWords = all.map((entry) => entry.secret_word).filter(Boolean);
     const usedActions = all.map((entry) => entry.secret_action).filter(Boolean);
@@ -2103,7 +2154,8 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
   const hasCards = player.secret_word && player.secret_action;
   const bothRevealed = cardRevealed.word && cardRevealed.action;
   const playerPhase = getPlayerPhase(room, player, bothRevealed, isReady, ui);
-  const hasAsidePanel = room.status === "voting" || room.status === "voted";
+  const storyStarted = !!room.story || ["playing", "revealed", "voting", "voted"].includes(room.status);
+  const inPointsView = room.status === "voting" || room.status === "voted";
 
   return (
     <div>
@@ -2124,13 +2176,63 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
           <div style={{ fontSize: 15, fontWeight: 700, color: C.txt, marginBottom: 6 }}>{ui.player.waitingCards}</div>
           <p style={S.bt}>{ui.player.hostDealing}</p>
         </div>
+      ) : inPointsView ? (
+        <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1fr) minmax(320px, 0.9fr)" : "1fr", gap: 14, alignItems: "start" }}>
+          <div>
+            <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+              <div style={{ ...S.st, marginBottom: 8 }}>{ui.player.pointsTitle}</div>
+              <p style={S.bt}>{ui.player.pointsDesc}</p>
+            </div>
+            <div style={{ ...S.card, borderColor: "rgba(96,165,250,.2)", background: "rgba(96,165,250,.04)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.player.storyRunning}</div>
+              <p style={{ ...S.bt, fontStyle: "italic" }}>{ui.player.reactHint}</p>
+              <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: ACC.bluel }}>{ui.player.yourWord} <span style={{ background: "rgba(96,165,250,.15)", padding: "2px 10px", borderRadius: 20 }}>{player.secret_word}</span></div>
+            </div>
+          </div>
+
+          <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
+            {room.status === "voting" && (
+              <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.player.narratorVoteTitle}</div>
+                <p style={S.bt}>{ui.player.narratorVoteDesc}</p>
+                {narratorVote === null ? (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+                    <button onClick={() => castNarratorVote(true)} style={S.pbtn(ACC.green, "rgba(74,222,128,.1)")}>{ui.player.narratorVoteYes}</button>
+                    <button onClick={() => castNarratorVote(false)} style={S.pbtn(C.bdr, C.sur2)}>{ui.player.narratorVoteNo}</button>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 12, padding: "14px 16px", borderRadius: 14, background: "rgba(74,222,128,.08)", border: "1px solid rgba(74,222,128,.24)", color: ACC.greenl, fontSize: 14, fontWeight: 700 }}>
+                    {ui.player.narratorVoteSent}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {room.status === "voted" && voteResult !== null && (
+              <div style={{ ...S.card, borderColor: voteResult ? "rgba(74,222,128,.3)" : C.bdr, background: voteResult ? "linear-gradient(180deg, rgba(74,222,128,.12), rgba(74,222,128,.05))" : "linear-gradient(180deg, rgba(148,163,184,.14), rgba(148,163,184,.06))", marginTop: 12, padding: "18px 18px", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: voteResult ? ACC.green : C.muted, marginBottom: 8 }}>
+                  {ui.player.narratorVoteTitle}
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: voteResult ? ACC.greenl : C.txt, lineHeight: 1.35 }}>
+                  {voteResult ? ui.player.narratorVoteApproved : ui.player.narratorVoteRejected}
+                </div>
+              </div>
+            )}
+
+            {room.status === "voted" && voteResult === null && (
+              <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "rgba(96,165,250,.06)", marginTop: 12 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: ACC.bluel }}>{ui.player.narratorVotePending}</div>
+              </div>
+            )}
+          </div>
+        </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop && hasAsidePanel ? "minmax(0, 1.15fr) minmax(320px, 0.85fr)" : "1fr", gap: 14, alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14, alignItems: "start" }}>
           <div>
           <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: C.txt }}>{ui.player.secretCards}</div>
-              <button onClick={doReroll} disabled={rerolled} style={{ fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 10, cursor: rerolled ? "not-allowed" : "pointer", border: `1px solid ${rerolled ? C.bdr : "rgba(251,191,36,.4)"}`, background: rerolled ? "rgba(90,90,110,.2)" : "rgba(251,191,36,.12)", color: rerolled ? C.muted : ACC.gold }}>
+              <button onClick={doReroll} disabled={rerolled || storyStarted} style={{ fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 10, cursor: rerolled || storyStarted ? "not-allowed" : "pointer", border: `1px solid ${rerolled || storyStarted ? C.bdr : "rgba(251,191,36,.4)"}`, background: rerolled || storyStarted ? "rgba(90,90,110,.2)" : "rgba(251,191,36,.12)", color: rerolled || storyStarted ? C.muted : ACC.gold }}>
                 {rerolled ? ui.player.rerolled : ui.player.reroll}
               </button>
             </div>
@@ -2179,46 +2281,12 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
             </div>
           )}
           </div>
-
-          <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
-          {room.status === "voting" && (
-            <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", marginTop: viewport.isDesktop ? 0 : 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.player.narratorVoteTitle}</div>
-              <p style={S.bt}>{ui.player.narratorVoteDesc}</p>
-              {narratorVote === null ? (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-                  <button onClick={() => castNarratorVote(true)} style={S.pbtn(ACC.green, "rgba(74,222,128,.1)")}>{ui.player.narratorVoteYes}</button>
-                  <button onClick={() => castNarratorVote(false)} style={S.pbtn(C.bdr, C.sur2)}>{ui.player.narratorVoteNo}</button>
-                </div>
-              ) : (
-                <div style={{ marginTop: 12, padding: "14px 16px", borderRadius: 14, background: "rgba(74,222,128,.08)", border: "1px solid rgba(74,222,128,.24)", color: ACC.greenl, fontSize: 14, fontWeight: 700 }}>
-                  {ui.player.narratorVoteSent}
-                </div>
-              )}
-            </div>
-          )}
-
-          {room.status === "voted" && voteResult !== null && (
-            <div style={{ ...S.card, borderColor: voteResult ? "rgba(74,222,128,.3)" : C.bdr, background: voteResult ? "linear-gradient(180deg, rgba(74,222,128,.12), rgba(74,222,128,.05))" : "linear-gradient(180deg, rgba(148,163,184,.14), rgba(148,163,184,.06))", marginTop: 12, padding: "18px 18px" }}>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: voteResult ? ACC.green : C.muted, marginBottom: 8 }}>
-                {ui.player.narratorVoteTitle}
-              </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: voteResult ? ACC.greenl : C.txt, lineHeight: 1.35 }}>
-                {voteResult ? ui.player.narratorVoteApproved : ui.player.narratorVoteRejected}
-              </div>
-            </div>
-          )}
-
-          {room.status === "voted" && voteResult === null && (
-            <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "rgba(96,165,250,.06)", marginTop: 12 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: ACC.bluel }}>{ui.player.narratorVotePending}</div>
-            </div>
-          )}
-          </div>
         </div>
       )}
 
-      <button onClick={onLeave} style={{ ...S.pbtn(C.bdr, "transparent"), color: C.muted, marginTop: 8, background: C.sur }}>{ui.common.leaveRoom}</button>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+        <button onClick={onLeave} style={{ ...S.sbtn(C.muted), opacity: 0.8 }}>{ui.common.leaveRoom}</button>
+      </div>
     </div>
   );
 }
