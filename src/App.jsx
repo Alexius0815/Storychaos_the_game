@@ -1730,7 +1730,7 @@ function ReadyCheck({ room, players, ui, C, S, onAllReady }) {
   );
 }
 
-function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }) {
+function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, stageMode = false, onExitStage }) {
   const viewport = useViewport();
   const [genre, setGenre] = useState(null);
   const [story, setStory] = useState(room.story || "");
@@ -1793,7 +1793,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
 
   return (
     <div>
-      <div style={{ ...S.card, padding: viewport.isDesktop ? 16 : 18, background: "linear-gradient(135deg, rgba(251,191,36,.12), rgba(96,165,250,.08))", borderColor: "rgba(251,191,36,.26)" }}>
+      <div style={{ ...S.card, padding: stageMode ? (viewport.isDesktop ? 18 : 16) : (viewport.isDesktop ? 16 : 18), background: "linear-gradient(135deg, rgba(251,191,36,.12), rgba(96,165,250,.08))", borderColor: "rgba(251,191,36,.26)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 48, height: 48, borderRadius: 14, background: C.sur, border: `1px solid ${C.bdr}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(0,0,0,.12)" }}>
@@ -1801,13 +1801,17 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
             </div>
             <div>
               <div style={{ ...S.st, marginBottom: 0 }}>{ui.storyGen.title}</div>
+              {stageMode && <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{room?.id ? `${ui.common.room} ${room.id}` : ""}</div>}
             </div>
           </div>
-          <HelpPopover title={ui.storyGen.title} ui={ui} C={C} S={S}>
-            <div>{ui.storyGen.desc}</div>
-            {ui.storyGen.flowSteps.map((step, index) => <div key={step}>{index + 1}. {step}</div>)}
-            <div>{ui.storyGen.hiddenHint}</div>
-          </HelpPopover>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {stageMode && onExitStage && <button onClick={onExitStage} style={S.sbtn(C.muted)}>{ui.common.back}</button>}
+            <HelpPopover title={ui.storyGen.title} ui={ui} C={C} S={S}>
+              <div>{ui.storyGen.desc}</div>
+              {ui.storyGen.flowSteps.map((step, index) => <div key={step}>{index + 1}. {step}</div>)}
+              <div>{ui.storyGen.hiddenHint}</div>
+            </HelpPopover>
+          </div>
         </div>
       </div>
 
@@ -2511,6 +2515,24 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
     setTab(nextTab);
   }
 
+  if (tab === "story") {
+    return (
+      <div style={{ display: "grid", gap: 12 }}>
+        <HostStory
+          room={room || { id: roomId, difficulty: room?.difficulty }}
+          storyWords={currentWords.length > 0 ? currentWords : storyWords}
+          ui={ui}
+          contentLang={contentLang}
+          C={C}
+          S={S}
+          onOpenResolution={openResolution}
+          stageMode
+          onExitStage={() => setTab("ready")}
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
       <div style={{ background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 14, padding: "10px 12px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, boxShadow: C.bg === "#0d0d14" ? "0 10px 24px rgba(0,0,0,.14)" : "0 12px 26px rgba(15,23,42,.05)" }}>
@@ -2993,6 +3015,7 @@ export default function App() {
   const [myName, setMyName] = useState("");
   const [showDebug, setShowDebug] = useState(false);
   const [showVersion, setShowVersion] = useState(false);
+  const isGameScreen = screen === "host" || screen === "player";
 
   const tapCount = useRef(0);
   const tapTimer = useRef(null);
@@ -3062,21 +3085,21 @@ export default function App() {
     <div style={{ background: `radial-gradient(circle at top, ${dark ? "rgba(96,165,250,.08)" : "rgba(96,165,250,.10)"} 0%, ${C.bg} 34%)`, minHeight: "100vh", color: C.txt, fontFamily: FF }}>
       <style>{GS}</style>
       <div style={{ maxWidth: viewport.isDesktop ? 1160 : viewport.isTablet ? 760 : 500, margin: "0 auto", padding: viewport.isDesktop ? "0 20px 80px" : "0 14px 64px" }}>
-        <header style={{ textAlign: "center", padding: "24px 0 16px" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
+        <header style={{ textAlign: "center", padding: isGameScreen ? "12px 0 8px" : "24px 0 16px" }}>
+          <div style={{ display: "flex", alignItems: isGameScreen ? "center" : "flex-start", justifyContent: "space-between", gap: 12, marginBottom: isGameScreen ? 6 : 16 }}>
             <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-              <h1 onClick={handleLogoTap} style={{ fontSize: "clamp(27px,8.8vw,50px)", fontWeight: 900, letterSpacing: "-0.06em", textTransform: "uppercase", background: "linear-gradient(135deg,#f59e0b,#facc15 45%,#60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", lineHeight: 0.94, margin: 0, cursor: "default", userSelect: "none" }}>
+              <h1 onClick={handleLogoTap} style={{ fontSize: isGameScreen ? "clamp(18px,6.2vw,28px)" : "clamp(27px,8.8vw,50px)", fontWeight: 900, letterSpacing: isGameScreen ? "-0.045em" : "-0.06em", textTransform: "uppercase", background: "linear-gradient(135deg,#f59e0b,#facc15 45%,#60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", lineHeight: 0.94, margin: 0, cursor: "default", userSelect: "none" }}>
                 Story Chaos
               </h1>
-              <p onClick={handleSubtitleTap} style={{ fontSize: 10, letterSpacing: 3.2, color: C.muted, textTransform: "uppercase", marginTop: 8, paddingLeft: 2, cursor: "default", userSelect: "none" }}>
+              <p onClick={handleSubtitleTap} style={{ fontSize: isGameScreen ? 0 : 10, height: isGameScreen ? 0 : "auto", overflow: "hidden", letterSpacing: 3.2, color: C.muted, textTransform: "uppercase", marginTop: isGameScreen ? 0 : 8, paddingLeft: 2, cursor: "default", userSelect: "none", opacity: isGameScreen ? 0 : 1 }}>
                 {ui.subtitle}
               </p>
             </div>
-            <div style={{ display: "flex", gap: 6, flexShrink: 0, paddingTop: 2 }}>
-            <button onClick={() => setLang((current) => current === "de" ? "en" : "de")} aria-label={ui.aria.toggleLanguage} style={{ background: C.sur, border: `1px solid ${C.bdr}`, color: C.txt, minWidth: 42, height: 34, padding: "0 10px", borderRadius: 11, cursor: "pointer", fontSize: 11, fontWeight: 800, boxShadow: dark ? "inset 0 1px 0 rgba(255,255,255,.03)" : "0 8px 20px rgba(15,23,42,.06)" }}>
+            <div style={{ display: "flex", gap: 6, flexShrink: 0, paddingTop: isGameScreen ? 0 : 2 }}>
+            <button onClick={() => setLang((current) => current === "de" ? "en" : "de")} aria-label={ui.aria.toggleLanguage} style={{ background: C.sur, border: `1px solid ${C.bdr}`, color: C.txt, minWidth: isGameScreen ? 38 : 42, height: isGameScreen ? 30 : 34, padding: isGameScreen ? "0 8px" : "0 10px", borderRadius: 11, cursor: "pointer", fontSize: isGameScreen ? 10 : 11, fontWeight: 800, boxShadow: dark ? "inset 0 1px 0 rgba(255,255,255,.03)" : "0 8px 20px rgba(15,23,42,.06)" }}>
               {lang === "de" ? "DE" : "EN"}
             </button>
-            <button onClick={toggleTheme} aria-label={ui.aria.toggleTheme} style={{ background: C.sur, border: `1px solid ${C.bdr}`, color: C.txt, width: 38, height: 34, padding: 0, borderRadius: 11, cursor: "pointer", fontSize: 15, boxShadow: dark ? "inset 0 1px 0 rgba(255,255,255,.03)" : "0 8px 20px rgba(15,23,42,.06)" }}>
+            <button onClick={toggleTheme} aria-label={ui.aria.toggleTheme} style={{ background: C.sur, border: `1px solid ${C.bdr}`, color: C.txt, width: isGameScreen ? 34 : 38, height: isGameScreen ? 30 : 34, padding: 0, borderRadius: 11, cursor: "pointer", fontSize: isGameScreen ? 14 : 15, boxShadow: dark ? "inset 0 1px 0 rgba(255,255,255,.03)" : "0 8px 20px rgba(15,23,42,.06)" }}>
               {dark ? "☀️" : "🌙"}
             </button>
           </div>
