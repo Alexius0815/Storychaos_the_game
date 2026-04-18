@@ -523,6 +523,40 @@ const BACKUP_STORY_BANKS = {
   },
 };
 
+const BACKUP_BRIDGES = {
+  de: [
+    "Es half auch nicht, dass mehrere Leute in genau den falschen Momenten viel zu angestrengt gelassen wirkten.",
+    "Irgendwo zwischen Zufall und schlechter Tarnung wurde klar, dass diese Runde nicht mehr harmlos enden würde.",
+    "Genau dadurch bekam die Geschichte dieses köstliche Gefühl, dass gleich jemand viel zu sichtbar reagieren koennte.",
+    "Je laenger das Ganze lief, desto weniger wirkte irgendetwas wie ein normaler Zufall.",
+    "Ab da war eigentlich nur noch die Frage offen, wer sein Pokerface zuerst versehentlich kuendigt.",
+  ],
+  en: [
+    "It did not help that several people looked dramatically calm at exactly the wrong moments.",
+    "Somewhere between coincidence and terrible disguise, it became clear that this round would not end quietly.",
+    "That was what gave the story its delightful feeling that someone might visibly react at any second.",
+    "The longer it went on, the less any of it felt like an ordinary coincidence.",
+    "From that point on, the only question was whose poker face would resign first.",
+  ],
+};
+
+const BACKUP_CRESCENDOS = {
+  de: [
+    "Keiner sagte offen etwas Falsches, aber die kleinen Verzoegerungen, Blicke und Mini-Pausen waren fast lauter als jede Pointe.",
+    "Die Spannung kam nicht durch grosses Drama, sondern durch all die winzigen Momente, in denen jemand fuer einen Herzschlag zu viel verriet.",
+    "Ausgerechnet die Leute, die besonders unbeteiligt wirken wollten, schoben die Szene damit noch weiter Richtung Verdaechtigung.",
+    "So wurde aus einer simplen Erzaehlung nach und nach ein wunderbar beobachtbares Reaktionslabor.",
+    "Mit jedem weiteren Satz war deutlicher zu spueren, dass hier nicht nur zugehoert, sondern heimlich analysiert wurde.",
+  ],
+  en: [
+    "Nobody openly said the wrong thing, but the tiny delays, glances, and pauses were louder than any punchline.",
+    "The tension did not come from grand drama but from all the tiny moments when someone revealed just a little too much.",
+    "Ironically, the people trying hardest to seem uninvolved pushed the whole scene further into suspicion.",
+    "That was how a simple story slowly turned into a beautifully observable reaction experiment.",
+    "With every line it became clearer that people were not just listening, they were quietly analyzing each other.",
+  ],
+};
+
 function hashString(value) {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -598,7 +632,13 @@ export function countBackupVariants(lang, genreId) {
   const actualGenre = normalizeGenreId(lang, genreId);
   const bank = BACKUP_STORY_BANKS[lang]?.[actualGenre];
   if (!bank) return 0;
-  return bank.openers.length * bank.settings.length * bank.complications.length * bank.reactions.length * bank.endings.length;
+  return bank.openers.length
+    * bank.settings.length
+    * bank.complications.length
+    * bank.reactions.length
+    * bank.endings.length
+    * BACKUP_BRIDGES[lang].length
+    * BACKUP_CRESCENDOS[lang].length;
 }
 
 export function buildBackupStory({ lang, genreId, words, minChars = 350, salt = "" }) {
@@ -611,8 +651,10 @@ export function buildBackupStory({ lang, genreId, words, minChars = 350, salt = 
     pick(bank.openers, rng),
     pick(bank.settings, rng),
     buildWordPass(words, lang, 0, rng),
+    pick(BACKUP_BRIDGES[lang], rng),
     pick(bank.complications, rng),
     buildWordPass(words, lang, 1, rng),
+    pick(BACKUP_CRESCENDOS[lang], rng),
     pick(bank.reactions, rng),
     pick(bank.endings, rng),
   ];

@@ -961,7 +961,7 @@ function shortModelName(model) {
     "meta-llama/llama-3.1-8b-instruct:free": "Llama",
     "llama-3.1-8b-instant": "Groq Llama",
     "openai/gpt-oss-20b": "GPT-OSS",
-    "local-fallback": "Notfallhirn",
+    "local-fallback": "Hausautor",
   };
   return map[model] || model.split("/").pop()?.replace(":free", "") || model;
 }
@@ -969,13 +969,13 @@ function shortModelName(model) {
 function buildStoryAttemptLine(contentLang, phase, model, detail = "") {
   const name = shortModelName(model);
   if (contentLang === "de") {
-    if (phase === "start" && model === "local-fallback") return `${name} springt als Plan B rein und baut lokal eine Backup-Geschichte zusammen.`;
+    if (phase === "start" && model === "local-fallback") return `${name} ist jetzt Plan A und baut lokal eine Geschichte fuer diese Runde.`;
     if (phase === "start") return `${name} versucht gerade, aus dem Chaos eine brauchbare Geschichte zu kochen.`;
     if (phase === "success") return `${name} hat etwas geliefert. Wir machen kurz den Regel-TUEV.`;
     if (phase === "fail") return `${name} zickt rum${detail ? ` (${detail})` : ""}. Nächstes Modell darf auf die Bühne.`;
     if (phase === "repair") return `Wir helfen ${name} noch kurz nach: mehr Länge, mehr Worttreffer, weniger Drama.`;
   }
-  if (phase === "start" && model === "local-fallback") return `${name} jumps in as plan B and assembles a local backup story.`;
+  if (phase === "start" && model === "local-fallback") return `${name} is now plan A and builds a local story for this round.`;
   if (phase === "start") return `${name} is trying to cook up a usable story from the chaos.`;
   if (phase === "success") return `${name} delivered something. Running a quick rule check now.`;
   if (phase === "fail") return `${name} is being difficult${detail ? ` (${detail})` : ""}. Sending in the next model.`;
@@ -1028,6 +1028,12 @@ async function generateStory({ prompt, contentLang, genreId, words, minChars }, 
 
   const providers = [
     {
+      model: "local-fallback",
+      run: async () => {
+      return buildBackupStory({ lang: contentLang, genreId, words, minChars, salt: prompt.slice(0, 120) });
+    },
+    },
+    {
       model: "pollinations-openai",
       run: async () => {
       const response = await fetch("https://text.pollinations.ai/openai", {
@@ -1061,12 +1067,6 @@ async function generateStory({ prompt, contentLang, genreId, words, minChars }, 
     { model: "meta-llama/llama-3.1-8b-instruct:free", run: async () => requestOpenRouter("meta-llama/llama-3.1-8b-instruct:free") },
     { model: "llama-3.1-8b-instant", run: async () => requestGroq("llama-3.1-8b-instant") },
     { model: "openai/gpt-oss-20b", run: async () => requestGroq("openai/gpt-oss-20b") },
-    {
-      model: "local-fallback",
-      run: async () => {
-      return buildBackupStory({ lang: contentLang, genreId, words, minChars, salt: prompt.slice(0, 120) });
-    },
-    },
   ];
   const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
   for (const provider of providers) {
