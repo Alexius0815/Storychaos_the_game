@@ -6,7 +6,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const APP_URL = "https://storychaos-the-game.vercel.app";
 const APP_ICON = "/icon-192.png";
-const APP_VERSION = "v0.4.0";
+const APP_VERSION = __APP_VERSION__;
 
 const CONTENT = {
   de: {
