@@ -6,6 +6,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const APP_URL = "https://storychaos-the-game.vercel.app";
 const APP_ICON = "/icon-192.png";
+const APP_VERSION = "v0.4.0";
 
 const CONTENT = {
   de: {
@@ -272,7 +273,7 @@ const UI = {
       addPoint: "+1 Punkt",
       pointGiven: "Punkt vergeben",
       narratorVoteTitle: "Abstimmung für den Erzähler",
-      narratorVoteDesc: "Die Mitspieler stimmen ab, ob der Erzähler 1 Punkt bekommt.",
+      narratorVoteDesc: "Stimmt ab, ob der Erzähler für diese Runde einen Punkt verdient hat.",
       narratorVoteWaiting: (a, b) => `${a} von ${b} Stimmen eingegangen`,
       narratorVoteYes: "Ja",
       narratorVoteNo: "Nein",
@@ -291,6 +292,8 @@ const UI = {
       roundSummaryDesc: "Vergib oben Punkte, prüfe den Erzählerpunkt und bestimme dann den nächsten Erzähler.",
       actionView: "Vergabe",
       boardView: "Punktestand",
+      nextView: "Nächster",
+      continueToNext: "Zur Erzählerwahl",
     },
     timer: {
       duration: "Dauer",
@@ -315,7 +318,7 @@ const UI = {
       allNarrators: "🎉 Alle waren Erzähler!",
       gameFinished: "Spiel beendet – Endstand im Punkte-Tab",
     },
-    hostTabs: { lobby: "Lobby", cards: "Runde", ready: "Bereit", story: "Vorlesen", resolve: "Auflösen", scores: "Punkte" },
+    hostTabs: { lobby: "Lobby", cards: "Runde", ready: "Bereit", story: "Vorlesen", resolve: "Auflösen", scores: "Punkte", next: "Nächster" },
     player: {
       inRoom: "Du bist in Raum",
       as: "als",
@@ -334,7 +337,7 @@ const UI = {
       reactHint: "Reagiere wenn dein Wort fällt. Bleib unauffällig 😏",
       yourWord: "Dein Wort:",
       narratorVoteTitle: "Abstimmung",
-      narratorVoteDesc: "Soll der Erzähler für diese Runde 1 Punkt bekommen?",
+      narratorVoteDesc: "Stimmt ab, ob der Erzähler für diese Runde einen Punkt verdient hat.",
       narratorVoteYes: "Ja, +1",
       narratorVoteNo: "Nein",
       narratorVoteSent: "Deine Stimme wurde gezählt.",
@@ -538,7 +541,7 @@ const UI = {
       addPoint: "+1 point",
       pointGiven: "Point given",
       narratorVoteTitle: "Vote for the narrator",
-      narratorVoteDesc: "The players vote on whether the narrator gets 1 point.",
+      narratorVoteDesc: "Vote on whether the narrator deserves 1 point for this round.",
       narratorVoteWaiting: (a, b) => `${a} of ${b} votes received`,
       narratorVoteYes: "Yes",
       narratorVoteNo: "No",
@@ -557,6 +560,8 @@ const UI = {
       roundSummaryDesc: "Award points above, check the narrator vote, then choose the next narrator.",
       actionView: "Scoring",
       boardView: "Scoreboard",
+      nextView: "Next",
+      continueToNext: "Go to narrator choice",
     },
     timer: {
       duration: "Duration",
@@ -581,7 +586,7 @@ const UI = {
       allNarrators: "🎉 Everyone has been the narrator!",
       gameFinished: "Game finished – final scores are in the score tab",
     },
-    hostTabs: { lobby: "Lobby", cards: "Round", ready: "Ready", story: "Read", resolve: "Reveal", scores: "Scores" },
+    hostTabs: { lobby: "Lobby", cards: "Round", ready: "Ready", story: "Read", resolve: "Reveal", scores: "Scores", next: "Next" },
     player: {
       inRoom: "You are in room",
       as: "as",
@@ -600,7 +605,7 @@ const UI = {
       reactHint: "React when your word appears. Stay subtle 😏",
       yourWord: "Your word:",
       narratorVoteTitle: "Vote",
-      narratorVoteDesc: "Should the narrator get 1 point for this round?",
+      narratorVoteDesc: "Vote on whether the narrator deserves 1 point for this round.",
       narratorVoteYes: "Yes, +1",
       narratorVoteNo: "No",
       narratorVoteSent: "Your vote has been counted.",
@@ -787,6 +792,7 @@ function getHostPhase(tab, ui) {
     story: ui.hostTabs.story,
     resolve: ui.hostTabs.resolve,
     scores: ui.hostTabs.scores,
+    next: ui.hostTabs.next,
   };
   return phases[tab] || ui.hostTabs.lobby;
 }
@@ -1638,9 +1644,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
   const others = getAudience(players, narratorId);
   const sorted = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
   const medals = ["🥇", "🥈", "🥉"];
-  const [selectedNextId, setSelectedNextId] = useState("");
   const [savingScoreId, setSavingScoreId] = useState(null);
-  const [startingNextRound, setStartingNextRound] = useState(false);
   const [view, setView] = useState("action");
   const audienceCount = others.length;
   const voteEntries = Object.values(votes);
@@ -1648,15 +1652,6 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
   const noVotes = voteEntries.filter((entry) => entry.vote === false).length;
   const allVoted = audienceCount > 0 && voteEntries.length >= audienceCount;
   const compactScoreHeight = viewport.isDesktop ? "min(58vh, 560px)" : "auto";
-
-  useEffect(() => {
-    const candidates = others.filter((player) => player.id !== narratorId);
-    if (candidates.length === 1) {
-      setSelectedNextId(candidates[0].id);
-      return;
-    }
-    setSelectedNextId((current) => (candidates.some((player) => player.id === current) ? current : ""));
-  }, [others, narratorId]);
 
   useEffect(() => {
     if (!allVoted || room?.status !== "voting" || !onFinalizeNarratorVote || finalizingNarratorVote) return;
@@ -1670,17 +1665,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
     setSavingScoreId(null);
   }
 
-  async function startNextRound() {
-    if (!onChooseNarrator) return;
-    const nextPlayer = others.find((player) => player.id === selectedNextId);
-    if (!nextPlayer) return;
-    setStartingNextRound(true);
-    await onChooseNarrator(nextPlayer);
-    setStartingNextRound(false);
-  }
-
   const nextCandidates = others.filter((player) => player.id !== narratorId);
-  const canAdvance = !!selectedNextId;
 
   return (
     <div>
@@ -1785,48 +1770,21 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
               </div>
             )}
           </div>
-          {nextCandidates.length > 0 && (
+          {nextCandidates.length > 0 && room?.status === "voted" && (
             <div style={{ ...S.card, marginTop: 12, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)" }}>
               <div style={{ marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.22)" }}>
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.scores.roundSummaryTitle}</div>
                 <div style={{ fontSize: 13, color: C.txt, lineHeight: 1.6 }}>{ui.scores.roundSummaryDesc}</div>
               </div>
-              <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.nextTitle}</div>
-              <p style={S.bt}>{nextCandidates.length > 1 ? ui.scores.nextDesc : ui.scores.nextAuto}</p>
-              <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop && nextCandidates.length > 2 ? "1fr 1fr" : "1fr", gap: 10, marginTop: 12 }}>
-                {nextCandidates.map((player) => {
-                  const active = selectedNextId === player.id;
-                  return (
-                    <button
-                      key={`${player.id}-next`}
-                      onClick={() => setSelectedNextId(player.id)}
-                      aria-pressed={active}
-                      style={{
-                        background: active ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur2,
-                        border: `1.5px solid ${active ? ACC.blue : C.bdr}`,
-                        color: active ? ACC.bluel : C.txt,
-                        fontSize: 14,
-                        fontWeight: 700,
-                        padding: "14px 16px",
-                        borderRadius: 12,
-                        cursor: "pointer",
-                        textAlign: "left",
-                      }}
-                    >
-                      {player.name}
-                    </button>
-                  );
-                })}
-              </div>
-              <button onClick={startNextRound} disabled={!canAdvance || startingNextRound} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginTop: 14 }}>
-                {startingNextRound ? ui.common.loading : ui.scores.nextRound}
+              <button onClick={() => setView("next")} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)") }}>
+                {ui.scores.continueToNext}
               </button>
-              {!canAdvance && <p style={{ fontSize: 12, color: C.muted, marginTop: 10 }}>{ui.scores.chooseFirst}</p>}
             </div>
           )}
         </div>
       </div>
       ) : (
+      view === "board" ? (
       <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", padding: 14 }}>
         <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 8 }}>
           {sorted.map((player, index) => (
@@ -1838,7 +1796,88 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
           ))}
         </ul>
       </div>
+      ) : (
+      <NextNarratorView
+        room={room}
+        players={players}
+        ui={ui}
+        C={C}
+        S={S}
+        onChooseNarrator={onChooseNarrator}
+        onBack={() => setView("action")}
+      />
+      )
       )}
+    </div>
+  );
+}
+
+function NextNarratorView({ room, players, ui, C, S, onChooseNarrator, onBack }) {
+  const viewport = useViewport();
+  const narratorId = getNarratorId(room, players);
+  const others = getAudience(players, narratorId);
+  const nextCandidates = others.filter((player) => player.id !== narratorId);
+  const [selectedNextId, setSelectedNextId] = useState("");
+  const [startingNextRound, setStartingNextRound] = useState(false);
+
+  useEffect(() => {
+    if (nextCandidates.length === 1) {
+      setSelectedNextId(nextCandidates[0].id);
+      return;
+    }
+    setSelectedNextId((current) => (nextCandidates.some((player) => player.id === current) ? current : ""));
+  }, [room?.id, nextCandidates.map((player) => player.id).join("|")]);
+
+  async function startNextRound() {
+    if (!onChooseNarrator) return;
+    const nextPlayer = others.find((player) => player.id === selectedNextId);
+    if (!nextPlayer) return;
+    setStartingNextRound(true);
+    await onChooseNarrator(nextPlayer);
+    setStartingNextRound(false);
+  }
+
+  const canAdvance = !!selectedNextId;
+
+  return (
+    <div>
+      <div style={{ ...S.card, padding: viewport.isDesktop ? 18 : 16, backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", background: C.bg === "#0d0d14" ? "linear-gradient(135deg, rgba(22,22,31,.88), rgba(36,36,52,.78))" : "linear-gradient(135deg, rgba(255,255,255,.94), rgba(244,244,252,.84))", borderColor: "rgba(96,165,250,.24)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+          <div style={S.st}>{ui.scores.nextTitle}</div>
+          <button onClick={onBack} style={S.sbtn(C.muted)}>{ui.common.back}</button>
+        </div>
+        <p style={{ ...S.bt, marginBottom: 16 }}>{nextCandidates.length > 1 ? ui.scores.nextDesc : ui.scores.nextAuto}</p>
+        <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop && nextCandidates.length > 2 ? "1fr 1fr" : "1fr", gap: 10, marginTop: 12 }}>
+          {nextCandidates.map((player) => {
+            const active = selectedNextId === player.id;
+            return (
+              <button
+                key={`${player.id}-next`}
+                onClick={() => setSelectedNextId(player.id)}
+                aria-pressed={active}
+                style={{
+                  background: active ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur2,
+                  border: `1.5px solid ${active ? ACC.blue : C.bdr}`,
+                  color: active ? ACC.bluel : C.txt,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  padding: "18px 16px",
+                  borderRadius: 14,
+                  cursor: "pointer",
+                  textAlign: "left",
+                  minHeight: 74,
+                }}
+              >
+                {player.name}
+              </button>
+            );
+          })}
+        </div>
+        <button onClick={startNextRound} disabled={!canAdvance || startingNextRound} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginTop: 16 }}>
+          {startingNextRound ? ui.common.loading : ui.scores.nextRound}
+        </button>
+        {!canAdvance && <p style={{ fontSize: 12, color: C.muted, marginTop: 10 }}>{ui.scores.chooseFirst}</p>}
+      </div>
     </div>
   );
 }
@@ -2690,6 +2729,9 @@ export default function App() {
               {dark ? "☀️" : "🌙"}
             </button>
           </div>
+          </div>
+          <div style={{ textAlign: "right", fontSize: 10, color: C.muted, opacity: 0.45, letterSpacing: 0.6, paddingRight: 2 }}>
+            {APP_VERSION}
           </div>
         </header>
 
