@@ -60,7 +60,7 @@ const CONTENT = {
     diffLabels: { easy: "😇 Leicht", medium: "😏 Mittel", chaos: "😈 Chaos", mix: "🎲 Mix" },
     categoryLabels: { alltag: "🏠 Alltag", essen: "🍕 Essen", natur: "🌲 Natur", tech: "🤖 Tech", orte: "🏛 Orte", gefühle: "💫 Gefühle", objekte: "🎩 Objekte", misc: "👤 Personen" },
     aiSystem: "Kreativer Geschichtenerzähler auf Deutsch.",
-    aiPrompt: (genre, words) => `Schreibe eine kurze witzige Geschichte auf Deutsch im Stil "${genre}". 8-12 Sätze. Diese Wörter ALLE einbauen: ${words.join(", ")}. Jedes dieser Wörter mit **Wort** markieren. NUR die Geschichte, kein Titel. Locker lustig zum Vorlesen.`,
+    aiPrompt: (genre, words, minChars, targetChars) => `Schreibe eine witzige Geschichte auf Deutsch im Stil "${genre}". Die Geschichte muss mindestens ${minChars} Zeichen lang sein und idealerweise etwa ${targetChars} Zeichen haben. Verwende ALLE diese Wörter: ${words.join(", ")}. Jedes dieser Wörter muss mindestens zweimal vorkommen. Die beiden Vorkommen eines Wortes sollen in der Regel in unterschiedlichen Sätzen stehen, nicht direkt im selben Satz. Markiere jedes vorkommende Zielwort mit **Wort**. NUR die Geschichte, kein Titel, keine Liste, keine Erklärung. Locker, lebendig und gut zum Vorlesen.`,
   },
   en: {
     words: {
@@ -113,7 +113,7 @@ const CONTENT = {
     diffLabels: { easy: "😇 Easy", medium: "😏 Medium", chaos: "😈 Chaos", mix: "🎲 Mix" },
     categoryLabels: { alltag: "🏠 Everyday", essen: "🍕 Food", natur: "🌲 Nature", tech: "🤖 Tech", orte: "🏛 Places", gefühle: "💫 Feelings", objekte: "🎩 Objects", misc: "👤 Characters" },
     aiSystem: "Creative storyteller in English.",
-    aiPrompt: (genre, words) => `Write a short funny story in English in the style "${genre}". Use 8-12 sentences. Include ALL of these words: ${words.join(", ")}. Mark each of those words with **word**. Return ONLY the story, no title. Keep it light and fun to read aloud.`,
+    aiPrompt: (genre, words, minChars, targetChars) => `Write a funny story in English in the style "${genre}". The story must be at least ${minChars} characters long and should ideally land around ${targetChars} characters. Use ALL of these words: ${words.join(", ")}. Every target word must appear at least twice. The repeated occurrences of a word should usually appear in different sentences, not directly in the same sentence. Mark every target word occurrence with **word**. Return ONLY the story, with no title, no list, and no explanation. Keep it lively and fun to read aloud.`,
   },
 };
 
@@ -238,10 +238,13 @@ const UI = {
       flowTitle: "Ablauf dieser Runde",
       flowSteps: ["Karten sind verteilt", "Alle sind bereit", "Geschichte vorlesen", "Danach getrennt auflösen und Punkte vergeben"],
       theme: "Thema",
+      storyLength: "Geschichtenlänge",
+      storyLengthValue: (n) => `${n} Zeichen mindestens`,
+      storyLengthHelp: "Mit dem Regler bestimmst du die Mindestlänge der Geschichte. Mehr Länge gibt der KI mehr Platz für doppelte Wortnennungen.",
       generate: "Geschichte generieren",
       generating: "Wird geschrieben…",
       writing: "KI schreibt…",
-      aiError: "KI gerade nicht erreichbar. Kurz warten und nochmal versuchen.",
+      aiError: "KI gerade nicht erreichbar oder die Regeln wurden nicht eingehalten. Kurz warten und nochmal versuchen.",
       readNow: "Jetzt vorlesen!",
       regenerate: "Neu ↻",
       hiddenHint: "Wörter sind versteckt – beobachte wer wann reagiert!",
@@ -508,10 +511,13 @@ const UI = {
       flowTitle: "Round flow",
       flowSteps: ["Cards are dealt", "Everyone is ready", "Read the story aloud", "Then reveal and award points in separate steps"],
       theme: "Theme",
+      storyLength: "Story length",
+      storyLengthValue: (n) => `${n} characters minimum`,
+      storyLengthHelp: "Use the slider to set the minimum story length. More length gives the AI more room for repeated word appearances.",
       generate: "Generate story",
       generating: "Writing…",
       writing: "AI is writing…",
-      aiError: "The AI is unavailable right now. Wait a moment and try again.",
+      aiError: "The AI is unavailable right now or the story did not follow the rules. Wait a moment and try again.",
       readNow: "Read this aloud!",
       regenerate: "New ↻",
       hiddenHint: "The words are hidden – watch who reacts and when!",
@@ -969,7 +975,12 @@ async function generateStory(prompt, contentLang) {
     async () => requestOpenRouter("google/gemma-2-9b-it:free"),
     async () => requestOpenRouter("meta-llama/llama-3.1-8b-instruct:free"),
     async () => {
-      const fallbackWords = prompt.match(/: (.*)\. Jedes/s)?.[1] || "";
+      const fallbackWords =
+        prompt.match(/Wörter: (.*?)(?:\.|$)/s)?.[1] ||
+        prompt.match(/words: (.*?)(?:\.|$)/is)?.[1] ||
+        prompt.match(/Verwende ALLE diese Wörter: (.*?)(?:\.|$)/s)?.[1] ||
+        prompt.match(/Use ALL of these words: (.*?)(?:\.|$)/is)?.[1] ||
+        "";
       if (contentLang === "de") {
         return `Im alten Viertel begann alles ganz harmlos, bis plötzlich ${fallbackWords} in einer einzigen absurder werdenden Geschichte zusammenliefen. Erst lachte niemand, dann lachten alle. Jedes Detail wirkte zu seltsam, um Zufall zu sein, und genau das machte die Sache verdächtig. Eine Person blieb auffällig ruhig, während eine andere viel zu spät auf das Offensichtliche reagierte. Je länger die Geschichte dauerte, desto klarer wurde, dass hier jede Kleinigkeit beobachtet wurde. Am Ende war zwar nicht alles logisch, aber alles irgendwie perfekt vorbereitet. Genau deshalb schaute der Erzähler jetzt ganz genau hin.`;
       }
@@ -989,6 +1000,51 @@ async function generateStory(prompt, contentLang) {
     }
   }
   return null;
+}
+
+function stripStoryMarkup(text = "") {
+  return text.replace(/\*\*(.*?)\*\*/g, "$1").trim();
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function splitIntoSentences(text = "") {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+}
+
+function analyzeStory(text, words, minChars) {
+  const clean = stripStoryMarkup(text);
+  const sentences = splitIntoSentences(clean);
+  const wordChecks = words.map((word) => {
+    const regex = new RegExp(`\\b${escapeRegExp(word)}\\b`, "gi");
+    const matches = clean.match(regex) || [];
+    const sentenceIndexes = sentences.reduce((indexes, sentence, index) => {
+      if (new RegExp(`\\b${escapeRegExp(word)}\\b`, "i").test(sentence)) indexes.push(index);
+      return indexes;
+    }, []);
+    return {
+      word,
+      occurrences: matches.length,
+      spreadAcrossSentences: new Set(sentenceIndexes).size >= 2,
+    };
+  });
+
+  const validLength = clean.length >= minChars;
+  const validOccurrences = wordChecks.every((check) => check.occurrences >= 2);
+  const validSpread = wordChecks.every((check) => check.spreadAcrossSentences);
+
+  return {
+    clean,
+    validLength,
+    validOccurrences,
+    validSpread,
+    valid: validLength && validOccurrences && validSpread,
+  };
 }
 
 function DebugPanel({ onClose, C, S, ui }) {
@@ -1457,6 +1513,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
   const [story, setStory] = useState(room.story || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [storyMinChars, setStoryMinChars] = useState(350);
   const words = storyWords || [];
   const content = CONTENT[contentLang];
   const compactStageHeight = viewport.isDesktop ? "min(62vh, 620px)" : "auto";
@@ -1467,15 +1524,30 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
     setError("");
     setStory("");
     const selection = genre === "random" ? content.genres[Math.floor(Math.random() * (content.genres.length - 1))].label : content.genres.find((entry) => entry.id === genre)?.label;
-    const prompt = content.aiPrompt(selection, words);
-    const text = await generateStory(prompt, contentLang);
-    if (!text) {
+    const targetChars = Math.max(storyMinChars + 120, Math.round(storyMinChars * 1.25));
+    let validStory = null;
+
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const strictness = attempt === 0 ? "" : contentLang === "de"
+        ? " Wichtig: Prüfe vor der Ausgabe selbst, dass jedes Zielwort mindestens zweimal vorkommt, möglichst in unterschiedlichen Sätzen, und dass die Geschichte lang genug ist."
+        : " Important: before answering, verify that every target word appears at least twice, preferably in different sentences, and that the story is long enough.";
+      const prompt = `${content.aiPrompt(selection, words, storyMinChars, targetChars)}${strictness}`;
+      const text = await generateStory(prompt, contentLang);
+      if (!text) continue;
+      const analysis = analyzeStory(text, words, storyMinChars);
+      if (analysis.valid) {
+        validStory = analysis.clean;
+        break;
+      }
+    }
+
+    if (!validStory) {
       setError(ui.storyGen.aiError);
       setLoading(false);
       return;
     }
-    setStory(text);
-    await sb.from("rooms").update({ story: text, status: "playing" }).eq("id", room.id);
+    setStory(validStory);
+    await sb.from("rooms").update({ story: validStory, status: "playing" }).eq("id", room.id);
     setLoading(false);
   }
 
@@ -1513,6 +1585,21 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
               ))}
             </div>
           </fieldset>
+
+          <div style={{ ...S.card2, marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.storyGen.storyLength}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.txt, marginBottom: 10 }}>{ui.storyGen.storyLengthValue(storyMinChars)}</div>
+            <input
+              type="range"
+              min="350"
+              max="900"
+              step="50"
+              value={storyMinChars}
+              onChange={(event) => setStoryMinChars(Number(event.target.value))}
+              style={{ width: "100%", accentColor: ACC.gold, cursor: "pointer" }}
+            />
+            <p style={{ ...S.bt, marginTop: 10 }}>{ui.storyGen.storyLengthHelp}</p>
+          </div>
 
           <button onClick={generate} disabled={!genre || loading || words.length === 0} style={S.pbtn(genre ? ACC.gold : C.bdr, genre ? "rgba(251,191,36,.08)" : C.sur)}>
             {loading ? ui.storyGen.generating : ui.storyGen.generate}
