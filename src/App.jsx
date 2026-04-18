@@ -369,9 +369,16 @@ const UI = {
       connection: "Verbindung",
       checking: "Prüfe...",
       aiApis: "KI-APIs",
+      aiApisHint: "Vom aktuellen Browser/Host aus getestet.",
       testAll: "Alle testen",
       testing: "Teste…",
       notTested: "Noch nicht getestet",
+      serviceNotConnected: "In diesem Build nicht verbunden",
+      serviceAuthMissing: "API-Zugang fehlt auf diesem Gerät",
+      serviceRateLimited: "Dienst erreichbar, aber gerade gebremst",
+      serviceTimeout: "Dienst antwortet zu langsam",
+      serviceHttpError: (code) => `Dienst antwortet mit HTTP ${code}`,
+      servicePreview: "Antwortprobe",
       rooms: (n) => `Räume (${n})`,
       deleteOld: "Alte löschen",
       noRooms: "Keine Räume",
@@ -642,9 +649,16 @@ const UI = {
       connection: "Connection",
       checking: "Checking...",
       aiApis: "AI APIs",
+      aiApisHint: "Tested from the current browser/host.",
       testAll: "Test all",
       testing: "Testing…",
       notTested: "Not tested yet",
+      serviceNotConnected: "Not connected in this build",
+      serviceAuthMissing: "Missing API access on this device",
+      serviceRateLimited: "Service is reachable but currently rate limited",
+      serviceTimeout: "Service is responding too slowly",
+      serviceHttpError: (code) => `Service returned HTTP ${code}`,
+      servicePreview: "Response preview",
       rooms: (n) => `Rooms (${n})`,
       deleteOld: "Delete old",
       noRooms: "No rooms",
@@ -1195,6 +1209,8 @@ function DebugPanel({ onClose, C, S, ui }) {
   const [testing, setTesting] = useState(false);
   const [checkingSessions, setCheckingSessions] = useState(false);
   const [roomSessions, setRoomSessions] = useState({});
+  const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+  const groqKey = import.meta.env.VITE_GROQ_API_KEY;
 
   useEffect(() => { checkSb(); loadRooms(); }, []);
 
@@ -1248,9 +1264,46 @@ function DebugPanel({ onClose, C, S, ui }) {
       },
       {
         key: "openrouter",
-        name: "OpenRouter (Mistral free)",
+        name: "OpenRouter",
         fn: async () => {
-          const response = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", headers: { "Content-Type": "application/json", "HTTP-Referer": APP_URL, "X-Title": "Story Chaos" }, body: JSON.stringify({ model: "mistralai/mistral-7b-instruct:free", max_tokens: 60, messages: [{ role: "user", content: prompt }] }) });
+          const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "HTTP-Referer": APP_URL,
+              "X-Title": "Story Chaos",
+              ...(openRouterKey ? { Authorization: `Bearer ${openRouterKey}` } : {}),
+            },
+            body: JSON.stringify({ model: "mistralai/mistral-7b-instruct:free", max_tokens: 60, messages: [{ role: "user", content: prompt }] }),
+          });
+          if (response.status === 401 || response.status === 403) throw new Error("auth");
+          if (response.status === 429) throw new Error("rate");
+          if (!response.ok) throw new Error(`http:${response.status}`);
+          const data = await response.json();
+          return data.choices?.[0]?.message?.content || "";
+        },
+      },
+      {
+        key: "groq",
+        name: "Groq",
+        fn: async () => {
+          const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(groqKey ? { Authorization: `Bearer ${groqKey}` } : {}),
+            },
+            body: JSON.stringify({
+              model: "llama-3.1-8b-instant",
+              messages: [
+                { role: "user", content: prompt },
+              ],
+              max_tokens: 60,
+            }),
+          });
+          if (response.status === 401 || response.status === 403) throw new Error("auth");
+          if (response.status === 429) throw new Error("rate");
+          if (!response.ok) throw new Error(`http:${response.status}`);
           const data = await response.json();
           return data.choices?.[0]?.message?.content || "";
         },
@@ -1259,11 +1312,26 @@ function DebugPanel({ onClose, C, S, ui }) {
     const results = {};
     for (const test of tests) {
       const start = Date.now();
+      if (test.key === "openrouter" && !openRouterKey) {
+        results[test.key] = { ok: undefined, ms: 0, name: test.name, note: ui.debug.serviceNotConnected };
+        setApiStatus({ ...results });
+        continue;
+      }
+      if (test.key === "groq" && !groqKey) {
+        results[test.key] = { ok: undefined, ms: 0, name: test.name, note: ui.debug.serviceNotConnected };
+        setApiStatus({ ...results });
+        continue;
+      }
       try {
-        const text = await Promise.race([test.fn(), timeout(9000)]);
+        const text = await Promise.race([test.fn(), timeout(15000)]);
         results[test.key] = { ok: text.length > 5, ms: Date.now() - start, preview: text.slice(0, 70), name: test.name };
       } catch (error) {
-        results[test.key] = { ok: false, ms: Date.now() - start, err: error.message, name: test.name };
+        let note = error.message;
+        if (error.message === "auth") note = ui.debug.serviceAuthMissing;
+        else if (error.message === "rate") note = ui.debug.serviceRateLimited;
+        else if (error.message === "timeout") note = ui.debug.serviceTimeout;
+        else if (error.message.startsWith("http:")) note = ui.debug.serviceHttpError(error.message.split(":")[1]);
+        results[test.key] = { ok: false, ms: Date.now() - start, err: error.message, note, name: test.name };
       }
       setApiStatus({ ...results });
     }
@@ -1331,6 +1399,7 @@ function DebugPanel({ onClose, C, S, ui }) {
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted }}>{ui.debug.aiApis}</div>
             <button onClick={testApis} disabled={testing} style={S.sbtn(ACC.blue)}>{testing ? ui.debug.testing : ui.debug.testAll}</button>
           </div>
+          <div style={{ fontSize: 12, color: C.muted, marginBottom: 10 }}>{ui.debug.aiApisHint}</div>
           {Object.values(apiStatus).length === 0 && !testing && <p style={{ fontSize: 13, color: C.muted }}>{ui.debug.notTested}</p>}
           {Object.values(apiStatus).map((status) => (
             <div key={status.name} style={{ padding: "8px 0", borderBottom: `1px solid ${C.bdr}` }}>
@@ -1339,8 +1408,9 @@ function DebugPanel({ onClose, C, S, ui }) {
                 {badge(status.ok)}
               </div>
               {status.ms && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{status.ms}ms</div>}
-              {status.preview && <div style={{ fontSize: 11, color: C.muted, marginTop: 2, fontStyle: "italic" }}>&quot;{status.preview}&quot;</div>}
-              {status.err && <div style={{ fontSize: 11, color: ACC.redl, marginTop: 2 }}>{status.err}</div>}
+              {status.note && <div style={{ fontSize: 11, color: status.ok === false ? ACC.redl : C.muted, marginTop: 2 }}>{status.note}</div>}
+              {status.preview && <div style={{ fontSize: 11, color: C.muted, marginTop: 2, fontStyle: "italic" }}>{ui.debug.servicePreview}: &quot;{status.preview}&quot;</div>}
+              {status.err && status.err !== status.note && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{status.err}</div>}
             </div>
           ))}
         </div>
