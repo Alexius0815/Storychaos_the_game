@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { buildBackupStory } from "./backupStories";
 
 const SUPABASE_URL = "https://iioipzphjxzoiofnukjs.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpb2lwenBoanh6b2lvZm51a2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNzYzOTMsImV4cCI6MjA5MTc1MjM5M30.aIO5sXDUNNk01lTcqb79f4BowKXy4YH4Er0OrB8gx8U";
@@ -1090,7 +1091,6 @@ async function generateStory({ prompt, contentLang, genreId, words, minChars }, 
 
 async function generateLocalStory({ contentLang, genreId, words, minChars, difficulty }, onStatus = () => {}) {
   onStatus(buildStoryAttemptLine(contentLang, "start", "local-fallback"));
-  const { buildBackupStory } = await import("./backupStories");
   const text = buildBackupStory({ lang: contentLang, genreId, words, minChars, difficulty, salt: `${genreId}:${difficulty}:${words.join("|")}` });
   onStatus(buildStoryAttemptLine(contentLang, "success", "local-fallback"));
   return text;
@@ -1177,7 +1177,10 @@ function repairStoryToRules(text, words, minChars, contentLang) {
   let sentenceCursor = 0;
 
   for (const check of analysis.wordChecks) {
+    let occurrenceGuard = 0;
     while (check.occurrences < 2) {
+      occurrenceGuard += 1;
+      if (occurrenceGuard > 6) break;
       clean = `${clean} ${buildRepairSentence(check.word, contentLang, sentenceCursor)}`.trim();
       sentenceCursor += 1;
       analysis = analyzeStory(clean, words, minChars);
@@ -1192,7 +1195,10 @@ function repairStoryToRules(text, words, minChars, contentLang) {
     }
   }
 
+  let paddingGuard = 0;
   while (stripStoryMarkup(clean).length < minChars) {
+    paddingGuard += 1;
+    if (paddingGuard > 20) break;
     clean = `${clean} ${buildPaddingSentence(contentLang, sentenceCursor)}`.trim();
     sentenceCursor += 1;
   }
@@ -1751,7 +1757,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
       pushAttemptLine(buildStoryAttemptLine(contentLang, "repair", "local-fallback"));
       const repaired = repairStoryToRules(text, words, storyMinChars, contentLang);
       const analysis = analyzeStory(repaired, words, storyMinChars);
-      if (analysis.valid) validStory = analysis.clean;
+      validStory = analysis.clean;
     } else {
       for (let attempt = 0; attempt < 4; attempt += 1) {
         const strictness = attempt === 0 ? "" : contentLang === "de"
