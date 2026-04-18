@@ -1743,6 +1743,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
   const content = CONTENT[contentLang];
   const compactStageHeight = viewport.isDesktop ? "min(62vh, 620px)" : "auto";
   const storyDifficulty = room?.difficulty || "mix";
+  const hasStoryStage = !!story && !loading;
 
   async function buildStory(mode = "local") {
     if (!genre || words.length === 0) return;
@@ -1805,6 +1806,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {hasStoryStage && <button onClick={() => setStory("")} style={S.sbtn(C.muted)}>{ui.storyGen.regenerate}</button>}
             {stageMode && onExitStage && <button onClick={onExitStage} style={S.sbtn(C.muted)}>{ui.common.back}</button>}
             <HelpPopover title={ui.storyGen.title} ui={ui} C={C} S={S}>
               <div>{ui.storyGen.desc}</div>
@@ -1815,7 +1817,8 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop && (story || loading) ? "minmax(340px, 0.9fr) minmax(0, 1.1fr)" : "1fr", gap: 14, alignItems: "start" }}>
+      {!hasStoryStage ? (
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14, alignItems: "start" }}>
         <div>
           <fieldset style={{ border: "none", margin: "0 0 14px", padding: 0 }}>
             <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10, display: "block" }}>{ui.storyGen.theme}</legend>
@@ -1858,8 +1861,8 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
           )}
           {error && <div style={{ ...S.card, borderColor: "rgba(248,113,113,.4)", background: "rgba(248,113,113,.06)", marginTop: 12 }}><p style={{ ...S.bt, color: ACC.redl }}>{error}</p></div>}
         </div>
-
-        {story && !loading && (
+      </div>
+      ) : (
           <div style={{ animation: "fadeIn .3s ease" }}>
             <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto", minHeight: compactStageHeight }}>
               <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))", minHeight: viewport.isDesktop ? "100%" : "auto", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
@@ -1888,8 +1891,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
               </div>
             </div>
           </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
