@@ -2513,21 +2513,21 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
 
   return (
     <div>
-      <div style={{ background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 14, padding: "10px 14px", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: C.bg === "#0d0d14" ? "0 10px 24px rgba(0,0,0,.14)" : "0 12px 26px rgba(15,23,42,.05)" }}>
+      <div style={{ background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 14, padding: "10px 12px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, boxShadow: C.bg === "#0d0d14" ? "0 10px 24px rgba(0,0,0,.14)" : "0 12px 26px rgba(15,23,42,.05)" }}>
         <div>
           <span style={{ fontSize: 11, color: C.muted }}>{ui.common.room} </span>
           <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: 3, color: C.txt }}>{roomId}</span>
           <span style={{ fontSize: 11, color: C.muted }}> · {hostName}</span>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button onClick={deleteRoom} disabled={deletingRoom} style={{ ...S.sbtn(ACC.red), opacity: deletingRoom ? 0.7 : 1 }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <button onClick={deleteRoom} disabled={deletingRoom} style={{ ...S.sbtn(C.muted), borderColor: "rgba(248,113,113,.3)", color: ACC.redl, background: "transparent", opacity: deletingRoom ? 0.7 : 0.9, fontSize: 11, padding: "8px 10px" }}>
             {deletingRoom ? ui.common.deleting : ui.common.deleteRoom}
           </button>
-          <button onClick={onLeave} style={S.sbtn(C.muted)}>{ui.common.leave}</button>
+          <button onClick={onLeave} style={{ ...S.sbtn(C.muted), fontSize: 11, padding: "8px 10px" }}>{ui.common.leave}</button>
         </div>
       </div>
       <nav>
-        <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "repeat(6,1fr)" : viewport.isTablet ? "repeat(3,1fr)" : "repeat(4,1fr)", gap: 6, marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "repeat(6,1fr)" : viewport.isTablet ? "repeat(3,1fr)" : "repeat(4,1fr)", gap: 6, marginBottom: 12 }}>
           {tabs.map((tabEntry) => (
             <button key={tabEntry.id} onClick={() => handleTabChange(tabEntry.id)} aria-selected={tab === tabEntry.id} style={{ background: tab === tabEntry.id ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur, border: `1.5px solid ${tab === tabEntry.id ? ACC.blue : C.bdr}`, color: tab === tabEntry.id ? ACC.bluel : C.muted, fontSize: viewport.isDesktop ? 11 : 9, fontWeight: 700, padding: viewport.isDesktop ? "12px 8px 10px" : "10px 4px 8px", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer", minHeight: viewport.isDesktop ? 72 : 62 }}>
               <span style={{ fontSize: viewport.isDesktop ? 17 : 15 }}>{tabEntry.icon}</span><span>{tabEntry.label}</span>
@@ -2535,10 +2535,6 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
           ))}
         </div>
       </nav>
-      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.common.phaseTitle}</div>
-        <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{getHostPhase(tab, ui)}</div>
-      </div>
       {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} onStart={() => setTab("cards")} />}
       {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setAwardedPlayerIds([]); setTab("ready"); }} />}
       {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onAllReady={() => setTab("story")} />}
