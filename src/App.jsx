@@ -2334,7 +2334,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
           </div>
           <HelpPopover title={playerPhase} ui={ui} C={C} S={S} align="left">
             <div>{inPointsView ? ui.player.pointsDesc : ui.player.reactHint}</div>
-            <div>{ui.player.revealBoth}</div>
+            <div>{inPointsView ? ui.player.narratorVoteDesc : ui.player.revealBoth}</div>
           </HelpPopover>
         </div>
       </div>
@@ -2356,6 +2356,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
                   <button onClick={() => setPointsView("card")} style={{ ...S.sbtn(pointsView === "card" ? ACC.blue : C.muted), background: pointsView === "card" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.player.cardView}</button>
                 </div>
               </div>
+              <p style={{ ...S.bt, marginBottom: pointsView === "card" ? 12 : 0 }}>{ui.player.pointsDesc}</p>
               {pointsView === "card" && (
                 <div style={{ ...S.card2, marginBottom: 0 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.player.secretWord}</div>
