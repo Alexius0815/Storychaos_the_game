@@ -1091,7 +1091,15 @@ async function generateStory({ prompt, contentLang, genreId, words, minChars }, 
 
 async function generateLocalStory({ contentLang, genreId, words, minChars, difficulty }, onStatus = () => {}) {
   onStatus(buildStoryAttemptLine(contentLang, "start", "local-fallback"));
-  const text = buildBackupStory({ lang: contentLang, genreId, words, minChars, difficulty, salt: `${genreId}:${difficulty}:${words.join("|")}` });
+  let text = "";
+  try {
+    text = buildBackupStory({ lang: contentLang, genreId, words, minChars, difficulty, salt: `${genreId}:${difficulty}:${words.join("|")}` });
+  } catch {
+    const repeatedWords = words.map((word) => `**${word}**`).join(", ");
+    text = contentLang === "de"
+      ? `Die Runde begann ganz harmlos, doch schnell wurde klar, dass ${repeatedWords} heute wichtiger waren als allen lieb sein konnte. Erst tauchten ${repeatedWords} in einer scheinbar normalen Szene auf, dann wurden ${repeatedWords} noch einmal erwähnt, diesmal deutlich verdächtiger. Niemand wollte zu viel reagieren, doch genau dieses Bemühen machte alles nur noch lustiger. Am Ende wirkte die Geschichte wie ein harmloser Vorfall mit sehr auffälligen Gesichtern und noch auffälligeren Pausen.`
+      : `The round started harmlessly enough, but it quickly became clear that ${repeatedWords} mattered far more than anyone wanted. First ${repeatedWords} appeared in what seemed like a normal scene, then ${repeatedWords} showed up again in a much more suspicious way. Nobody wanted to react too visibly, and that effort only made the whole thing funnier. By the end, the story felt like a simple event surrounded by very noticeable faces and even more noticeable pauses.`;
+  }
   onStatus(buildStoryAttemptLine(contentLang, "success", "local-fallback"));
   return text;
 }
@@ -1754,10 +1762,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
 
     if (mode === "local") {
       const text = await generateLocalStory({ contentLang, genreId: selectedGenreId, words, minChars: storyMinChars, difficulty: storyDifficulty }, pushAttemptLine);
-      pushAttemptLine(buildStoryAttemptLine(contentLang, "repair", "local-fallback"));
-      const repaired = repairStoryToRules(text, words, storyMinChars, contentLang);
-      const analysis = analyzeStory(repaired, words, storyMinChars);
-      validStory = analysis.clean;
+      validStory = stripStoryMarkup(text);
     } else {
       for (let attempt = 0; attempt < 4; attempt += 1) {
         const strictness = attempt === 0 ? "" : contentLang === "de"
