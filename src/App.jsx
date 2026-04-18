@@ -291,8 +291,10 @@ const UI = {
       roundSummaryTitle: "Runde abgeschlossen",
       roundSummaryDesc: "Vergib oben Punkte, prüfe den Erzählerpunkt und bestimme dann den nächsten Erzähler.",
       actionView: "Vergabe",
+      voteView: "Voting",
       boardView: "Punktestand",
       nextView: "Nächster",
+      continueToVote: "Zum Voting",
       continueToNext: "Zur Erzählerwahl",
     },
     timer: {
@@ -559,8 +561,10 @@ const UI = {
       roundSummaryTitle: "Round complete",
       roundSummaryDesc: "Award points above, check the narrator vote, then choose the next narrator.",
       actionView: "Scoring",
+      voteView: "Vote",
       boardView: "Scoreboard",
       nextView: "Next",
+      continueToVote: "Go to vote",
       continueToNext: "Go to narrator choice",
     },
     timer: {
@@ -1666,6 +1670,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
   }
 
   const nextCandidates = others.filter((player) => player.id !== narratorId);
+  const allPlayersAwarded = others.length > 0 && awardedPlayerIds.length >= others.length;
 
   return (
     <div>
@@ -1681,6 +1686,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <button onClick={() => setView("action")} style={{ ...S.sbtn(view === "action" ? ACC.blue : C.muted), background: view === "action" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.scores.actionView}</button>
+            <button onClick={() => setView("vote")} style={{ ...S.sbtn(view === "vote" ? ACC.blue : C.muted), background: view === "vote" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.scores.voteView}</button>
             <button onClick={() => setView("board")} style={{ ...S.sbtn(view === "board" ? ACC.blue : C.muted), background: view === "board" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.scores.boardView}</button>
             <HelpPopover title={ui.scores.title} ui={ui} C={C} S={S}>
               <div>{ui.scores.desc}</div>
@@ -1691,100 +1697,98 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
       </div>
 
       {view === "action" ? (
-      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1.08fr) minmax(330px, 0.92fr)" : "1fr", gap: 14, alignItems: "start" }}>
-        <div>
-          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", minHeight: compactScoreHeight }}>
-            <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.pointsTitle}</div>
-            <div style={{ marginTop: 10, marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.22)", color: C.txt, fontSize: 13, fontWeight: 700 }}>
-              {ui.scores.pointsRule}
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 10 }}>
-              {others.map((player) => {
-                const alreadyAwarded = awardedPlayerIds.includes(player.id);
-                return (
-                  <div key={`${player.id}-score`} style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${alreadyAwarded ? "rgba(74,222,128,.28)" : C.bdr}` }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                      <div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{player.name}</div>
-                        <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
-                          {ui.scores.currentScore}: <span style={{ color: ACC.gold, fontWeight: 800 }}>{player.score || 0}</span>
-                        </div>
+      <div style={{ animation: "fadeIn .22s ease" }}>
+        <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", minHeight: compactScoreHeight }}>
+          <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.pointsTitle}</div>
+          <div style={{ marginTop: 10, marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.22)", color: C.txt, fontSize: 13, fontWeight: 700 }}>
+            {ui.scores.pointsRule}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 10 }}>
+            {others.map((player) => {
+              const alreadyAwarded = awardedPlayerIds.includes(player.id);
+              return (
+                <div key={`${player.id}-score`} style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${alreadyAwarded ? "rgba(74,222,128,.28)" : C.bdr}` }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{player.name}</div>
+                      <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
+                        {ui.scores.currentScore}: <span style={{ color: ACC.gold, fontWeight: 800 }}>{player.score || 0}</span>
                       </div>
-                      <button onClick={() => givePoint(player)} disabled={savingScoreId === player.id || alreadyAwarded} style={{ ...S.sbtn(alreadyAwarded ? ACC.green : ACC.gold), minWidth: 120, opacity: savingScoreId === player.id ? 0.7 : 1, cursor: alreadyAwarded ? "default" : "pointer" }}>
-                        {alreadyAwarded ? ui.scores.pointGiven : ui.scores.addPoint}
-                      </button>
                     </div>
+                    <button onClick={() => givePoint(player)} disabled={savingScoreId === player.id || alreadyAwarded} style={{ ...S.sbtn(alreadyAwarded ? ACC.green : ACC.gold), minWidth: 120, opacity: savingScoreId === player.id ? 0.7 : 1, cursor: alreadyAwarded ? "default" : "pointer" }}>
+                      {alreadyAwarded ? ui.scores.pointGiven : ui.scores.addPoint}
+                    </button>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-end" }}>
+            <button onClick={() => setView("vote")} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), width: viewport.isDesktop ? 220 : "100%" }}>
+              {ui.scores.continueToVote}
+            </button>
           </div>
         </div>
-
-        <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
-          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", minHeight: compactScoreHeight }}>
-            <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.narratorVoteTitle}</div>
-            <p style={S.bt}>{ui.scores.narratorVoteDesc}</p>
-            {narrator && (
-              <div style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.bdr}`, marginTop: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{narrator.name}</div>
-                    <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{ui.scores.currentScore}: <span style={{ color: ACC.gold, fontWeight: 800 }}>{narrator.score || 0}</span></div>
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <span style={{ ...S.sbtn(ACC.green), cursor: "default" }}>{ui.scores.narratorVoteYes}: {yesVotes}</span>
-                    <span style={{ ...S.sbtn(C.muted), cursor: "default" }}>{ui.scores.narratorVoteNo}: {noVotes}</span>
-                  </div>
+      </div>
+      ) : view === "vote" ? (
+      <div style={{ animation: "fadeIn .22s ease" }}>
+        <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", minHeight: compactScoreHeight }}>
+          <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.narratorVoteTitle}</div>
+          <p style={S.bt}>{ui.scores.narratorVoteDesc}</p>
+          {narrator && (
+            <div style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.bdr}`, marginTop: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{narrator.name}</div>
+                  <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{ui.scores.currentScore}: <span style={{ color: ACC.gold, fontWeight: 800 }}>{narrator.score || 0}</span></div>
                 </div>
-                <p style={{ ...S.bt, marginTop: 12 }}>{ui.scores.narratorVoteWaiting(voteEntries.length, audienceCount)}</p>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-                  <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(74,222,128,.10)", border: "1px solid rgba(74,222,128,.26)" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.green, marginBottom: 6 }}>{ui.scores.narratorVoteYes}</div>
-                    <div style={{ fontSize: 30, fontWeight: 800, color: ACC.greenl, lineHeight: 1 }}>{yesVotes}</div>
-                  </div>
-                  <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(148,163,184,.10)", border: `1px solid ${C.bdr}` }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 6 }}>{ui.scores.narratorVoteNo}</div>
-                    <div style={{ fontSize: 30, fontWeight: 800, color: C.txt, lineHeight: 1 }}>{noVotes}</div>
-                  </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <span style={{ ...S.sbtn(ACC.green), cursor: "default" }}>{ui.scores.narratorVoteYes}: {yesVotes}</span>
+                  <span style={{ ...S.sbtn(C.muted), cursor: "default" }}>{ui.scores.narratorVoteNo}: {noVotes}</span>
                 </div>
-                {room?.status === "voted" ? (
-                  <div style={{ marginTop: 14, padding: "18px 18px", borderRadius: 16, background: narratorAwarded ? "linear-gradient(180deg, rgba(74,222,128,.16), rgba(74,222,128,.06))" : "linear-gradient(180deg, rgba(148,163,184,.14), rgba(148,163,184,.06))", border: `1px solid ${narratorAwarded ? "rgba(74,222,128,.30)" : C.bdr}`, color: narratorAwarded ? ACC.greenl : C.txt }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 8 }}>
-                      {ui.scores.narratorVoteDone}
-                    </div>
-                    <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.35 }}>
-                      {narratorAwarded ? ui.scores.narratorVoteApproved : ui.scores.narratorVoteRejected}
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ marginTop: 14, padding: "16px 18px", borderRadius: 16, background: "linear-gradient(180deg, rgba(96,165,250,.10), rgba(96,165,250,.04))", border: "1px solid rgba(96,165,250,.24)", color: C.txt }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>
-                      {ui.scores.narratorVoteLive}
-                    </div>
-                    <div style={{ fontSize: 16, fontWeight: 700 }}>
-                      {finalizingNarratorVote ? ui.common.loading : ui.scores.narratorVotePending}
-                    </div>
-                  </div>
-                )}
               </div>
-            )}
-          </div>
+              <p style={{ ...S.bt, marginTop: 12 }}>{ui.scores.narratorVoteWaiting(voteEntries.length, audienceCount)}</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+                <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(74,222,128,.10)", border: "1px solid rgba(74,222,128,.26)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.green, marginBottom: 6 }}>{ui.scores.narratorVoteYes}</div>
+                  <div style={{ fontSize: 30, fontWeight: 800, color: ACC.greenl, lineHeight: 1 }}>{yesVotes}</div>
+                </div>
+                <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(148,163,184,.10)", border: `1px solid ${C.bdr}` }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 6 }}>{ui.scores.narratorVoteNo}</div>
+                  <div style={{ fontSize: 30, fontWeight: 800, color: C.txt, lineHeight: 1 }}>{noVotes}</div>
+                </div>
+              </div>
+              {room?.status === "voted" ? (
+                <div style={{ marginTop: 14, padding: "18px 18px", borderRadius: 16, background: narratorAwarded ? "linear-gradient(180deg, rgba(74,222,128,.16), rgba(74,222,128,.06))" : "linear-gradient(180deg, rgba(148,163,184,.14), rgba(148,163,184,.06))", border: `1px solid ${narratorAwarded ? "rgba(74,222,128,.30)" : C.bdr}`, color: narratorAwarded ? ACC.greenl : C.txt }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 8 }}>
+                    {ui.scores.narratorVoteDone}
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.35 }}>
+                    {narratorAwarded ? ui.scores.narratorVoteApproved : ui.scores.narratorVoteRejected}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ marginTop: 14, padding: "16px 18px", borderRadius: 16, background: "linear-gradient(180deg, rgba(96,165,250,.10), rgba(96,165,250,.04))", border: "1px solid rgba(96,165,250,.24)", color: C.txt }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>
+                    {ui.scores.narratorVoteLive}
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 700 }}>
+                    {finalizingNarratorVote ? ui.common.loading : ui.scores.narratorVotePending}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           {nextCandidates.length > 0 && room?.status === "voted" && (
-            <div style={{ ...S.card, marginTop: 12, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)" }}>
-              <div style={{ marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.22)" }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.scores.roundSummaryTitle}</div>
-                <div style={{ fontSize: 13, color: C.txt, lineHeight: 1.6 }}>{ui.scores.roundSummaryDesc}</div>
-              </div>
-              <button onClick={() => setView("next")} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)") }}>
+            <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-end" }}>
+              <button onClick={() => setView("next")} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), width: viewport.isDesktop ? 220 : "100%" }}>
                 {ui.scores.continueToNext}
               </button>
             </div>
           )}
         </div>
       </div>
-      ) : (
-      view === "board" ? (
+      ) : view === "board" ? (
       <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", padding: 14 }}>
         <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 8 }}>
           {sorted.map((player, index) => (
@@ -2655,9 +2659,12 @@ export default function App() {
   const [roomId, setRoomId] = useState(urlRoom || "");
   const [myName, setMyName] = useState("");
   const [showDebug, setShowDebug] = useState(false);
+  const [showVersion, setShowVersion] = useState(false);
 
   const tapCount = useRef(0);
   const tapTimer = useRef(null);
+  const versionTapCount = useRef(0);
+  const versionTapTimer = useRef(null);
 
   useEffect(() => {
     document.title = "Story Chaos";
@@ -2671,6 +2678,17 @@ export default function App() {
       tapCount.current = 0;
       setShowDebug(true);
       addLog("info", ui.debug.debugOpened);
+    }
+  }
+
+  function handleSubtitleTap() {
+    versionTapCount.current += 1;
+    clearTimeout(versionTapTimer.current);
+    versionTapTimer.current = setTimeout(() => { versionTapCount.current = 0; }, 1500);
+    if (versionTapCount.current >= 3) {
+      versionTapCount.current = 0;
+      setShowVersion(true);
+      setTimeout(() => setShowVersion(false), 4000);
     }
   }
 
@@ -2717,7 +2735,7 @@ export default function App() {
               <h1 onClick={handleLogoTap} style={{ fontSize: "clamp(27px,8.8vw,50px)", fontWeight: 900, letterSpacing: "-0.06em", textTransform: "uppercase", background: "linear-gradient(135deg,#f59e0b,#facc15 45%,#60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", lineHeight: 0.94, margin: 0, cursor: "default", userSelect: "none" }}>
                 Story Chaos
               </h1>
-              <p style={{ fontSize: 10, letterSpacing: 3.2, color: C.muted, textTransform: "uppercase", marginTop: 8, paddingLeft: 2 }}>
+              <p onClick={handleSubtitleTap} style={{ fontSize: 10, letterSpacing: 3.2, color: C.muted, textTransform: "uppercase", marginTop: 8, paddingLeft: 2, cursor: "default", userSelect: "none" }}>
                 {ui.subtitle}
               </p>
             </div>
@@ -2730,9 +2748,11 @@ export default function App() {
             </button>
           </div>
           </div>
-          <div style={{ textAlign: "right", fontSize: 10, color: C.muted, opacity: 0.45, letterSpacing: 0.6, paddingRight: 2 }}>
-            {APP_VERSION}
-          </div>
+          {showVersion && (
+            <div style={{ textAlign: "right", fontSize: 10, color: C.muted, opacity: 0.45, letterSpacing: 0.6, paddingRight: 2, animation: "fadeIn .22s ease" }}>
+              {APP_VERSION}
+            </div>
+          )}
         </header>
 
         <OfflineBanner C={C} ui={ui} />
