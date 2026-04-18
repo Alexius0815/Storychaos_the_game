@@ -1801,16 +1801,15 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
         </ul>
       </div>
       ) : (
-      <NextNarratorView
-        room={room}
-        players={players}
-        ui={ui}
-        C={C}
-        S={S}
-        onChooseNarrator={onChooseNarrator}
-        onBack={() => setView("action")}
-      />
-      )
+        <NextNarratorView
+          room={room}
+          players={players}
+          ui={ui}
+          C={C}
+          S={S}
+          onChooseNarrator={onChooseNarrator}
+          onBack={() => setView("action")}
+        />
       )}
     </div>
   );
