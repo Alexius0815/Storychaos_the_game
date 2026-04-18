@@ -141,6 +141,7 @@ const UI = {
       status: "Status",
       story: "Story",
       phaseTitle: "Rundenphase",
+      focusView: "Fokusansicht",
     },
     confirmDeleteRoom: "Willst du diesen Raum wirklich löschen? Alle Spieler und der aktuelle Spielstand werden entfernt.",
     deleteRoomError: "Der Raum konnte nicht gelöscht werden. Bitte nochmal versuchen.",
@@ -397,6 +398,7 @@ const UI = {
       status: "Status",
       story: "Story",
       phaseTitle: "Round phase",
+      focusView: "Focus view",
     },
     confirmDeleteRoom: "Do you really want to delete this room? All players and the current game state will be removed.",
     deleteRoomError: "The room could not be deleted. Please try again.",
@@ -1366,6 +1368,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
   const [error, setError] = useState("");
   const words = storyWords || [];
   const content = CONTENT[contentLang];
+  const compactStageHeight = viewport.isDesktop ? "min(62vh, 620px)" : "auto";
 
   async function generate() {
     if (!genre || words.length === 0) return;
@@ -1387,22 +1390,38 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
 
   return (
     <div>
-      <div style={S.card}>
-        <div style={S.st}>{ui.storyGen.title}</div>
-        <p style={S.bt}>{ui.storyGen.desc}</p>
+      <div style={{ ...S.card, padding: viewport.isDesktop ? 16 : 18, background: "linear-gradient(135deg, rgba(251,191,36,.12), rgba(96,165,250,.08))", borderColor: "rgba(251,191,36,.26)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: C.sur, border: `1px solid ${C.bdr}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(0,0,0,.12)" }}>
+              <img src={APP_ICON} alt="Story Chaos" style={{ width: 30, height: 30, borderRadius: 8 }} />
+            </div>
+            <div>
+              <div style={{ ...S.st, marginBottom: 4 }}>{ui.storyGen.title}</div>
+              <p style={{ ...S.bt, margin: 0, maxWidth: 700 }}>{ui.storyGen.desc}</p>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {ui.storyGen.flowSteps.slice(0, 4).map((step, index) => (
+              <span key={step} style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: index < 2 || story ? C.txt : C.muted, background: index === 2 && story ? "rgba(251,191,36,.14)" : C.sur, border: `1px solid ${index === 2 && story ? "rgba(251,191,36,.3)" : C.bdr}`, padding: "7px 10px", borderRadius: 999 }}>
+                {index + 1}. {step}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop && (story || loading) ? "minmax(360px, 0.95fr) minmax(0, 1.25fr)" : "1fr", gap: 14, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop && (story || loading) ? "minmax(340px, 0.9fr) minmax(0, 1.1fr)" : "1fr", gap: 14, alignItems: "start" }}>
         <div>
-          <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
+          <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))", marginBottom: 10, padding: viewport.isDesktop ? 14 : 18 }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.blue, marginBottom: 10 }}>{ui.storyGen.flowTitle}</div>
-            <div style={{ display: "grid", gap: 8 }}>
+            <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 8 }}>
               {ui.storyGen.flowSteps.map((step, index) => (
                 <div key={step} style={{ display: "flex", alignItems: "center", gap: 10, color: index < 2 || story ? C.txt : C.muted }}>
                   <span style={{ width: 24, height: 24, borderRadius: 999, display: "inline-flex", alignItems: "center", justifyContent: "center", background: index < 2 ? "rgba(74,222,128,.14)" : story && index === 2 ? "rgba(251,191,36,.14)" : C.sur2, border: `1px solid ${index < 2 ? "rgba(74,222,128,.35)" : story && index === 2 ? "rgba(251,191,36,.35)" : C.bdr}`, color: index < 2 ? ACC.greenl : story && index === 2 ? ACC.gold : C.muted, fontSize: 12, fontWeight: 800 }}>
                     {index + 1}
                   </span>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>{step}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{step}</span>
                 </div>
               ))}
             </div>
@@ -1410,10 +1429,10 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
 
           <fieldset style={{ border: "none", margin: "0 0 14px", padding: 0 }}>
             <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10, display: "block" }}>{ui.storyGen.theme}</legend>
-            <div style={{ display: "grid", gridTemplateColumns: viewport.isPhone ? "1fr 1fr" : viewport.isDesktop ? "1fr 1fr" : "1fr 1fr", gap: 8 }}>
+            <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr 1fr", gap: 8 }}>
               {content.genres.map((entry) => (
-                <button key={entry.id} onClick={() => setGenre(entry.id)} aria-pressed={genre === entry.id} style={{ background: genre === entry.id ? "rgba(251,191,36,.1)" : C.sur, border: `2px solid ${genre === entry.id ? ACC.gold : C.bdr}`, borderRadius: 12, padding: viewport.isDesktop ? 14 : 12, cursor: "pointer", textAlign: "left", gridColumn: entry.id === "random" ? "span 2" : "span 1", transition: "all .15s", display: "block", minHeight: viewport.isDesktop ? 104 : 92 }}>
-                  <div style={{ fontSize: 17, marginBottom: 3 }}>{entry.emoji}</div>
+                <button key={entry.id} onClick={() => setGenre(entry.id)} aria-pressed={genre === entry.id} style={{ background: genre === entry.id ? "rgba(251,191,36,.1)" : C.sur, border: `2px solid ${genre === entry.id ? ACC.gold : C.bdr}`, borderRadius: 12, padding: viewport.isDesktop ? 12 : 12, cursor: "pointer", textAlign: "left", gridColumn: entry.id === "random" ? "span 2" : "span 1", transition: "all .15s", display: "block", minHeight: viewport.isDesktop ? 82 : 88 }}>
+                  <div style={{ fontSize: 15, marginBottom: 3 }}>{entry.emoji}</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: genre === entry.id ? ACC.gold : C.txt }}>{entry.label}</div>
                   <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{entry.desc}</div>
                 </button>
@@ -1431,21 +1450,27 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
 
         {story && !loading && (
           <div style={{ animation: "fadeIn .3s ease" }}>
-            <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
-              <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.04)" }}>
+            <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto", minHeight: compactStageHeight }}>
+              <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))", minHeight: viewport.isDesktop ? "100%" : "auto", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold }}>{ui.storyGen.readNow}</span>
                   <button onClick={generate} style={S.sbtn(C.muted)}>{ui.storyGen.regenerate}</button>
                 </div>
-                <p style={{ ...S.bt, marginBottom: 14, fontStyle: "italic" }}>{ui.storyGen.hiddenHint}</p>
-                <div style={{ fontSize: viewport.isDesktop ? 17 : 16, lineHeight: viewport.isDesktop ? 2.05 : 2.1, color: C.txt }}>{story.replace(/\*\*(.*?)\*\*/g, "$1")}</div>
-              </div>
-              <div style={{ ...S.card, borderColor: "rgba(248,113,113,.3)", background: "rgba(248,113,113,.05)" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 12 }}>{ui.storyGen.revealTitle}</div>
-                <p style={{ ...S.bt, marginBottom: 14 }}>{ui.storyGen.revealDesc}</p>
-                <button onClick={onOpenResolution} style={S.pbtn(ACC.red, "rgba(248,113,113,.08)")}>
-                  {ui.storyGen.resolveCta}
-                </button>
+                <div style={{ display: "grid", gridTemplateRows: "auto 1fr auto", gap: 14, minHeight: viewport.isDesktop ? compactStageHeight : "auto" }}>
+                  <p style={{ ...S.bt, marginBottom: 0, fontStyle: "italic" }}>{ui.storyGen.hiddenHint}</p>
+                  <div style={{ fontSize: viewport.isDesktop ? 16 : 16, lineHeight: viewport.isDesktop ? 1.85 : 1.95, color: C.txt, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: viewport.isDesktop ? 10 : "unset", WebkitBoxOrient: "vertical" }}>
+                    {story.replace(/\*\*(.*?)\*\*/g, "$1")}
+                  </div>
+                  <div style={{ borderTop: `1px solid ${C.bdr}`, paddingTop: 14, display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr auto" : "1fr", gap: 12, alignItems: "center" }}>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 8 }}>{ui.storyGen.revealTitle}</div>
+                      <p style={{ ...S.bt, margin: 0 }}>{ui.storyGen.revealDesc}</p>
+                    </div>
+                    <button onClick={onOpenResolution} style={{ ...S.pbtn(ACC.red, "rgba(248,113,113,.08)"), width: viewport.isDesktop ? 220 : "100%" }}>
+                      {ui.storyGen.resolveCta}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1460,6 +1485,7 @@ function Resolution({ room, players, storyWords, ui, C, S, onOpenScores }) {
   const narratorId = getNarratorId(room, players);
   const others = getAudience(players, narratorId);
   const words = storyWords || [];
+  const compactCardHeight = viewport.isDesktop ? "min(58vh, 560px)" : "auto";
 
   function renderStory(text, highlightWords) {
     const clean = (text || "").replace(/\*\*(.*?)\*\*/g, "$1");
@@ -1475,16 +1501,29 @@ function Resolution({ room, players, storyWords, ui, C, S, onOpenScores }) {
 
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1.05fr) minmax(320px, 0.95fr)" : "1fr", gap: 14, alignItems: "start" }}>
-        <div>
-          <div style={S.card}>
-            <div style={S.st}>{ui.resolution.title}</div>
-            <p style={S.bt}>{ui.resolution.desc}</p>
+      <div style={{ ...S.card, padding: viewport.isDesktop ? 16 : 18, background: "linear-gradient(135deg, rgba(248,113,113,.12), rgba(251,191,36,.08))", borderColor: "rgba(248,113,113,.26)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: C.sur, border: `1px solid ${C.bdr}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img src={APP_ICON} alt="Story Chaos" style={{ width: 30, height: 30, borderRadius: 8 }} />
+            </div>
+            <div>
+              <div style={{ ...S.st, marginBottom: 4 }}>{ui.resolution.title}</div>
+              <p style={{ ...S.bt, margin: 0, maxWidth: 700 }}>{ui.resolution.desc}</p>
+            </div>
           </div>
-          <div style={{ ...S.card, borderColor: "rgba(248,113,113,.3)", background: "rgba(248,113,113,.05)" }}>
+          <button onClick={onOpenScores} style={{ ...S.pbtn(ACC.gold, "rgba(251,191,36,.08)"), width: viewport.isDesktop ? 220 : "100%" }}>
+            {ui.resolution.continueToPoints}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1.12fr) minmax(340px, 0.88fr)" : "1fr", gap: 14, alignItems: "start" }}>
+        <div>
+          <div style={{ ...S.card, borderColor: "rgba(248,113,113,.3)", background: "rgba(248,113,113,.05)", minHeight: compactCardHeight }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 10 }}>{ui.resolution.revealStoryTitle}</div>
             <p style={{ ...S.bt, marginBottom: 14 }}>{ui.resolution.revealStoryDesc}</p>
-            <div style={{ fontSize: viewport.isDesktop ? 16 : 15, lineHeight: viewport.isDesktop ? 2.05 : 1.95, color: C.txt }}>
+            <div style={{ fontSize: viewport.isDesktop ? 16 : 15, lineHeight: viewport.isDesktop ? 1.8 : 1.95, color: C.txt, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: viewport.isDesktop ? 13 : "unset", WebkitBoxOrient: "vertical" }}>
               {renderStory(room.story || "", words)}
             </div>
             {words.length > 0 && (
@@ -1500,27 +1539,24 @@ function Resolution({ room, players, storyWords, ui, C, S, onOpenScores }) {
         </div>
 
         <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
-          <div style={{ ...S.card, marginTop: viewport.isDesktop ? 0 : 12 }}>
-            <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ ...S.card, marginTop: viewport.isDesktop ? 0 : 12, minHeight: compactCardHeight }}>
+            <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 10 }}>
               {others.map((player) => (
-                <div key={player.id} style={{ background: C.sur2, borderRadius: 14, padding: 14, border: `1px solid ${player.ready ? "rgba(74,222,128,.25)" : C.bdr}` }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: C.txt, marginBottom: 10 }}>{player.name}</div>
-                  <div style={{ display: "grid", gridTemplateColumns: viewport.isPhone ? "1fr" : "1fr 1fr", gap: 10 }}>
-                    <div style={{ background: C.sur, borderRadius: 10, padding: 12 }}>
+                <div key={player.id} style={{ background: C.sur2, borderRadius: 14, padding: 12, border: `1px solid ${player.ready ? "rgba(74,222,128,.25)" : C.bdr}` }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: C.txt, marginBottom: 8 }}>{player.name}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <div style={{ background: C.sur, borderRadius: 10, padding: 10 }}>
                       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.blue, marginBottom: 6 }}>{ui.resolution.word}</div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: ACC.bluel }}>{player.secret_word || "–"}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: ACC.bluel }}>{player.secret_word || "–"}</div>
                     </div>
-                    <div style={{ background: C.sur, borderRadius: 10, padding: 12 }}>
+                    <div style={{ background: C.sur, borderRadius: 10, padding: 10 }}>
                       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.red, marginBottom: 6 }}>{ui.resolution.action}</div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: ACC.redl }}>{player.secret_action || "–"}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: ACC.redl }}>{player.secret_action || "–"}</div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            <button onClick={onOpenScores} style={{ ...S.pbtn(ACC.gold, "rgba(251,191,36,.08)"), marginTop: 14 }}>
-              {ui.resolution.continueToPoints}
-            </button>
           </div>
         </div>
       </div>
@@ -1543,6 +1579,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
   const yesVotes = voteEntries.filter((entry) => entry.vote).length;
   const noVotes = voteEntries.filter((entry) => entry.vote === false).length;
   const allVoted = audienceCount > 0 && voteEntries.length >= audienceCount;
+  const compactScoreHeight = viewport.isDesktop ? "min(58vh, 560px)" : "auto";
 
   useEffect(() => {
     const candidates = others.filter((player) => player.id !== narratorId);
@@ -1579,14 +1616,29 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
 
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1fr) minmax(340px, 0.92fr)" : "1fr", gap: 14, alignItems: "start" }}>
+      <div style={{ ...S.card, padding: viewport.isDesktop ? 16 : 18, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", background: C.bg === "#0d0d14" ? "linear-gradient(135deg, rgba(22,22,31,.88), rgba(36,36,52,.76))" : "linear-gradient(135deg, rgba(255,255,255,.92), rgba(244,244,252,.82))", borderColor: "rgba(96,165,250,.24)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: C.sur2, border: `1px solid ${C.bdr}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img src={APP_ICON} alt="Story Chaos" style={{ width: 30, height: 30, borderRadius: 8 }} />
+            </div>
+            <div>
+              <div style={{ ...S.st, marginBottom: 4 }}>{ui.scores.title}</div>
+              <p style={{ ...S.bt, margin: 0, maxWidth: 760 }}>{ui.scores.desc}</p>
+            </div>
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: ACC.blue, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.24)", padding: "8px 12px", borderRadius: 999 }}>
+            {ui.common.focusView}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1.08fr) minmax(330px, 0.92fr)" : "1fr", gap: 14, alignItems: "start" }}>
         <div>
-          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)" }}>
-            <div style={S.st}>{ui.scores.title}</div>
-            <p style={{ ...S.bt, marginBottom: 12 }}>{ui.scores.desc}</p>
-            <div style={{ marginBottom: 14, padding: "14px 16px", borderRadius: 14, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.22)" }}>
+          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", minHeight: compactScoreHeight }}>
+            <div style={{ marginBottom: 12, padding: "12px 14px", borderRadius: 14, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.22)" }}>
               <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.scores.rulesTitle}</div>
-              <div style={{ display: "grid", gap: 8 }}>
+              <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 8 }}>
                 {ui.scores.rules.map((rule) => (
                   <div key={rule} style={{ fontSize: 13, color: C.txt }}>{rule}</div>
                 ))}
@@ -1597,11 +1649,11 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
             <div style={{ marginTop: 10, marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.22)", color: C.txt, fontSize: 13, fontWeight: 700 }}>
               {ui.scores.pointsRule}
             </div>
-            <div style={{ display: "grid", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 10 }}>
               {others.map((player) => {
                 const alreadyAwarded = awardedPlayerIds.includes(player.id);
                 return (
-                  <div key={`${player.id}-score`} style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.bdr}` }}>
+                  <div key={`${player.id}-score`} style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${alreadyAwarded ? "rgba(74,222,128,.28)" : C.bdr}` }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                       <div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{player.name}</div>
@@ -1618,10 +1670,10 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
               })}
             </div>
           </div>
-          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)" }}>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", padding: 14 }}>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 8 }}>
               {sorted.map((player, index) => (
-                <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 8, background: C.sur2, borderRadius: 8, padding: "10px 12px", marginBottom: 8 }}>
+                <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 8, background: C.sur2, borderRadius: 8, padding: "10px 12px", marginBottom: 0 }}>
                   <span style={{ fontSize: 16, minWidth: 26 }}>{medals[index] || `${index + 1}.`}</span>
                   <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: C.txt }}>{player.name}</span>
                   <span style={{ fontSize: 24, fontWeight: 800, color: ACC.gold, minWidth: 36, textAlign: "center" }}>{player.score || 0}</span>
@@ -1632,7 +1684,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
         </div>
 
         <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
-          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)" }}>
+          <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", minHeight: compactScoreHeight }}>
             <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.narratorVoteTitle}</div>
             <p style={S.bt}>{ui.scores.narratorVoteDesc}</p>
             {narrator && (
@@ -1688,7 +1740,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
               </div>
               <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.nextTitle}</div>
               <p style={S.bt}>{nextCandidates.length > 1 ? ui.scores.nextDesc : ui.scores.nextAuto}</p>
-              <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop && nextCandidates.length > 2 ? "1fr 1fr" : "1fr", gap: 10, marginTop: 12 }}>
                 {nextCandidates.map((player) => {
                   const active = selectedNextId === player.id;
                   return (
