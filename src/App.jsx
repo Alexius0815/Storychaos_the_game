@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { buildBackupStory } from "./backupStories";
 
 const SUPABASE_URL = "https://iioipzphjxzoiofnukjs.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpb2lwenBoanh6b2lvZm51a2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNzYzOTMsImV4cCI6MjA5MTc1MjM5M30.aIO5sXDUNNk01lTcqb79f4BowKXy4YH4Er0OrB8gx8U";
@@ -242,12 +241,14 @@ const UI = {
       storyLength: "Geschichtenlänge",
       storyLengthValue: (n) => `${n} Zeichen mindestens`,
       storyLengthHelp: "Mit dem Regler bestimmst du die Mindestlänge der Geschichte. Mehr Länge gibt der KI mehr Platz für doppelte Wortnennungen.",
-      generate: "Geschichte generieren",
-      generating: "Wird geschrieben…",
-      writing: "KI schreibt…",
-      aiError: "KI gerade nicht erreichbar oder die Regeln wurden nicht eingehalten. Kurz warten und nochmal versuchen.",
+      generate: "Geschichte erzeugen",
+      generating: "Wird gebaut…",
+      writing: "Lokaler Erzähler schreibt…",
+      regenerate: "Neu lokal ↻",
+      regenerateAi: "Mit KI neu",
+      writingAi: "KI probiert Bonus-Varianten…",
+      aiError: "Die Geschichte konnte gerade nicht sauber erzeugt werden. Kurz warten und nochmal versuchen.",
       readNow: "Jetzt vorlesen!",
-      regenerate: "Neu ↻",
       hiddenHint: "Wörter sind versteckt – beobachte wer wann reagiert!",
       revealTitle: "Auflösen – erst nach dem Raten!",
       revealDesc: "Wechsle danach in die Auflösung. Dort siehst du die Geschichte mit markierten Wörtern und alle Karten der Mitspieler.",
@@ -523,11 +524,13 @@ const UI = {
       storyLengthValue: (n) => `${n} characters minimum`,
       storyLengthHelp: "Use the slider to set the minimum story length. More length gives the AI more room for repeated word appearances.",
       generate: "Generate story",
-      generating: "Writing…",
-      writing: "AI is writing…",
-      aiError: "The AI is unavailable right now or the story did not follow the rules. Wait a moment and try again.",
+      generating: "Building…",
+      writing: "Local narrator is writing…",
+      regenerate: "New local ↻",
+      regenerateAi: "Retry with AI",
+      writingAi: "AI is trying bonus variations…",
+      aiError: "The story could not be generated cleanly right now. Wait a moment and try again.",
       readNow: "Read this aloud!",
-      regenerate: "New ↻",
       hiddenHint: "The words are hidden – watch who reacts and when!",
       revealTitle: "Reveal – only after the guesses!",
       revealDesc: "Then switch to the reveal screen. There you see the story with highlighted words and all player cards.",
@@ -1028,12 +1031,6 @@ async function generateStory({ prompt, contentLang, genreId, words, minChars }, 
 
   const providers = [
     {
-      model: "local-fallback",
-      run: async () => {
-      return buildBackupStory({ lang: contentLang, genreId, words, minChars, salt: prompt.slice(0, 120) });
-    },
-    },
-    {
       model: "pollinations-openai",
       run: async () => {
       const response = await fetch("https://text.pollinations.ai/openai", {
@@ -1089,6 +1086,14 @@ async function generateStory({ prompt, contentLang, genreId, words, minChars }, 
     }
   }
   return null;
+}
+
+async function generateLocalStory({ contentLang, genreId, words, minChars, difficulty }, onStatus = () => {}) {
+  onStatus(buildStoryAttemptLine(contentLang, "start", "local-fallback"));
+  const { buildBackupStory } = await import("./backupStories");
+  const text = buildBackupStory({ lang: contentLang, genreId, words, minChars, difficulty, salt: `${genreId}:${difficulty}:${words.join("|")}` });
+  onStatus(buildStoryAttemptLine(contentLang, "success", "local-fallback"));
+  return text;
 }
 
 function stripStoryMarkup(text = "") {
@@ -1716,18 +1721,21 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
   const [genre, setGenre] = useState(null);
   const [story, setStory] = useState(room.story || "");
   const [loading, setLoading] = useState(false);
+  const [loadingMode, setLoadingMode] = useState("local");
   const [error, setError] = useState("");
   const [attemptStatus, setAttemptStatus] = useState("");
   const [storyMinChars, setStoryMinChars] = useState(350);
   const words = storyWords || [];
   const content = CONTENT[contentLang];
   const compactStageHeight = viewport.isDesktop ? "min(62vh, 620px)" : "auto";
+  const storyDifficulty = room?.difficulty || "mix";
 
-  async function generate() {
+  async function buildStory(mode = "local") {
     if (!genre || words.length === 0) return;
     setLoading(true);
+    setLoadingMode(mode);
     setError("");
-    setStory("");
+    if (mode === "local") setStory("");
     setAttemptStatus("");
     const selectedGenre = genre === "random"
       ? content.genres[Math.floor(Math.random() * (content.genres.length - 1))]
@@ -1738,19 +1746,27 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
     let validStory = null;
     const pushAttemptLine = (line) => setAttemptStatus(line);
 
-    for (let attempt = 0; attempt < 4; attempt += 1) {
-      const strictness = attempt === 0 ? "" : contentLang === "de"
-        ? " Wichtig: Prüfe vor der Ausgabe selbst, dass jedes Zielwort mindestens zweimal vorkommt, möglichst in unterschiedlichen Sätzen, und dass die Geschichte lang genug ist."
-        : " Important: before answering, verify that every target word appears at least twice, preferably in different sentences, and that the story is long enough.";
-      const prompt = `${content.aiPrompt(selection, words, storyMinChars, targetChars)}${strictness}`;
-      const text = await generateStory({ prompt, contentLang, genreId: selectedGenreId, words, minChars: storyMinChars }, pushAttemptLine);
-      if (!text) continue;
+    if (mode === "local") {
+      const text = await generateLocalStory({ contentLang, genreId: selectedGenreId, words, minChars: storyMinChars, difficulty: storyDifficulty }, pushAttemptLine);
       pushAttemptLine(buildStoryAttemptLine(contentLang, "repair", "local-fallback"));
       const repaired = repairStoryToRules(text, words, storyMinChars, contentLang);
       const analysis = analyzeStory(repaired, words, storyMinChars);
-      if (analysis.valid) {
-        validStory = analysis.clean;
-        break;
+      if (analysis.valid) validStory = analysis.clean;
+    } else {
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const strictness = attempt === 0 ? "" : contentLang === "de"
+          ? " Wichtig: Prüfe vor der Ausgabe selbst, dass jedes Zielwort mindestens zweimal vorkommt, möglichst in unterschiedlichen Sätzen, und dass die Geschichte lang genug ist."
+          : " Important: before answering, verify that every target word appears at least twice, preferably in different sentences, and that the story is long enough.";
+        const prompt = `${content.aiPrompt(selection, words, storyMinChars, targetChars)}${strictness}`;
+        const text = await generateStory({ prompt, contentLang, genreId: selectedGenreId, words, minChars: storyMinChars }, pushAttemptLine);
+        if (!text) continue;
+        pushAttemptLine(buildStoryAttemptLine(contentLang, "repair", "local-fallback"));
+        const repaired = repairStoryToRules(text, words, storyMinChars, contentLang);
+        const analysis = analyzeStory(repaired, words, storyMinChars);
+        if (analysis.valid) {
+          validStory = analysis.clean;
+          break;
+        }
       }
     }
 
@@ -1814,14 +1830,14 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
             <p style={{ ...S.bt, marginTop: 10 }}>{ui.storyGen.storyLengthHelp}</p>
           </div>
 
-          <button onClick={generate} disabled={!genre || loading || words.length === 0} style={S.pbtn(genre ? ACC.gold : C.bdr, genre ? "rgba(251,191,36,.08)" : C.sur)}>
-            {loading ? ui.storyGen.generating : ui.storyGen.generate}
+          <button onClick={() => buildStory("local")} disabled={!genre || loading || words.length === 0} style={S.pbtn(genre ? ACC.gold : C.bdr, genre ? "rgba(251,191,36,.08)" : C.sur)}>
+            {loading && loadingMode === "local" ? ui.storyGen.generating : ui.storyGen.generate}
           </button>
 
           {loading && (
             <div style={{ ...S.card2, marginTop: 12, padding: 16, textAlign: "center" }}>
               <div style={{ fontSize: 28, display: "inline-block", animation: "spin 1.5s linear infinite" }}>✍️</div>
-              <div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>{ui.storyGen.writing}</div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>{loadingMode === "ai" ? ui.storyGen.writingAi : ui.storyGen.writing}</div>
               {attemptStatus && <div style={{ fontSize: 13, lineHeight: 1.45, color: C.txt, marginTop: 12 }}>{attemptStatus}</div>}
             </div>
           )}
@@ -1834,7 +1850,10 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
               <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))", minHeight: viewport.isDesktop ? "100%" : "auto", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold }}>{ui.storyGen.readNow}</span>
-                  <button onClick={generate} style={S.sbtn(C.muted)}>{ui.storyGen.regenerate}</button>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    <button onClick={() => buildStory("local")} style={S.sbtn(C.muted)}>{ui.storyGen.regenerate}</button>
+                    <button onClick={() => buildStory("ai")} style={S.sbtn(ACC.blue)}>{ui.storyGen.regenerateAi}</button>
+                  </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateRows: "auto 1fr auto", gap: 14, minHeight: viewport.isDesktop ? compactStageHeight : "auto" }}>
                   <p style={{ ...S.bt, marginBottom: 0, fontStyle: "italic" }}>{ui.storyGen.hiddenHint}</p>

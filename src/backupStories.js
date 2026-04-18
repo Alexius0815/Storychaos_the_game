@@ -557,6 +557,53 @@ const BACKUP_CRESCENDOS = {
   ],
 };
 
+const BACKUP_DIFFICULTY_STYLES = {
+  de: {
+    easy: [
+      "Die Geschichte blieb insgesamt angenehm lesbar, auch wenn unter der ruhigen Oberfläche ständig kleine Reaktionsfallen lauerten.",
+      "Alles wirkte noch vergleichsweise harmlos, doch genau deshalb waren die kleinen Reaktionen besonders gut zu beobachten.",
+      "Der Ton blieb eher locker und subtil, was jede auffällige Regung sofort doppelt interessant machte.",
+    ],
+    medium: [
+      "Spätestens jetzt war klar, dass die Geschichte nicht mehr nur ruhig plätscherte, sondern bewusst kleine Reaktionsrisiken verteilte.",
+      "Mit jeder Wendung bekam die Szene genau die richtige Mischung aus Humor, Tempo und leichtem sozialem Risiko.",
+      "Die Geschichte blieb noch kontrollierbar, aber längst nicht mehr entspannt genug, um völlig sicher zu sein.",
+    ],
+    chaos: [
+      "Ab diesem Punkt war klar, dass die Geschichte nicht mehr elegant, sondern glorreich chaotisch auf Reaktionen jagte.",
+      "Der Ton schob sich immer weiter in Richtung absurder Eskalation, als hätte die Szene beschlossen, keinerlei Bremsen mehr zu benutzen.",
+      "Was vorher noch kontrolliert wirkte, bekam nun dieses wunderbare Chaos-Gefühl, bei dem jedes Gesicht zum Risiko wurde.",
+    ],
+    mix: [
+      "Die Geschichte sprang munter zwischen subtil, riskant und herrlich chaotisch hin und her.",
+      "Genau dieser Mix aus kleinen Andeutungen und plötzlicher Übertreibung machte die Runde so spannend.",
+      "Mal wirkte alles fein dosiert, mal komplett übermotiviert, und genau das passte erstaunlich gut zusammen.",
+    ],
+  },
+  en: {
+    easy: [
+      "The story stayed fairly readable overall, even though tiny reaction traps kept hiding beneath the calm surface.",
+      "Everything still felt relatively harmless, which made every visible reaction even easier to notice.",
+      "The tone stayed light and subtle, so any obvious reaction instantly became twice as interesting.",
+    ],
+    medium: [
+      "By now it was clear that the story was no longer drifting quietly but deliberately placing small reaction risks everywhere.",
+      "With every turn, the scene found a neat balance between humor, pace, and social danger.",
+      "The story remained manageable, but not relaxed enough for anyone to feel completely safe.",
+    ],
+    chaos: [
+      "At this point it was obvious that the story had stopped being elegant and started aggressively hunting for reactions.",
+      "The tone kept sliding toward glorious absurdity, as if the scene had decided brakes were unnecessary.",
+      "What had looked controlled before now carried that wonderful chaos energy where every face became a risk.",
+    ],
+    mix: [
+      "The story cheerfully bounced between subtle, risky, and gloriously chaotic beats.",
+      "That mix of gentle hints and sudden exaggeration was exactly what made the round so lively.",
+      "At times it felt carefully measured, at others wildly overcommitted, and somehow that worked perfectly.",
+    ],
+  },
+};
+
 function hashString(value) {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -641,11 +688,12 @@ export function countBackupVariants(lang, genreId) {
     * BACKUP_CRESCENDOS[lang].length;
 }
 
-export function buildBackupStory({ lang, genreId, words, minChars = 350, salt = "" }) {
+export function buildBackupStory({ lang, genreId, words, minChars = 350, difficulty = "mix", salt = "" }) {
   const actualGenre = normalizeGenreId(lang, genreId);
   const bank = BACKUP_STORY_BANKS[lang]?.[actualGenre] || BACKUP_STORY_BANKS[lang]?.alltag;
   const seed = hashString(`${lang}:${actualGenre}:${words.join("|")}:${minChars}:${salt}:${Date.now()}`);
   const rng = createRng(seed);
+  const styleBank = BACKUP_DIFFICULTY_STYLES[lang]?.[difficulty] || BACKUP_DIFFICULTY_STYLES[lang]?.mix || [];
 
   const parts = [
     pick(bank.openers, rng),
@@ -653,6 +701,7 @@ export function buildBackupStory({ lang, genreId, words, minChars = 350, salt = 
     buildWordPass(words, lang, 0, rng),
     pick(BACKUP_BRIDGES[lang], rng),
     pick(bank.complications, rng),
+    styleBank.length > 0 ? pick(styleBank, rng) : "",
     buildWordPass(words, lang, 1, rng),
     pick(BACKUP_CRESCENDOS[lang], rng),
     pick(bank.reactions, rng),
