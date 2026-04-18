@@ -937,11 +937,42 @@ function playBeep(freq = 440, dur = 0.15) {
 }
 
 async function generateStory(prompt, contentLang) {
+  const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+  const groqKey = import.meta.env.VITE_GROQ_API_KEY;
+
   const requestOpenRouter = async (model) => {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "HTTP-Referer": APP_URL, "X-Title": "Story Chaos" },
+      headers: {
+        "Content-Type": "application/json",
+        "HTTP-Referer": APP_URL,
+        "X-Title": "Story Chaos",
+        ...(openRouterKey ? { Authorization: `Bearer ${openRouterKey}` } : {}),
+      },
       body: JSON.stringify({ model, max_tokens: 800, messages: [{ role: "user", content: prompt }] }),
+    });
+    if (!response.ok) throw new Error(`${model}:fail`);
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || "";
+  };
+
+  const requestGroq = async (model) => {
+    if (!groqKey) throw new Error("groq:no-key");
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${groqKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: CONTENT[contentLang].aiSystem },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.9,
+        max_tokens: 900,
+      }),
     });
     if (!response.ok) throw new Error(`${model}:fail`);
     const data = await response.json();
@@ -971,9 +1002,12 @@ async function generateStory(prompt, contentLang) {
       if (!response.ok) throw new Error("fail");
       return await response.text();
     },
+    async () => requestOpenRouter("openrouter/free"),
     async () => requestOpenRouter("mistralai/mistral-7b-instruct:free"),
     async () => requestOpenRouter("google/gemma-2-9b-it:free"),
     async () => requestOpenRouter("meta-llama/llama-3.1-8b-instruct:free"),
+    async () => requestGroq("llama-3.1-8b-instant"),
+    async () => requestGroq("openai/gpt-oss-20b"),
     async () => {
       const fallbackWords =
         prompt.match(/Wörter: (.*?)(?:\.|$)/s)?.[1] ||
@@ -1045,6 +1079,65 @@ function analyzeStory(text, words, minChars) {
     validSpread,
     valid: validLength && validOccurrences && validSpread,
   };
+}
+
+function buildRepairSentence(word, contentLang, index = 0) {
+  const de = [
+    `Dabei fiel plötzlich wieder **${word}** auf, obwohl zuerst niemand darauf reagieren wollte.`,
+    `Kurz danach tauchte **${word}** noch einmal auf, diesmal in einem völlig anderen Zusammenhang.`,
+    `Später wurde **${word}** erneut erwähnt, und genau das machte die Szene erst richtig verdächtig.`,
+  ];
+  const en = [
+    `A moment later, **${word}** came up again, even though nobody wanted to react to it.`,
+    `Soon after that, **${word}** appeared once more in a completely different context.`,
+    `Later, **${word}** was mentioned again, which made the whole scene feel much more suspicious.`,
+  ];
+  const bank = contentLang === "de" ? de : en;
+  return bank[index % bank.length];
+}
+
+function buildPaddingSentence(contentLang, index = 0) {
+  const de = [
+    "Je länger die Geschichte wurde, desto mehr wirkten die kleinen Reaktionen wie geheime Hinweise.",
+    "Niemand wollte zu deutlich sein, aber gerade dieses bemühte Unauffälligsein machte alles noch verdächtiger.",
+    "Am Ende passte nicht jedes Detail logisch zusammen, doch genau das machte die Runde so unterhaltsam.",
+  ];
+  const en = [
+    "The longer the story went on, the more every tiny reaction felt like a hidden clue.",
+    "Nobody wanted to be too obvious, but that effort to stay subtle made everything look even more suspicious.",
+    "By the end, not every detail made perfect sense, but that was exactly what made the round so entertaining.",
+  ];
+  const bank = contentLang === "de" ? de : en;
+  return bank[index % bank.length];
+}
+
+function repairStoryToRules(text, words, minChars, contentLang) {
+  let clean = stripStoryMarkup(text);
+  let analysis = analyzeStory(clean, words, minChars);
+  let sentenceCursor = 0;
+
+  for (const check of analysis.wordChecks) {
+    while (check.occurrences < 2) {
+      clean = `${clean} ${buildRepairSentence(check.word, contentLang, sentenceCursor)}`.trim();
+      sentenceCursor += 1;
+      analysis = analyzeStory(clean, words, minChars);
+      const updated = analysis.wordChecks.find((entry) => entry.word === check.word);
+      check.occurrences = updated?.occurrences || check.occurrences;
+      check.spreadAcrossSentences = updated?.spreadAcrossSentences || check.spreadAcrossSentences;
+    }
+    if (!check.spreadAcrossSentences) {
+      clean = `${clean} ${buildRepairSentence(check.word, contentLang, sentenceCursor)}`.trim();
+      sentenceCursor += 1;
+      analysis = analyzeStory(clean, words, minChars);
+    }
+  }
+
+  while (stripStoryMarkup(clean).length < minChars) {
+    clean = `${clean} ${buildPaddingSentence(contentLang, sentenceCursor)}`.trim();
+    sentenceCursor += 1;
+  }
+
+  return clean;
 }
 
 function DebugPanel({ onClose, C, S, ui }) {
@@ -1534,7 +1627,8 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
       const prompt = `${content.aiPrompt(selection, words, storyMinChars, targetChars)}${strictness}`;
       const text = await generateStory(prompt, contentLang);
       if (!text) continue;
-      const analysis = analyzeStory(text, words, storyMinChars);
+      const repaired = repairStoryToRules(text, words, storyMinChars, contentLang);
+      const analysis = analyzeStory(repaired, words, storyMinChars);
       if (analysis.valid) {
         validStory = analysis.clean;
         break;
