@@ -936,7 +936,37 @@ function playBeep(freq = 440, dur = 0.15) {
   } catch {}
 }
 
-async function generateStory(prompt, contentLang) {
+function shortModelName(model) {
+  const map = {
+    "pollinations-openai": "Polli OpenAI",
+    "pollinations-text": "Polli Text",
+    "openrouter/free": "OR Free",
+    "mistralai/mistral-7b-instruct:free": "Mistral",
+    "google/gemma-2-9b-it:free": "Gemma",
+    "meta-llama/llama-3.1-8b-instruct:free": "Llama",
+    "llama-3.1-8b-instant": "Groq Llama",
+    "openai/gpt-oss-20b": "GPT-OSS",
+    "local-fallback": "Notfallhirn",
+  };
+  return map[model] || model.split("/").pop()?.replace(":free", "") || model;
+}
+
+function buildStoryAttemptLine(contentLang, phase, model, detail = "") {
+  const name = shortModelName(model);
+  if (contentLang === "de") {
+    if (phase === "start") return `${name} versucht gerade, aus dem Chaos eine brauchbare Geschichte zu kochen.`;
+    if (phase === "success") return `${name} hat etwas geliefert. Wir machen kurz den Regel-TUEV.`;
+    if (phase === "fail") return `${name} zickt rum${detail ? ` (${detail})` : ""}. Nächstes Modell darf auf die Bühne.`;
+    if (phase === "repair") return `Wir helfen ${name} noch kurz nach: mehr Länge, mehr Worttreffer, weniger Drama.`;
+  }
+  if (phase === "start") return `${name} is trying to cook up a usable story from the chaos.`;
+  if (phase === "success") return `${name} delivered something. Running a quick rule check now.`;
+  if (phase === "fail") return `${name} is being difficult${detail ? ` (${detail})` : ""}. Sending in the next model.`;
+  if (phase === "repair") return `Giving ${name} a tiny cleanup pass: more length, more word hits, less drama.`;
+  return name;
+}
+
+async function generateStory(prompt, contentLang, onStatus = () => {}) {
   const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY;
   const groqKey = import.meta.env.VITE_GROQ_API_KEY;
 
@@ -979,8 +1009,10 @@ async function generateStory(prompt, contentLang) {
     return data.choices?.[0]?.message?.content || "";
   };
 
-  const apis = [
-    async () => {
+  const providers = [
+    {
+      model: "pollinations-openai",
+      run: async () => {
       const response = await fetch("https://text.pollinations.ai/openai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -997,18 +1029,24 @@ async function generateStory(prompt, contentLang) {
       const data = await response.json();
       return data.choices?.[0]?.message?.content || "";
     },
-    async () => {
+    },
+    {
+      model: "pollinations-text",
+      run: async () => {
       const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(prompt)}`);
       if (!response.ok) throw new Error("fail");
       return await response.text();
     },
-    async () => requestOpenRouter("openrouter/free"),
-    async () => requestOpenRouter("mistralai/mistral-7b-instruct:free"),
-    async () => requestOpenRouter("google/gemma-2-9b-it:free"),
-    async () => requestOpenRouter("meta-llama/llama-3.1-8b-instruct:free"),
-    async () => requestGroq("llama-3.1-8b-instant"),
-    async () => requestGroq("openai/gpt-oss-20b"),
-    async () => {
+    },
+    { model: "openrouter/free", run: async () => requestOpenRouter("openrouter/free") },
+    { model: "mistralai/mistral-7b-instruct:free", run: async () => requestOpenRouter("mistralai/mistral-7b-instruct:free") },
+    { model: "google/gemma-2-9b-it:free", run: async () => requestOpenRouter("google/gemma-2-9b-it:free") },
+    { model: "meta-llama/llama-3.1-8b-instruct:free", run: async () => requestOpenRouter("meta-llama/llama-3.1-8b-instruct:free") },
+    { model: "llama-3.1-8b-instant", run: async () => requestGroq("llama-3.1-8b-instant") },
+    { model: "openai/gpt-oss-20b", run: async () => requestGroq("openai/gpt-oss-20b") },
+    {
+      model: "local-fallback",
+      run: async () => {
       const fallbackWords =
         prompt.match(/Wörter: (.*?)(?:\.|$)/s)?.[1] ||
         prompt.match(/words: (.*?)(?:\.|$)/is)?.[1] ||
@@ -1020,16 +1058,25 @@ async function generateStory(prompt, contentLang) {
       }
       return `What started as an ordinary scene quickly spiraled into chaos when ${fallbackWords} all collided inside one increasingly suspicious story. At first nobody reacted, and then everybody tried a little too hard not to react. Every detail felt slightly too specific to be accidental. One player stayed unnervingly calm while another overcorrected at exactly the wrong moment. The longer the story went on, the more obvious it became that every tiny gesture mattered. By the end, the plot barely made sense, but the tension absolutely did. That was exactly when the narrator started watching everyone much more closely.`;
     },
+    },
   ];
   const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
-  for (const api of apis) {
+  for (const provider of providers) {
     try {
-      const text = await Promise.race([api(), timeout(9000)]);
+      onStatus(buildStoryAttemptLine(contentLang, "start", provider.model));
+      const text = await Promise.race([provider.run(), timeout(9000)]);
       if (text && text.length > 50) {
+        onStatus(buildStoryAttemptLine(contentLang, "success", provider.model));
         addLog("info", contentLang === "de" ? "KI OK" : "AI OK", text.slice(0, 40));
         return text;
       }
     } catch (error) {
+      const detail = error.message === "timeout"
+        ? (contentLang === "de" ? "zu langsam" : "too slow")
+        : error.message === "groq:no-key"
+          ? (contentLang === "de" ? "kein Key" : "no key")
+          : (contentLang === "de" ? "keine Lust" : "not in the mood");
+      onStatus(buildStoryAttemptLine(contentLang, "fail", provider.model, detail));
       addLog("warn", contentLang === "de" ? "KI-API fail" : "AI API fail", error.message);
     }
   }
@@ -1606,6 +1653,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
   const [story, setStory] = useState(room.story || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [attemptLines, setAttemptLines] = useState([]);
   const [storyMinChars, setStoryMinChars] = useState(350);
   const words = storyWords || [];
   const content = CONTENT[contentLang];
@@ -1616,17 +1664,22 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
     setLoading(true);
     setError("");
     setStory("");
+    setAttemptLines([]);
     const selection = genre === "random" ? content.genres[Math.floor(Math.random() * (content.genres.length - 1))].label : content.genres.find((entry) => entry.id === genre)?.label;
     const targetChars = Math.max(storyMinChars + 120, Math.round(storyMinChars * 1.25));
     let validStory = null;
+    const pushAttemptLine = (line) => {
+      setAttemptLines((current) => [...current.slice(-5), line]);
+    };
 
     for (let attempt = 0; attempt < 4; attempt += 1) {
       const strictness = attempt === 0 ? "" : contentLang === "de"
         ? " Wichtig: Prüfe vor der Ausgabe selbst, dass jedes Zielwort mindestens zweimal vorkommt, möglichst in unterschiedlichen Sätzen, und dass die Geschichte lang genug ist."
         : " Important: before answering, verify that every target word appears at least twice, preferably in different sentences, and that the story is long enough.";
       const prompt = `${content.aiPrompt(selection, words, storyMinChars, targetChars)}${strictness}`;
-      const text = await generateStory(prompt, contentLang);
+      const text = await generateStory(prompt, contentLang, pushAttemptLine);
       if (!text) continue;
+      pushAttemptLine(buildStoryAttemptLine(contentLang, "repair", "local-fallback"));
       const repaired = repairStoryToRules(text, words, storyMinChars, contentLang);
       const analysis = analyzeStory(repaired, words, storyMinChars);
       if (analysis.valid) {
@@ -1699,7 +1752,23 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
             {loading ? ui.storyGen.generating : ui.storyGen.generate}
           </button>
 
-          {loading && <div style={{ textAlign: "center", padding: 24 }}><div style={{ fontSize: 28, display: "inline-block", animation: "spin 1.5s linear infinite" }}>✍️</div><div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>{ui.storyGen.writing}</div></div>}
+          {loading && (
+            <div style={{ ...S.card2, marginTop: 12, padding: 16 }}>
+              <div style={{ textAlign: "center", paddingBottom: attemptLines.length ? 12 : 0 }}>
+                <div style={{ fontSize: 28, display: "inline-block", animation: "spin 1.5s linear infinite" }}>✍️</div>
+                <div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>{ui.storyGen.writing}</div>
+              </div>
+              {attemptLines.length > 0 && (
+                <div style={{ display: "grid", gap: 8 }}>
+                  {attemptLines.map((line, index) => (
+                    <div key={`${index}-${line}`} style={{ fontSize: 13, lineHeight: 1.45, color: index === attemptLines.length - 1 ? C.txt : C.muted }}>
+                      {line}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {error && <div style={{ ...S.card, borderColor: "rgba(248,113,113,.4)", background: "rgba(248,113,113,.06)", marginTop: 12 }}><p style={{ ...S.bt, color: ACC.redl }}>{error}</p></div>}
         </div>
 
