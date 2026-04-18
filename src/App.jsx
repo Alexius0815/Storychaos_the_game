@@ -1556,7 +1556,7 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart }) {
   );
 }
 
-function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCardsDealt }) {
+function HostCards({ room, players, ui, lang, contentLang, setContentLang, C, S, onCardsDealt }) {
   const [diff, setDiff] = useState("mix");
   const [cats, setCats] = useState(Object.keys(CONTENT[contentLang].words));
   const [loading, setLoading] = useState(false);
@@ -1570,6 +1570,12 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
   useEffect(() => {
     setCats(Object.keys(CONTENT[contentLang].words));
   }, [contentLang]);
+
+  useEffect(() => {
+    if (lang === "de" || lang === "en") {
+      setContentLang(lang);
+    }
+  }, [lang, setContentLang]);
 
   function getActions(difficulty) {
     if (difficulty === "mix") return shuffle([...content.actions.easy, ...content.actions.medium, ...content.actions.chaos]);
@@ -1618,22 +1624,6 @@ function HostCards({ room, players, ui, contentLang, setContentLang, C, S, onCar
 
       {view === "setup" ? (
       <>
-      <div style={S.card}>
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.gameLanguage}</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {[{ id: "de", label: "Deutsch" }, { id: "en", label: "English" }].map((option) => (
-            <button
-              key={option.id}
-              onClick={() => setContentLang(option.id)}
-              aria-pressed={contentLang === option.id}
-              style={{ minHeight: 48, padding: "10px 8px", borderRadius: 12, fontSize: 13, fontWeight: 700, border: `1.5px solid ${contentLang === option.id ? ACC.blue : C.bdr}`, background: contentLang === option.id ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur2, color: contentLang === option.id ? ACC.bluel : C.muted, cursor: "pointer" }}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div style={S.card}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.difficulty}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -2560,7 +2550,7 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
         </div>
       </nav>
       {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} onStart={() => setTab("cards")} />}
-      {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setAwardedPlayerIds([]); setTab("ready"); }} />}
+      {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} lang={lang} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setAwardedPlayerIds([]); setTab("ready"); }} />}
       {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onAllReady={() => setTab("story")} />}
       {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} onOpenResolution={openResolution} />}
       {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} C={C} S={S} onOpenScores={openScores} />}
