@@ -1064,7 +1064,7 @@ async function generateStory(prompt, contentLang, onStatus = () => {}) {
   for (const provider of providers) {
     try {
       onStatus(buildStoryAttemptLine(contentLang, "start", provider.model));
-      const text = await Promise.race([provider.run(), timeout(9000)]);
+      const text = await Promise.race([provider.run(), timeout(15000)]);
       if (text && text.length > 50) {
         onStatus(buildStoryAttemptLine(contentLang, "success", provider.model));
         addLog("info", contentLang === "de" ? "KI OK" : "AI OK", text.slice(0, 40));
@@ -1653,7 +1653,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
   const [story, setStory] = useState(room.story || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [attemptLines, setAttemptLines] = useState([]);
+  const [attemptStatus, setAttemptStatus] = useState("");
   const [storyMinChars, setStoryMinChars] = useState(350);
   const words = storyWords || [];
   const content = CONTENT[contentLang];
@@ -1664,13 +1664,11 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
     setLoading(true);
     setError("");
     setStory("");
-    setAttemptLines([]);
+    setAttemptStatus("");
     const selection = genre === "random" ? content.genres[Math.floor(Math.random() * (content.genres.length - 1))].label : content.genres.find((entry) => entry.id === genre)?.label;
     const targetChars = Math.max(storyMinChars + 120, Math.round(storyMinChars * 1.25));
     let validStory = null;
-    const pushAttemptLine = (line) => {
-      setAttemptLines((current) => [...current.slice(-5), line]);
-    };
+    const pushAttemptLine = (line) => setAttemptStatus(line);
 
     for (let attempt = 0; attempt < 4; attempt += 1) {
       const strictness = attempt === 0 ? "" : contentLang === "de"
@@ -1753,20 +1751,10 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
           </button>
 
           {loading && (
-            <div style={{ ...S.card2, marginTop: 12, padding: 16 }}>
-              <div style={{ textAlign: "center", paddingBottom: attemptLines.length ? 12 : 0 }}>
-                <div style={{ fontSize: 28, display: "inline-block", animation: "spin 1.5s linear infinite" }}>✍️</div>
-                <div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>{ui.storyGen.writing}</div>
-              </div>
-              {attemptLines.length > 0 && (
-                <div style={{ display: "grid", gap: 8 }}>
-                  {attemptLines.map((line, index) => (
-                    <div key={`${index}-${line}`} style={{ fontSize: 13, lineHeight: 1.45, color: index === attemptLines.length - 1 ? C.txt : C.muted }}>
-                      {line}
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div style={{ ...S.card2, marginTop: 12, padding: 16, textAlign: "center" }}>
+              <div style={{ fontSize: 28, display: "inline-block", animation: "spin 1.5s linear infinite" }}>✍️</div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>{ui.storyGen.writing}</div>
+              {attemptStatus && <div style={{ fontSize: 13, lineHeight: 1.45, color: C.txt, marginTop: 12 }}>{attemptStatus}</div>}
             </div>
           )}
           {error && <div style={{ ...S.card, borderColor: "rgba(248,113,113,.4)", background: "rgba(248,113,113,.06)", marginTop: 12 }}><p style={{ ...S.bt, color: ACC.redl }}>{error}</p></div>}
