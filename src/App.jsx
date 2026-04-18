@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { buildBackupStory } from "./backupStories";
 
 const SUPABASE_URL = "https://iioipzphjxzoiofnukjs.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpb2lwenBoanh6b2lvZm51a2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNzYzOTMsImV4cCI6MjA5MTc1MjM5M30.aIO5sXDUNNk01lTcqb79f4BowKXy4YH4Er0OrB8gx8U";
@@ -968,11 +969,13 @@ function shortModelName(model) {
 function buildStoryAttemptLine(contentLang, phase, model, detail = "") {
   const name = shortModelName(model);
   if (contentLang === "de") {
+    if (phase === "start" && model === "local-fallback") return `${name} springt als Plan B rein und baut lokal eine Backup-Geschichte zusammen.`;
     if (phase === "start") return `${name} versucht gerade, aus dem Chaos eine brauchbare Geschichte zu kochen.`;
     if (phase === "success") return `${name} hat etwas geliefert. Wir machen kurz den Regel-TUEV.`;
     if (phase === "fail") return `${name} zickt rum${detail ? ` (${detail})` : ""}. Nächstes Modell darf auf die Bühne.`;
     if (phase === "repair") return `Wir helfen ${name} noch kurz nach: mehr Länge, mehr Worttreffer, weniger Drama.`;
   }
+  if (phase === "start" && model === "local-fallback") return `${name} jumps in as plan B and assembles a local backup story.`;
   if (phase === "start") return `${name} is trying to cook up a usable story from the chaos.`;
   if (phase === "success") return `${name} delivered something. Running a quick rule check now.`;
   if (phase === "fail") return `${name} is being difficult${detail ? ` (${detail})` : ""}. Sending in the next model.`;
@@ -980,7 +983,7 @@ function buildStoryAttemptLine(contentLang, phase, model, detail = "") {
   return name;
 }
 
-async function generateStory(prompt, contentLang, onStatus = () => {}) {
+async function generateStory({ prompt, contentLang, genreId, words, minChars }, onStatus = () => {}) {
   const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY;
   const groqKey = import.meta.env.VITE_GROQ_API_KEY;
 
@@ -1061,16 +1064,7 @@ async function generateStory(prompt, contentLang, onStatus = () => {}) {
     {
       model: "local-fallback",
       run: async () => {
-      const fallbackWords =
-        prompt.match(/Wörter: (.*?)(?:\.|$)/s)?.[1] ||
-        prompt.match(/words: (.*?)(?:\.|$)/is)?.[1] ||
-        prompt.match(/Verwende ALLE diese Wörter: (.*?)(?:\.|$)/s)?.[1] ||
-        prompt.match(/Use ALL of these words: (.*?)(?:\.|$)/is)?.[1] ||
-        "";
-      if (contentLang === "de") {
-        return `Im alten Viertel begann alles ganz harmlos, bis plötzlich ${fallbackWords} in einer einzigen absurder werdenden Geschichte zusammenliefen. Erst lachte niemand, dann lachten alle. Jedes Detail wirkte zu seltsam, um Zufall zu sein, und genau das machte die Sache verdächtig. Eine Person blieb auffällig ruhig, während eine andere viel zu spät auf das Offensichtliche reagierte. Je länger die Geschichte dauerte, desto klarer wurde, dass hier jede Kleinigkeit beobachtet wurde. Am Ende war zwar nicht alles logisch, aber alles irgendwie perfekt vorbereitet. Genau deshalb schaute der Erzähler jetzt ganz genau hin.`;
-      }
-      return `What started as an ordinary scene quickly spiraled into chaos when ${fallbackWords} all collided inside one increasingly suspicious story. At first nobody reacted, and then everybody tried a little too hard not to react. Every detail felt slightly too specific to be accidental. One player stayed unnervingly calm while another overcorrected at exactly the wrong moment. The longer the story went on, the more obvious it became that every tiny gesture mattered. By the end, the plot barely made sense, but the tension absolutely did. That was exactly when the narrator started watching everyone much more closely.`;
+      return buildBackupStory({ lang: contentLang, genreId, words, minChars, salt: prompt.slice(0, 120) });
     },
     },
   ];
@@ -1735,7 +1729,11 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
     setError("");
     setStory("");
     setAttemptStatus("");
-    const selection = genre === "random" ? content.genres[Math.floor(Math.random() * (content.genres.length - 1))].label : content.genres.find((entry) => entry.id === genre)?.label;
+    const selectedGenre = genre === "random"
+      ? content.genres[Math.floor(Math.random() * (content.genres.length - 1))]
+      : content.genres.find((entry) => entry.id === genre);
+    const selection = selectedGenre?.label;
+    const selectedGenreId = selectedGenre?.id || "alltag";
     const targetChars = Math.max(storyMinChars + 120, Math.round(storyMinChars * 1.25));
     let validStory = null;
     const pushAttemptLine = (line) => setAttemptStatus(line);
@@ -1745,7 +1743,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution }
         ? " Wichtig: Prüfe vor der Ausgabe selbst, dass jedes Zielwort mindestens zweimal vorkommt, möglichst in unterschiedlichen Sätzen, und dass die Geschichte lang genug ist."
         : " Important: before answering, verify that every target word appears at least twice, preferably in different sentences, and that the story is long enough.";
       const prompt = `${content.aiPrompt(selection, words, storyMinChars, targetChars)}${strictness}`;
-      const text = await generateStory(prompt, contentLang, pushAttemptLine);
+      const text = await generateStory({ prompt, contentLang, genreId: selectedGenreId, words, minChars: storyMinChars }, pushAttemptLine);
       if (!text) continue;
       pushAttemptLine(buildStoryAttemptLine(contentLang, "repair", "local-fallback"));
       const repaired = repairStoryToRules(text, words, storyMinChars, contentLang);
