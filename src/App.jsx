@@ -2369,6 +2369,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
             {pointsView === "vote" && room.status === "voting" && (
               <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.player.narratorVoteTitle}</div>
+                <p style={{ ...S.bt, marginBottom: 12 }}>{ui.player.narratorVoteDesc}</p>
                 {narratorVote === null ? (
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
                     <button onClick={() => castNarratorVote(true)} style={S.pbtn(ACC.green, "rgba(74,222,128,.1)")}>{ui.player.narratorVoteYes}</button>
