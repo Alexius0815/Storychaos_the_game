@@ -200,6 +200,7 @@ const UI = {
       nextRoundDesc: "Der nächste Erzähler übernimmt jetzt und bereitet die neue Runde vor.",
       inviteView: "Einladen",
       playersView: "Mitspieler",
+      tvProtectedHint: "Der TV-Link ist geschuetzt und funktioniert nur ueber den TV-Hub-Button.",
     },
     cards: {
       title: "🎴 Runde vorbereiten",
@@ -367,6 +368,10 @@ const UI = {
       takeOverTitle: "Kein aktiver Erzähler",
       takeOverDesc: "Der bisherige Erzähler scheint nicht mehr verbunden zu sein. Du kannst den Raum übernehmen und weiterspielen.",
     },
+    tv: {
+      blockedTitle: "TV-Link gesperrt",
+      blockedDesc: "Dieser TV-Hub braucht den geschuetzten Link aus der Lobby. Bitte direkt dort oeffnen.",
+    },
     debug: {
       title: "🛠 Debug Panel",
       supabase: "Supabase",
@@ -483,6 +488,7 @@ const UI = {
       nextRoundDesc: "The next narrator takes over now and prepares the new round.",
       inviteView: "Invite",
       playersView: "Players",
+      tvProtectedHint: "The TV link is protected and only works through the TV hub button.",
     },
     cards: {
       title: "🎴 Prepare round",
@@ -649,6 +655,10 @@ const UI = {
       voteView: "Vote",
       takeOverTitle: "No active narrator",
       takeOverDesc: "The previous narrator seems to be offline. You can take over the room and continue the game.",
+    },
+    tv: {
+      blockedTitle: "TV link locked",
+      blockedDesc: "This TV hub needs the protected link from the lobby. Please open it there.",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -1532,12 +1542,13 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv 
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
           <button onClick={() => setView("invite")} style={{ ...S.sbtn(view === "invite" ? ACC.blue : C.muted), background: view === "invite" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.inviteView}</button>
           <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? ACC.blue : C.muted), background: view === "players" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.playersView}</button>
-          {onOpenTv && <button onClick={onOpenTv} style={S.sbtn(ACC.gold)}>{ui.hostLobby.tvHub}</button>}
+          {onOpenTv && <button onClick={() => onOpenTv(room?.password || "")} style={S.sbtn(ACC.gold)}>{ui.hostLobby.tvHub}</button>}
         </div>
         {view === "invite" ? (
           <div style={{ textAlign: "center" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}><div style={{ padding: 12, borderRadius: 18, background: C.sur, border: `1px solid ${C.bdr}` }}><QRCode url={joinUrl} size={176} C={C} lang={lang} /></div></div>
             <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px" }}>{joinUrl}</div>
+            {!!room?.password && <div style={{ fontSize: 11, color: C.muted, marginTop: 10 }}>{ui.hostLobby.tvProtectedHint}</div>}
           </div>
         ) : (
           <div>
@@ -3010,7 +3021,7 @@ function RoomShell({ roomId, playerName, onLeave, onOpenTv, lang, ui, contentLan
   );
 }
 
-function TVScreen({ roomId, lang, ui, C, S, onLeave }) {
+function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   const viewport = useViewport();
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -3052,6 +3063,21 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave }) {
       <div style={{ textAlign: "center", padding: 40 }}>
         <div style={{ fontSize: 28, animation: "spin 1.5s linear infinite", display: "inline-block" }}>⏳</div>
         <div style={{ fontSize: 14, color: C.muted, marginTop: 12 }}>{ui.common.loading}</div>
+      </div>
+    );
+  }
+
+  const tvLocked = !!room.password && tvKey !== room.password;
+
+  if (tvLocked) {
+    return (
+      <div style={{ animation: "fadeIn .3s ease" }}>
+        <div style={{ ...S.card, maxWidth: 560, margin: "48px auto 0", textAlign: "center", borderColor: "rgba(251,191,36,.28)", background: "linear-gradient(180deg, rgba(251,191,36,.10), rgba(251,191,36,.04))" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold, marginBottom: 12 }}>TV Hub</div>
+          <div style={{ fontSize: 26, fontWeight: 900, color: C.txt, marginBottom: 10 }}>{ui.tv.blockedTitle}</div>
+          <div style={{ fontSize: 15, lineHeight: 1.65, color: C.muted, marginBottom: 18 }}>{ui.tv.blockedDesc}</div>
+          <button onClick={onLeave} style={S.pbtn(ACC.gold, "rgba(251,191,36,.10)")}>{ui.common.back}</button>
+        </div>
       </div>
     );
   }
@@ -3190,6 +3216,7 @@ export default function App() {
   const urlRoom = params.get("room");
   const rawUrlLang = params.get("lang");
   const rawView = params.get("view");
+  const urlTvKey = params.get("tv") || "";
   const urlLang = rawUrlLang === "de" || rawUrlLang === "en" ? rawUrlLang : null;
   const urlView = rawView === "tv" ? "tv" : null;
 
@@ -3257,10 +3284,11 @@ export default function App() {
     window.history.replaceState({}, "", "/");
   }
 
-  function handleOpenTv() {
+  function handleOpenTv(tvKey = "") {
     if (!roomId) return;
     setScreen("tv");
-    window.history.replaceState({}, "", `/?room=${roomId}&lang=${lang}&view=tv`);
+    const protectedKey = tvKey ? `&tv=${encodeURIComponent(tvKey)}` : "";
+    window.history.replaceState({}, "", `/?room=${roomId}&lang=${lang}&view=tv${protectedKey}`);
   }
 
   const GS = `
@@ -3336,7 +3364,7 @@ export default function App() {
           {screen === "join" && <div><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><JoinScreen initialCode={urlRoom || ""} onJoined={handleJoined} ui={ui} C={C} S={S} /></div>}
           {screen === "host" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onOpenTv={handleOpenTv} />}
           {screen === "player" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} />}
-          {screen === "tv" && <TVScreen roomId={roomId} lang={lang} ui={ui} C={C} S={S} onLeave={handleLeave} />}
+          {screen === "tv" && <TVScreen roomId={roomId} lang={lang} ui={ui} C={C} S={S} onLeave={handleLeave} tvKey={urlTvKey} />}
         </main>
       </div>
       {showDebug && <DebugPanel onClose={() => setShowDebug(false)} C={C} S={S} ui={ui} />}
