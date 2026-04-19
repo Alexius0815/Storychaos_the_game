@@ -8,6 +8,8 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const APP_URL = "https://storychaos-the-game.vercel.app";
 const APP_ICON = "/icon-192.png";
 const APP_VERSION = __APP_VERSION__;
+const HUB_PLAYER_NAME = "__storychaos_hub__";
+const HUB_DISPLAY_NAME = "TV Hub";
 
 const CONTENT = {
   de: {
@@ -153,6 +155,8 @@ const UI = {
       welcome: "Willkommen!",
       desc: "Erstelle einen Raum und lade per QR-Code ein – oder tritt einem bestehenden Raum bei.",
       newGame: "🎮 Neues Spiel starten",
+      tvHub: "📺 TV-Hub starten",
+      creatingTvHub: "TV-Hub wird aufgebaut…",
       joinRoom: "🔗 Raum beitreten",
       howItWorks: "Wie es funktioniert",
       steps: [
@@ -441,6 +445,8 @@ const UI = {
       welcome: "Welcome!",
       desc: "Create a room and invite players by QR code – or join an existing room.",
       newGame: "🎮 Start new game",
+      tvHub: "📺 Start TV hub",
+      creatingTvHub: "Setting up TV hub…",
       joinRoom: "🔗 Join room",
       howItWorks: "How it works",
       steps: [
@@ -801,6 +807,14 @@ function roomCode() {
   return Math.random().toString(36).substring(2, 7).toUpperCase();
 }
 
+function isHubPlayer(player) {
+  return player?.name === HUB_PLAYER_NAME;
+}
+
+function getVisiblePlayers(players = []) {
+  return players.filter((player) => !isHubPlayer(player));
+}
+
 function timeAgo(ts) {
   const seconds = Math.floor((Date.now() - new Date(ts)) / 1000);
   if (seconds < 60) return `${seconds}s`;
@@ -809,11 +823,12 @@ function timeAgo(ts) {
 }
 
 function getNarratorId(room, players = []) {
-  return room?.narrator_id || players.find((player) => player.is_host)?.id || null;
+  const visiblePlayers = getVisiblePlayers(players);
+  return room?.narrator_id || visiblePlayers.find((player) => player.is_host)?.id || players.find((player) => player.is_host)?.id || null;
 }
 
 function getAudience(players = [], narratorId) {
-  return players.filter((player) => player.id !== narratorId);
+  return getVisiblePlayers(players).filter((player) => player.id !== narratorId);
 }
 
 function getPlayerPhase(room, player, bothRevealed, isReady, ui) {
@@ -2010,9 +2025,9 @@ function Resolution({ room, players, storyWords, ui, C, S, onOpenScores }) {
 function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChooseNarrator, onFinalizeNarratorVote, finalizingNarratorVote, awardedPlayerIds = [], onAwardPlayer }) {
   const viewport = useViewport();
   const narratorId = getNarratorId(room, players);
-  const narrator = players.find((player) => player.id === narratorId);
+  const narrator = getVisiblePlayers(players).find((player) => player.id === narratorId);
   const others = getAudience(players, narratorId);
-  const sorted = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
+  const sorted = [...getVisiblePlayers(players)].sort((a, b) => (b.score || 0) - (a.score || 0));
   const medals = ["🥇", "🥈", "🥉"];
   const [savingScoreId, setSavingScoreId] = useState(null);
   const [view, setView] = useState("action");
@@ -2324,7 +2339,7 @@ function Timer({ ui, C, S }) {
 function RoundOverview({ room, players, ui, C, S }) {
   const narratorId = getNarratorId(room, players);
   const others = getAudience(players, narratorId);
-  const narrator = players.find((player) => player.id === narratorId);
+  const narrator = getVisiblePlayers(players).find((player) => player.id === narratorId);
   const past = room.past_narrators || [];
   const doneAll = others.every((player) => past.includes(player.id));
 
@@ -2857,6 +2872,7 @@ function JoinScreen({ initialCode, onJoined, ui, C, S }) {
 
   async function join() {
     if (!code.trim() || !name.trim()) { setError(ui.join.emptyError); return; }
+    if (name.trim() === HUB_PLAYER_NAME) { setError(ui.join.nameTaken); return; }
     setLoading(true);
     setError("");
     const { data: room } = await sb.from("rooms").select("*").eq("id", code.toUpperCase().trim()).single();
@@ -3087,7 +3103,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   }
 
   const narratorId = getNarratorId(room, players);
-  const narrator = players.find((player) => player.id === narratorId);
+  const narrator = getVisiblePlayers(players).find((player) => player.id === narratorId);
   const audience = getAudience(players, narratorId);
   const readyCount = audience.filter((player) => player.ready).length;
   const allVotes = Object.values(narratorVotes);
@@ -3200,7 +3216,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
             <div style={{ ...S.card, marginBottom: 0 }}>
               <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.hostTabs.scores}</div>
               <div style={{ display: "grid", gap: 8 }}>
-                {[...players].sort((a, b) => (b.score || 0) - (a.score || 0)).map((player) => (
+                {[...getVisiblePlayers(players)].sort((a, b) => (b.score || 0) - (a.score || 0)).map((player) => (
                   <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", borderRadius: 12, background: C.sur2, border: `1px solid ${C.bdr}` }}>
                     <span style={{ fontSize: 14, fontWeight: 700, color: C.txt }}>{player.name}</span>
                     <span style={{ fontSize: 16, fontWeight: 900, color: ACC.gold }}>{player.score || 0}</span>
@@ -3236,6 +3252,7 @@ export default function App() {
   const [myName, setMyName] = useState("");
   const [showDebug, setShowDebug] = useState(false);
   const [showVersion, setShowVersion] = useState(false);
+  const [creatingTvHub, setCreatingTvHub] = useState(false);
   const isGameScreen = screen === "host" || screen === "player" || screen === "tv";
   const isTvScreen = screen === "tv";
 
@@ -3280,6 +3297,30 @@ export default function App() {
     setRoomId(id);
     setMyName(name);
     setScreen("player");
+  }
+
+  async function createTvHubRoom() {
+    if (creatingTvHub) return;
+    setCreatingTvHub(true);
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    await sb.from("rooms").delete().lt("created_at", cutoff);
+    const id = roomCode();
+    const { error: createError } = await sb.from("rooms").insert({ id, host_name: HUB_DISPLAY_NAME, status: "waiting", password: null });
+    if (createError) {
+      setCreatingTvHub(false);
+      return;
+    }
+    const { data: hubPlayer, error: hubError } = await sb.from("players").insert({ room_id: id, name: HUB_PLAYER_NAME, is_host: true }).select().single();
+    if (hubError || !hubPlayer) {
+      setCreatingTvHub(false);
+      return;
+    }
+    await sb.from("rooms").update({ narrator_id: hubPlayer.id, past_narrators: [], round: 1 }).eq("id", id);
+    setRoomId(id);
+    setMyName("");
+    setScreen("tv");
+    window.history.replaceState({}, "", `/?room=${id}&lang=${lang}&view=tv`);
+    setCreatingTvHub(false);
   }
 
   function handleLeave() {
@@ -3352,6 +3393,9 @@ export default function App() {
                 <div style={{ fontSize: 28, fontWeight: 800, color: C.txt, marginBottom: 8, letterSpacing: "-0.03em" }}>{ui.home.welcome}</div>
                 <p style={{ ...S.bt, fontSize: 15, lineHeight: 1.65, marginBottom: 22, maxWidth: 290, marginInline: "auto" }}>{ui.home.desc}</p>
                 <button onClick={() => setScreen("create")} style={{ ...S.pbtn(ACC.blue, dark ? "linear-gradient(180deg, rgba(96,165,250,.18), rgba(96,165,250,.08))" : "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))"), marginBottom: 10, minHeight: 56, borderRadius: 13, boxShadow: "0 0 0 1px rgba(96,165,250,.18) inset" }}>{ui.home.newGame}</button>
+                <button onClick={createTvHubRoom} disabled={creatingTvHub} style={{ ...S.pbtn(ACC.gold, "rgba(251,191,36,.08)"), marginBottom: 10, minHeight: 50, borderRadius: 13 }}>
+                  {creatingTvHub ? ui.home.creatingTvHub : ui.home.tvHub}
+                </button>
                 <button onClick={() => setScreen("join")} style={{ ...S.pbtn(C.bdr, C.sur), minHeight: 54, borderRadius: 13, color: C.txt, background: dark ? "rgba(255,255,255,.02)" : "rgba(255,255,255,.7)" }}>{ui.home.joinRoom}</button>
               </div>
               <div style={{ ...S.card, padding: "16px 16px 12px", borderRadius: 16, background: dark ? "rgba(24,24,35,.92)" : "rgba(255,255,255,.92)", boxShadow: dark ? "0 10px 30px rgba(0,0,0,.18)" : "0 16px 40px rgba(15,23,42,.06)" }}>
