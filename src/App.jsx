@@ -3053,6 +3053,16 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   const viewport = useViewport();
   const tvTwoPane = viewport.width >= 1360 && viewport.height >= 720;
   const tvLarge = viewport.width >= 1680;
+  const tvPad = tvLarge ? 26 : viewport.isDesktop ? 20 : 16;
+  const tvCard = {
+    background: "rgba(8,10,18,.94)",
+    border: "1px solid rgba(255,255,255,.14)",
+    borderRadius: 18,
+    boxShadow: "0 14px 36px rgba(0,0,0,.28)",
+  };
+  const tvLabel = { fontSize: 10, fontWeight: 800, letterSpacing: 2.2, textTransform: "uppercase", color: "#d6defa" };
+  const tvBody = { color: "#f7f8fc" };
+  const tvMuted = { color: "#c5cee6" };
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
   const [narratorVotes, setNarratorVotes] = useState({});
@@ -3102,10 +3112,10 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   if (tvLocked) {
     return (
       <div style={{ animation: "fadeIn .3s ease" }}>
-        <div style={{ ...S.card, maxWidth: 560, margin: "48px auto 0", textAlign: "center", borderColor: "rgba(251,191,36,.28)", background: "linear-gradient(180deg, rgba(251,191,36,.10), rgba(251,191,36,.04))" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold, marginBottom: 12 }}>TV Hub</div>
-          <div style={{ fontSize: 26, fontWeight: 900, color: C.txt, marginBottom: 10 }}>{ui.tv.blockedTitle}</div>
-          <div style={{ fontSize: 15, lineHeight: 1.65, color: C.muted, marginBottom: 18 }}>{ui.tv.blockedDesc}</div>
+        <div style={{ ...S.card, ...tvCard, maxWidth: 560, margin: "48px auto 0", textAlign: "center", padding: 22, borderColor: "rgba(251,191,36,.34)", background: "linear-gradient(180deg, rgba(28,20,8,.96), rgba(12,12,18,.96))" }}>
+          <div style={{ ...tvLabel, color: ACC.gold, marginBottom: 12 }}>TV Hub</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: tvBody.color, marginBottom: 10 }}>{ui.tv.blockedTitle}</div>
+          <div style={{ fontSize: 14, lineHeight: 1.6, color: tvMuted.color, marginBottom: 18 }}>{ui.tv.blockedDesc}</div>
           <button onClick={onLeave} style={S.pbtn(ACC.gold, "rgba(251,191,36,.10)")}>{ui.common.back}</button>
         </div>
       </div>
@@ -3126,26 +3136,26 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   const tvJoinUrl = `${APP_URL}?room=${room.id}&lang=${lang}`;
 
   return (
-    <div style={{ animation: "fadeIn .3s ease", minHeight: "100vh", padding: tvTwoPane ? "20px 24px 24px" : viewport.isDesktop ? "18px 20px 24px" : "12px 12px 20px" }}>
-      <div style={{ ...S.card, marginBottom: 16, padding: tvLarge ? 28 : viewport.isDesktop ? 22 : 18, background: "linear-gradient(135deg, rgba(96,165,250,.10), rgba(251,191,36,.08))", borderColor: "rgba(96,165,250,.24)" }}>
+    <div style={{ animation: "fadeIn .3s ease", minHeight: "100vh", padding: tvTwoPane ? "16px 20px 20px" : viewport.isDesktop ? "14px 16px 18px" : "10px 10px 14px" }}>
+      <div style={{ ...S.card, ...tvCard, marginBottom: 14, padding: tvPad, background: "linear-gradient(135deg, rgba(14,18,32,.98), rgba(18,16,12,.96))", borderColor: "rgba(255,255,255,.12)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>TV Hub</div>
-            <div style={{ fontSize: tvLarge ? 64 : viewport.isDesktop ? 54 : 34, fontWeight: 900, letterSpacing: tvLarge ? 8 : 6, color: C.txt, lineHeight: 1 }}>{room.id}</div>
-            <div style={{ fontSize: tvLarge ? 16 : 14, color: C.muted, marginTop: 8 }}>{room.host_name || narrator?.name || ui.common.host}</div>
+            <div style={{ ...tvLabel, color: "#95b8ff", marginBottom: 6 }}>TV Hub</div>
+            <div style={{ fontSize: tvLarge ? 56 : viewport.isDesktop ? 46 : 30, fontWeight: 900, letterSpacing: tvLarge ? 7 : 5, color: tvBody.color, lineHeight: 1 }}>{room.id}</div>
+            <div style={{ fontSize: tvLarge ? 14 : 12, color: tvMuted.color, marginTop: 6 }}>{room.host_name || narrator?.name || ui.common.host}</div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, opacity: 0.72 }}>
             <button onClick={onLeave} style={S.sbtn(C.muted)}>{ui.common.back}</button>
           </div>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: compactLobbyLayout ? "minmax(0, 1.12fr) minmax(280px, 0.82fr) minmax(260px, 0.76fr)" : tvTwoPane ? "minmax(0, 1.18fr) minmax(360px, 0.82fr)" : "1fr", gap: 16, alignItems: "start" }}>
-        <div style={{ display: "grid", gap: 16, minWidth: 0 }}>
-          <div style={{ ...S.card, minHeight: compactLobbyLayout ? 0 : tvTwoPane ? "calc(100vh - 172px)" : viewport.isDesktop ? 420 : "auto", marginBottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
+      <div style={{ display: "grid", gridTemplateColumns: compactLobbyLayout ? "minmax(0, 1.1fr) minmax(240px, 0.78fr) minmax(220px, 0.7fr)" : tvTwoPane ? "minmax(0, 1.15fr) minmax(300px, 0.75fr)" : "1fr", gap: 12, alignItems: "start" }}>
+        <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
+          <div style={{ ...S.card, ...tvCard, minHeight: compactLobbyLayout ? 0 : tvTwoPane ? "calc(100vh - 144px)" : viewport.isDesktop ? 360 : "auto", marginBottom: 0, padding: tvPad, display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.common.status}</div>
-              <div style={{ fontSize: tvLarge ? 36 : viewport.isDesktop ? 30 : 24, fontWeight: 900, color: C.txt, marginBottom: 12 }}>
+              <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.common.status}</div>
+              <div style={{ fontSize: tvLarge ? 30 : viewport.isDesktop ? 25 : 21, fontWeight: 900, color: tvBody.color, marginBottom: 10 }}>
                 {room.status === "waiting" && ui.hostTabs.lobby}
                 {room.status === "cards" && ui.hostTabs.cards}
                 {room.status === "playing" && ui.hostTabs.story}
@@ -3154,83 +3164,83 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
                 {room.status === "voted" && ui.hostTabs.scores}
               </div>
               {room.story && (
-                <div style={{ fontSize: tvLarge ? 24 : viewport.isDesktop ? 21 : 18, lineHeight: tvLarge ? 1.9 : 1.8, color: C.txt, overflowWrap: "anywhere" }}>
+                <div style={{ fontSize: tvLarge ? 19 : viewport.isDesktop ? 17 : 15, lineHeight: 1.72, color: tvBody.color, overflowWrap: "anywhere" }}>
                   {room.status === "revealed" || room.status === "voting" || room.status === "voted"
                     ? renderHighlightedStory(room.story, revealWords, C)
                     : room.story.replace(/\*\*(.*?)\*\*/g, "$1")}
                 </div>
               )}
               {!room.story && (
-                <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.6 }}>
+                <div style={{ fontSize: tvLarge ? 17 : 15, color: tvMuted.color, lineHeight: 1.55 }}>
                   {room.status === "cards" && `${readyCount} / ${audience.length} bereit`}
                   {room.status === "waiting" && ui.hostLobby.waiting}
                   {!["waiting", "cards"].includes(room.status) && ui.common.loading}
                 </div>
               )}
               {waitingForNarrator && (
-                <div style={{ marginTop: 18, padding: tvLarge ? "22px 24px" : "18px 20px", borderRadius: 16, background: "linear-gradient(180deg, rgba(251,191,36,.12), rgba(96,165,250,.06))", border: "1px solid rgba(251,191,36,.24)" }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold, marginBottom: 10 }}>TV Hub</div>
-                  <div style={{ fontSize: tvLarge ? 28 : 22, fontWeight: 900, color: C.txt, marginBottom: 8 }}>{ui.tv.waitingTitle}</div>
-                  <div style={{ fontSize: tvLarge ? 17 : 15, lineHeight: 1.7, color: C.muted }}>{ui.tv.waitingDesc}</div>
+                <div style={{ marginTop: 14, padding: tvLarge ? "18px 20px" : "14px 16px", borderRadius: 16, background: "linear-gradient(180deg, rgba(52,36,10,.92), rgba(10,12,18,.92))", border: "1px solid rgba(251,191,36,.34)" }}>
+                  <div style={{ ...tvLabel, color: ACC.gold, marginBottom: 8 }}>TV Hub</div>
+                  <div style={{ fontSize: tvLarge ? 22 : 18, fontWeight: 900, color: tvBody.color, marginBottom: 6 }}>{ui.tv.waitingTitle}</div>
+                  <div style={{ fontSize: tvLarge ? 14 : 13, lineHeight: 1.55, color: tvMuted.color }}>{ui.tv.waitingDesc}</div>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        <div style={{ display: "grid", gap: 16, minWidth: 0 }}>
-          <div style={{ ...S.card, marginBottom: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.hostTabs.lobby}</div>
+        <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
+          <div style={{ ...S.card, ...tvCard, marginBottom: 0, padding: tvPad }}>
+            <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.hostTabs.lobby}</div>
             <div style={{ display: "grid", gap: 10 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{narrator ? `${ui.common.host}: ${narrator.name}` : ui.common.host}</div>
-              <div style={{ fontSize: 13, color: C.muted }}>{audience.length} Mitspieler</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: tvBody.color }}>{narrator ? `${ui.common.host}: ${narrator.name}` : ui.common.host}</div>
+              <div style={{ fontSize: 12, color: tvMuted.color }}>{audience.length} Mitspieler</div>
               {(room.status === "waiting" || room.status === "cards") && (
                 <>
                   <div style={{ display: "flex", justifyContent: "center", marginTop: 6 }}>
-                    <div style={{ padding: 10, borderRadius: 16, background: C.sur2, border: `1px solid ${C.bdr}` }}>
-                      <QRCode url={tvJoinUrl} size={tvLarge ? 220 : viewport.isDesktop ? 180 : 140} C={C} lang={lang} />
+                    <div style={{ padding: 8, borderRadius: 14, background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.10)" }}>
+                      <QRCode url={tvJoinUrl} size={tvLarge ? 176 : viewport.isDesktop ? 156 : 132} C={C} lang={lang} />
                     </div>
                   </div>
-                  <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", overflowWrap: "anywhere" }}>{tvJoinUrl}</div>
+                  <div style={{ fontSize: 10, color: tvMuted.color, wordBreak: "break-all", overflowWrap: "anywhere", opacity: 0.9 }}>{tvJoinUrl}</div>
                 </>
               )}
             </div>
           </div>
 
-          {!compactLobbyLayout && <div style={{ ...S.card, marginBottom: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>Spieler</div>
+          {!compactLobbyLayout && <div style={{ ...S.card, ...tvCard, marginBottom: 0, padding: tvPad }}>
+            <div style={{ ...tvLabel, marginBottom: 8 }}>Spieler</div>
             <div style={{ display: "grid", gridTemplateColumns: tvLarge && audience.length > 6 ? "1fr 1fr" : "1fr", gap: 8 }}>
               {audience.map((player) => (
-                <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, background: C.sur2, border: `1px solid ${C.bdr}` }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: C.txt }}>{player.name}</span>
-                  <span style={{ fontSize: 12, color: player.ready ? ACC.greenl : C.muted }}>
+                <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 12, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: tvBody.color }}>{player.name}</span>
+                  <span style={{ fontSize: 11, color: player.ready ? ACC.greenl : tvMuted.color }}>
                     {player.ready ? "bereit" : "wartet"}
                   </span>
                 </div>
               ))}
             </div>
             {audience.length === 0 && (
-              <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 13, color: tvMuted.color, lineHeight: 1.5 }}>
                 {waitingForNarrator ? ui.tv.waitingDesc : ui.hostLobby.empty}
               </div>
             )}
           </div>}
 
           {(room.status === "voting" || room.status === "voted") && (
-            <div style={{ ...S.card, marginBottom: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.player.narratorVoteTitle}</div>
+            <div style={{ ...S.card, ...tvCard, marginBottom: 0, padding: tvPad }}>
+              <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.player.narratorVoteTitle}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <div style={{ padding: 14, borderRadius: 14, background: "rgba(74,222,128,.10)", border: "1px solid rgba(74,222,128,.24)" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.greenl, marginBottom: 8 }}>Ja</div>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: ACC.greenl }}>{yesVotes}</div>
+                <div style={{ padding: 12, borderRadius: 14, background: "rgba(12,48,24,.92)", border: "1px solid rgba(74,222,128,.36)" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.greenl, marginBottom: 6 }}>Ja</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: ACC.greenl }}>{yesVotes}</div>
                 </div>
-                <div style={{ padding: 14, borderRadius: 14, background: "rgba(255,255,255,.03)", border: `1px solid ${C.bdr}` }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>Nein</div>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: C.txt }}>{noVotes}</div>
+                <div style={{ padding: 12, borderRadius: 14, background: "rgba(28,32,42,.96)", border: "1px solid rgba(255,255,255,.12)" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: tvMuted.color, marginBottom: 6 }}>Nein</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: tvBody.color }}>{noVotes}</div>
                 </div>
               </div>
               {room.status === "voted" && narratorAwarded !== null && (
-                <div style={{ marginTop: 12, fontSize: 14, fontWeight: 700, color: narratorAwarded ? ACC.greenl : ACC.gold }}>
+                <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: narratorAwarded ? ACC.greenl : ACC.gold }}>
                   {narratorAwarded ? ui.player.narratorVoteApproved : ui.player.narratorVoteRejected}
                 </div>
               )}
@@ -3238,13 +3248,13 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
           )}
 
           {(room.status === "voting" || room.status === "voted") && (
-            <div style={{ ...S.card, marginBottom: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.hostTabs.scores}</div>
+            <div style={{ ...S.card, ...tvCard, marginBottom: 0, padding: tvPad }}>
+              <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.hostTabs.scores}</div>
               <div style={{ display: "grid", gap: 8 }}>
                 {[...getVisiblePlayers(players)].sort((a, b) => (b.score || 0) - (a.score || 0)).map((player) => (
-                  <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", borderRadius: 12, background: C.sur2, border: `1px solid ${C.bdr}` }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: C.txt }}>{player.name}</span>
-                    <span style={{ fontSize: 16, fontWeight: 900, color: ACC.gold }}>{player.score || 0}</span>
+                  <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 10px", borderRadius: 12, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: tvBody.color }}>{player.name}</span>
+                    <span style={{ fontSize: 15, fontWeight: 900, color: ACC.gold }}>{player.score || 0}</span>
                   </div>
                 ))}
               </div>
@@ -3253,22 +3263,22 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
         </div>
 
         {compactLobbyLayout && (
-          <div style={{ display: "grid", gap: 16, minWidth: 0 }}>
-            <div style={{ ...S.card, marginBottom: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>Spieler</div>
+          <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
+            <div style={{ ...S.card, ...tvCard, marginBottom: 0, padding: tvPad }}>
+              <div style={{ ...tvLabel, marginBottom: 8 }}>Spieler</div>
               {audience.length > 0 ? (
                 <div style={{ display: "grid", gap: 8 }}>
                   {audience.slice(0, 8).map((player) => (
-                    <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, background: C.sur2, border: `1px solid ${C.bdr}` }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: C.txt }}>{player.name}</span>
-                      <span style={{ fontSize: 12, color: player.ready ? ACC.greenl : C.muted }}>
+                    <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 12, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: tvBody.color }}>{player.name}</span>
+                      <span style={{ fontSize: 11, color: player.ready ? ACC.greenl : tvMuted.color }}>
                         {player.ready ? "bereit" : "wartet"}
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 13, color: tvMuted.color, lineHeight: 1.5 }}>
                   {waitingForNarrator ? ui.tv.waitingDesc : ui.hostLobby.empty}
                 </div>
               )}
