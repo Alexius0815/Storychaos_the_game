@@ -375,6 +375,8 @@ const UI = {
     tv: {
       blockedTitle: "TV-Link gesperrt",
       blockedDesc: "Dieser TV-Hub braucht den geschuetzten Link aus der Lobby. Bitte direkt dort oeffnen.",
+      waitingTitle: "Warte auf den ersten Erzähler",
+      waitingDesc: "Tritt mit einem Handy bei. Der erste echte Mitspieler uebernimmt automatisch die Runde und startet das Spiel.",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -665,6 +667,8 @@ const UI = {
     tv: {
       blockedTitle: "TV link locked",
       blockedDesc: "This TV hub needs the protected link from the lobby. Please open it there.",
+      waitingTitle: "Waiting for the first narrator",
+      waitingDesc: "Join with a phone. The first real player will automatically take over the round and start the game.",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -2880,8 +2884,14 @@ function JoinScreen({ initialCode, onJoined, ui, C, S }) {
     if (room.password && room.password !== pw) { setNeedPw(true); setError(ui.join.wrongPassword); setLoading(false); return; }
     const { data: existing } = await sb.from("players").select("id").eq("room_id", room.id).eq("name", name.trim()).single();
     if (existing) { setError(ui.join.nameTaken); setLoading(false); return; }
-    const { error: joinError } = await sb.from("players").insert({ room_id: room.id, name: name.trim(), is_host: false });
-    if (joinError) { setError(ui.join.genericError); setLoading(false); return; }
+    const { data: joinedPlayer, error: joinError } = await sb.from("players").insert({ room_id: room.id, name: name.trim(), is_host: false }).select().single();
+    if (joinError || !joinedPlayer) { setError(ui.join.genericError); setLoading(false); return; }
+    const { data: roomPlayers } = await sb.from("players").select("id,name").eq("room_id", room.id);
+    const visiblePlayers = getVisiblePlayers(roomPlayers || []);
+    const shouldTakeOverTvHub = room.host_name === HUB_DISPLAY_NAME && visiblePlayers.length === 1;
+    if (shouldTakeOverTvHub) {
+      await sb.from("rooms").update({ narrator_id: joinedPlayer.id, host_name: joinedPlayer.name, past_narrators: [joinedPlayer.id] }).eq("id", room.id);
+    }
     onJoined(room.id, name.trim());
     setLoading(false);
   }
@@ -3106,6 +3116,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   const narrator = getVisiblePlayers(players).find((player) => player.id === narratorId);
   const audience = getAudience(players, narratorId);
   const readyCount = audience.filter((player) => player.ready).length;
+  const waitingForNarrator = room.host_name === HUB_DISPLAY_NAME && audience.length === 0;
   const allVotes = Object.values(narratorVotes);
   const yesVotes = allVotes.filter((vote) => vote.value === "yes").length;
   const noVotes = allVotes.filter((vote) => vote.value === "no").length;
@@ -3152,6 +3163,13 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
                   {room.status === "cards" && `${readyCount} / ${audience.length} bereit`}
                   {room.status === "waiting" && ui.hostLobby.waiting}
                   {!["waiting", "cards"].includes(room.status) && ui.common.loading}
+                </div>
+              )}
+              {waitingForNarrator && (
+                <div style={{ marginTop: 18, padding: tvLarge ? "22px 24px" : "18px 20px", borderRadius: 16, background: "linear-gradient(180deg, rgba(251,191,36,.12), rgba(96,165,250,.06))", border: "1px solid rgba(251,191,36,.24)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold, marginBottom: 10 }}>TV Hub</div>
+                  <div style={{ fontSize: tvLarge ? 28 : 22, fontWeight: 900, color: C.txt, marginBottom: 8 }}>{ui.tv.waitingTitle}</div>
+                  <div style={{ fontSize: tvLarge ? 17 : 15, lineHeight: 1.7, color: C.muted }}>{ui.tv.waitingDesc}</div>
                 </div>
               )}
             </div>
