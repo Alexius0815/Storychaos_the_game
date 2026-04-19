@@ -147,6 +147,16 @@ const UI = {
       focusView: "Fokusansicht",
       help: "Hilfe",
     },
+    helpScreen: {
+      title: "Hilfe",
+      desc: "Alles Wichtige vor der ersten Runde, kurz und ohne Regelwand.",
+      cards: [
+        { label: "Start", title: "Raum starten", text: "Eine Person eröffnet den Raum. Alle anderen kommen per QR oder Raumcode dazu." },
+        { label: "Privat", title: "Handys bleiben geheim", text: "Wort und Aktion sieht immer nur die jeweilige Person." },
+        { label: "Ablauf", title: "Vorlesen, auflösen, punkten", text: "Die Geschichte läuft gemeinsam, danach folgen Reveal und Punkte." },
+        { label: "Party Screen", title: "Nur wenn ihr wollt", text: "TV, Browser oder Beamer werden optional nach dem Start verbunden." },
+      ],
+    },
     confirmDeleteRoom: "Willst du diesen Raum wirklich löschen? Alle Spieler und der aktuelle Spielstand werden entfernt.",
     deleteRoomError: "Der Raum konnte nicht gelöscht werden. Bitte nochmal versuchen.",
     offline: "Keine Verbindung – bitte WLAN pruefen",
@@ -202,6 +212,8 @@ const UI = {
       waiting: "Warte auf Mitspieler…",
       start: (n) => `Spiel starten mit ${n} Spieler${n !== 1 ? "n" : ""} →`,
       tvHub: "Party Screen öffnen",
+      tvTitle: "Gemeinsamen Screen verbinden",
+      tvDesc: "Optional für TV, Beamer oder zweiten Browser. Der Raum läuft auch ohne ihn.",
       nextRoundTitle: "Nächste Runde",
       nextRoundDesc: "Der nächste Erzähler übernimmt jetzt und bereitet die neue Runde vor.",
       inviteView: "Einladen",
@@ -377,6 +389,8 @@ const UI = {
     tv: {
       blockedTitle: "Party Screen gesperrt",
       blockedDesc: "Dieser Party Screen braucht den geschützten Link aus dem laufenden Raum. Bitte direkt dort öffnen.",
+      label: "Gemeinsamer Screen",
+      meta: "Read-only • zeigt nur gemeinsame Infos",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -440,6 +454,16 @@ const UI = {
       focusView: "Focus view",
       help: "Help",
     },
+    helpScreen: {
+      title: "Help",
+      desc: "Everything important before the first round, kept short and useful.",
+      cards: [
+        { label: "Start", title: "Start a room", text: "One person opens the room. Everyone else joins by QR or room code." },
+        { label: "Private", title: "Phones stay secret", text: "Each word and action stays visible only to the player who got it." },
+        { label: "Flow", title: "Read, reveal, score", text: "The story happens together, then the round moves into reveal and scoring." },
+        { label: "Party Screen", title: "Only if you want it", text: "TV, browser, or projector are connected optionally after the game starts." },
+      ],
+    },
     confirmDeleteRoom: "Do you really want to delete this room? All players and the current game state will be removed.",
     deleteRoomError: "The room could not be deleted. Please try again.",
     offline: "No connection – please check your Wi-Fi",
@@ -495,6 +519,8 @@ const UI = {
       waiting: "Waiting for players…",
       start: (n) => `Start game with ${n} player${n !== 1 ? "s" : ""} →`,
       tvHub: "Open Party Screen",
+      tvTitle: "Connect a shared screen",
+      tvDesc: "Optional for TV, projector, or a second browser. The room works without it.",
       nextRoundTitle: "Next round",
       nextRoundDesc: "The next narrator takes over now and prepares the new round.",
       inviteView: "Invite",
@@ -670,6 +696,8 @@ const UI = {
     tv: {
       blockedTitle: "Party Screen locked",
       blockedDesc: "This Party Screen needs the protected link from the live room. Please open it there.",
+      label: "Shared screen",
+      meta: "Read-only • shared information only",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -1564,13 +1592,20 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv 
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
           <button onClick={() => setView("invite")} style={{ ...S.sbtn(view === "invite" ? ACC.blue : C.muted), background: view === "invite" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.inviteView}</button>
           <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? ACC.blue : C.muted), background: view === "players" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.playersView}</button>
-          {onOpenTv && <button onClick={() => onOpenTv(room?.password || "")} style={S.sbtn(ACC.gold)}>{ui.hostLobby.tvHub}</button>}
         </div>
         {view === "invite" ? (
           <div style={{ textAlign: "center" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}><div style={{ padding: 12, borderRadius: 18, background: C.sur, border: `1px solid ${C.bdr}` }}><QRCode url={joinUrl} size={176} C={C} lang={lang} /></div></div>
             <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px" }}>{joinUrl}</div>
             {!!room?.password && <div style={{ fontSize: 11, color: C.muted, marginTop: 10 }}>{ui.hostLobby.tvProtectedHint}</div>}
+            {onOpenTv && (
+              <div style={{ ...S.card2, marginTop: 12, marginBottom: 0, textAlign: "left", borderColor: "rgba(251,191,36,.26)", background: "linear-gradient(180deg, rgba(251,191,36,.10), rgba(251,191,36,.03))" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.9, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.hostLobby.tvHub}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: C.txt, letterSpacing: "-0.03em", marginBottom: 6 }}>{ui.hostLobby.tvTitle}</div>
+                <div style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.55, marginBottom: 12 }}>{ui.hostLobby.tvDesc}</div>
+                <button onClick={() => onOpenTv(room?.password || "")} style={{ ...S.sbtn(ACC.gold), background: "rgba(251,191,36,.08)" }}>{ui.hostLobby.tvHub}</button>
+              </div>
+            )}
           </div>
         ) : (
           <div>
@@ -1628,6 +1663,19 @@ function EntryNoteCard({ label, title, text, C }) {
       <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.9, textTransform: "uppercase", color: C.muted, marginBottom: 7 }}>{label}</div>
       <div style={{ fontSize: 16, fontWeight: 800, color: C.txt, letterSpacing: "-0.03em", marginBottom: 5 }}>{title}</div>
       <div style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.5 }}>{text}</div>
+    </div>
+  );
+}
+
+function HelpScreen({ ui, C, S }) {
+  return (
+    <div style={{ animation: "fadeIn .3s ease" }}>
+      <EntryHero ui={ui} C={C} title={ui.helpScreen.title} desc={ui.helpScreen.desc} accent={ACC.gold} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {ui.helpScreen.cards.map((card) => (
+          <EntryNoteCard key={card.title} label={card.label} title={card.title} text={card.text} C={C} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -3132,7 +3180,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
     return (
       <div style={{ animation: "fadeIn .3s ease" }}>
         <div style={{ ...S.card, ...tvCard, maxWidth: 560, margin: "48px auto 0", textAlign: "center", padding: 22, borderColor: "rgba(251,191,36,.34)", background: "linear-gradient(180deg, rgba(28,20,8,.96), rgba(12,12,18,.96))" }}>
-          <div style={{ ...tvLabel, color: ACC.gold, marginBottom: 12 }}>Party Screen</div>
+          <div style={{ ...tvLabel, color: ACC.gold, marginBottom: 12 }}>{ui.hostLobby.tvHub}</div>
           <div style={{ fontSize: 24, fontWeight: 900, color: tvBody.color, marginBottom: 10 }}>{ui.tv.blockedTitle}</div>
           <div style={{ fontSize: 14, lineHeight: 1.6, color: tvMuted.color, marginBottom: 18 }}>{ui.tv.blockedDesc}</div>
           <button onClick={onLeave} style={S.pbtn(ACC.gold, "rgba(251,191,36,.10)")}>{ui.common.back}</button>
@@ -3158,9 +3206,9 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
       <div style={{ ...S.card, ...tvCard, marginBottom: 14, padding: tvPad, background: "linear-gradient(135deg, rgba(14,18,32,.98), rgba(18,16,12,.96))", borderColor: "rgba(255,255,255,.12)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ ...tvLabel, color: "#95b8ff", marginBottom: 6 }}>Party Screen</div>
+            <div style={{ ...tvLabel, color: "#95b8ff", marginBottom: 6 }}>{ui.tv.label}</div>
             <div style={{ fontSize: tvLarge ? 56 : viewport.isDesktop ? 46 : 30, fontWeight: 900, letterSpacing: tvLarge ? 7 : 5, color: tvBody.color, lineHeight: 1 }}>{room.id}</div>
-            <div style={{ fontSize: tvLarge ? 14 : 12, color: tvMuted.color, marginTop: 6 }}>{room.host_name || narrator?.name || ui.common.host}</div>
+            <div style={{ fontSize: tvLarge ? 14 : 12, color: tvMuted.color, marginTop: 6 }}>{ui.tv.meta}</div>
           </div>
           <div style={{ display: "flex", gap: 8, opacity: 0.72 }}>
             <button onClick={onLeave} style={S.sbtn(C.muted)}>{ui.common.back}</button>
@@ -3410,7 +3458,12 @@ export default function App() {
                 {ui.subtitle}
               </p>
             </div>
-            <div style={{ display: "flex", gap: 6, flexShrink: 0, paddingTop: isGameScreen ? 0 : 2 }}>
+          <div style={{ display: "flex", gap: 6, flexShrink: 0, paddingTop: isGameScreen ? 0 : 2 }}>
+            {!isGameScreen && screen !== "help" && (
+              <button onClick={() => setScreen("help")} aria-label={ui.common.help} style={{ background: C.sur, border: `1px solid ${C.bdr}`, color: C.txt, minWidth: 38, height: isGameScreen ? 30 : 34, padding: "0 10px", borderRadius: 11, cursor: "pointer", fontSize: 11, fontWeight: 800, boxShadow: dark ? "inset 0 1px 0 rgba(255,255,255,.03)" : "0 8px 20px rgba(15,23,42,.06)" }}>
+                ?
+              </button>
+            )}
             <button onClick={() => setLang((current) => current === "de" ? "en" : "de")} aria-label={ui.aria.toggleLanguage} style={{ background: C.sur, border: `1px solid ${C.bdr}`, color: C.txt, minWidth: isGameScreen ? 38 : 42, height: isGameScreen ? 30 : 34, padding: isGameScreen ? "0 8px" : "0 10px", borderRadius: 11, cursor: "pointer", fontSize: isGameScreen ? 10 : 11, fontWeight: 800, boxShadow: dark ? "inset 0 1px 0 rgba(255,255,255,.03)" : "0 8px 20px rgba(15,23,42,.06)" }}>
               {lang === "de" ? "DE" : "EN"}
             </button>
@@ -3458,6 +3511,7 @@ export default function App() {
               </div>
             </div>
           )}
+          {screen === "help" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><HelpScreen ui={ui} C={C} S={S} /></div>}
           {screen === "create" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><CreateRoom onCreated={handleCreated} ui={ui} C={C} S={S} /></div>}
           {screen === "join" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><JoinScreen initialCode={urlRoom || ""} onJoined={handleJoined} ui={ui} C={C} S={S} /></div>}
           {screen === "host" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onOpenTv={handleOpenTv} />}
