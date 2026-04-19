@@ -1639,7 +1639,7 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv 
   );
 }
 
-function EntryHero({ ui, C, title, desc, accent = ACC.blue }) {
+function EntryHero({ ui, C, S, title, desc, accent = ACC.blue }) {
   return (
     <div style={{ ...S.card, textAlign: "left", padding: "22px 18px 18px", background: `linear-gradient(180deg, ${accent}18, ${C.sur})`, borderColor: `${accent}44` }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
@@ -1670,7 +1670,7 @@ function EntryNoteCard({ label, title, text, C }) {
 function HelpScreen({ ui, C, S }) {
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
-      <EntryHero ui={ui} C={C} title={ui.helpScreen.title} desc={ui.helpScreen.desc} accent={ACC.gold} />
+      <EntryHero ui={ui} C={C} S={S} title={ui.helpScreen.title} desc={ui.helpScreen.desc} accent={ACC.gold} />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {ui.helpScreen.cards.map((card) => (
           <EntryNoteCard key={card.title} label={card.label} title={card.title} text={card.text} C={C} />
@@ -2969,7 +2969,7 @@ function JoinScreen({ initialCode, onJoined, ui, C, S }) {
 
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
-      <EntryHero ui={ui} C={C} title={ui.join.title} desc={ui.join.desc} accent={ACC.blue} />
+      <EntryHero ui={ui} C={C} S={S} title={ui.join.title} desc={ui.join.desc} accent={ACC.blue} />
       <div style={{ ...S.card, padding: "18px 16px", marginBottom: 12 }}>
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.roomCode}</label>
         <input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder={ui.join.roomPlaceholder} maxLength={5} style={{ ...S.input, fontSize: 22, fontWeight: 800, letterSpacing: 6, textAlign: "center", marginBottom: 14 }} />
@@ -3016,7 +3016,7 @@ function CreateRoom({ onCreated, ui, C, S }) {
 
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
-      <EntryHero ui={ui} C={C} title={ui.create.title} desc={ui.create.desc} accent={ACC.gold} />
+      <EntryHero ui={ui} C={C} S={S} title={ui.create.title} desc={ui.create.desc} accent={ACC.gold} />
       <div style={{ ...S.card, padding: "18px 16px", marginBottom: 12 }}>
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.create.hostName}</label>
         <input value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && create()} placeholder={ui.create.namePlaceholder} maxLength={20} style={{ ...S.input, marginBottom: 14 }} />
