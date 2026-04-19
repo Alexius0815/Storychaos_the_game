@@ -195,6 +195,7 @@ const UI = {
       empty: "Noch niemand… QR-Code scannen!",
       waiting: "Warte auf Mitspieler…",
       start: (n) => `Spiel starten mit ${n} Spieler${n !== 1 ? "n" : ""} →`,
+      tvHub: "TV-Hub",
       nextRoundTitle: "Nächste Runde",
       nextRoundDesc: "Der nächste Erzähler übernimmt jetzt und bereitet die neue Runde vor.",
       inviteView: "Einladen",
@@ -477,6 +478,7 @@ const UI = {
       empty: "No one yet… scan the QR code!",
       waiting: "Waiting for players…",
       start: (n) => `Start game with ${n} player${n !== 1 ? "s" : ""} →`,
+      tvHub: "TV hub",
       nextRoundTitle: "Next round",
       nextRoundDesc: "The next narrator takes over now and prepares the new round.",
       inviteView: "Invite",
@@ -824,6 +826,18 @@ function getHostPhase(tab, ui) {
     next: ui.hostTabs.next,
   };
   return phases[tab] || ui.hostTabs.lobby;
+}
+
+function renderHighlightedStory(text, highlightWords, C) {
+  const clean = (text || "").replace(/\*\*(.*?)\*\*/g, "$1");
+  if (!highlightWords?.length) return clean;
+  const escaped = highlightWords.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const pattern = new RegExp(`(${escaped.join("|")})`, "gi");
+  return clean.split(pattern).map((part, index) => {
+    const match = highlightWords.some((word) => word.toLowerCase() === part.toLowerCase());
+    if (!match) return <span key={`${part}-${index}`}>{part}</span>;
+    return <span key={`${part}-${index}`} style={{ color: ACC.gold, fontWeight: 800, background: "rgba(251,191,36,.12)", padding: "0 2px", borderRadius: 4 }}>{part}</span>;
+  });
 }
 
 function flattenPresence(state = {}) {
@@ -1496,7 +1510,7 @@ function DebugPanel({ onClose, C, S, ui }) {
   );
 }
 
-function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart }) {
+function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv }) {
   const narratorId = getNarratorId(room, players);
   const others = getAudience(players, narratorId);
   const joinUrl = `${APP_URL}?room=${room.id}&lang=${gameLang}`;
@@ -1518,6 +1532,7 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart }) {
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
           <button onClick={() => setView("invite")} style={{ ...S.sbtn(view === "invite" ? ACC.blue : C.muted), background: view === "invite" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.inviteView}</button>
           <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? ACC.blue : C.muted), background: view === "players" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.playersView}</button>
+          {onOpenTv && <button onClick={onOpenTv} style={S.sbtn(ACC.gold)}>{ui.hostLobby.tvHub}</button>}
         </div>
         {view === "invite" ? (
           <div style={{ textAlign: "center" }}>
@@ -2343,7 +2358,7 @@ function RoundOverview({ room, players, ui, C, S }) {
   );
 }
 
-function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentLang, C, S }) {
+function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, setContentLang, C, S }) {
   const viewport = useViewport();
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -2555,7 +2570,7 @@ function HostApp({ roomId, hostName, onLeave, lang, ui, contentLang, setContentL
           ))}
         </div>
       </nav>
-      {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} onStart={() => setTab("cards")} />}
+      {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} onStart={() => setTab("cards")} onOpenTv={onOpenTv} />}
       {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} lang={lang} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setAwardedPlayerIds([]); setTab("ready"); }} />}
       {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onAllReady={() => setTab("story")} />}
       {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} onOpenResolution={openResolution} />}
@@ -2916,7 +2931,7 @@ function CreateRoom({ onCreated, ui, C, S }) {
   );
 }
 
-function RoomShell({ roomId, playerName, onLeave, lang, ui, contentLang, setContentLang, C, S }) {
+function RoomShell({ roomId, playerName, onLeave, onOpenTv, lang, ui, contentLang, setContentLang, C, S }) {
   const [player, setPlayer] = useState(null);
   const [room, setRoom] = useState(null);
   const [activeSessions, setActiveSessions] = useState([]);
@@ -2976,7 +2991,7 @@ function RoomShell({ roomId, playerName, onLeave, lang, ui, contentLang, setCont
   }
 
   if (isNarrator) {
-    return <HostApp roomId={roomId} hostName={playerName} onLeave={onLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} />;
+    return <HostApp roomId={roomId} hostName={playerName} onLeave={onLeave} onOpenTv={onOpenTv} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} />;
   }
 
   return (
@@ -2995,11 +3010,188 @@ function RoomShell({ roomId, playerName, onLeave, lang, ui, contentLang, setCont
   );
 }
 
+function TVScreen({ roomId, lang, ui, C, S, onLeave }) {
+  const viewport = useViewport();
+  const [room, setRoom] = useState(null);
+  const [players, setPlayers] = useState([]);
+  const [narratorVotes, setNarratorVotes] = useState({});
+  const [narratorAwarded, setNarratorAwarded] = useState(null);
+
+  useEffect(() => {
+    async function load() {
+      const { data: currentRoom } = await sb.from("rooms").select("*").eq("id", roomId).single();
+      setRoom(currentRoom || null);
+      const { data: currentPlayers } = await sb.from("players").select("*").eq("room_id", roomId).order("joined_at");
+      setPlayers(currentPlayers || []);
+    }
+    load();
+    const channel = sb.channel(`tv-${roomId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "players", filter: `room_id=eq.${roomId}` }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "rooms", filter: `id=eq.${roomId}` }, () => load())
+      .subscribe();
+    const voteChannel = sb.channel(`tv-room-votes-${roomId}`)
+      .on("broadcast", { event: "narrator-vote" }, ({ payload }) => {
+        setNarratorVotes((current) => ({ ...current, [payload.playerId]: payload }));
+      })
+      .on("broadcast", { event: "vote-reset" }, () => {
+        setNarratorVotes({});
+        setNarratorAwarded(null);
+      })
+      .on("broadcast", { event: "vote-result" }, ({ payload }) => {
+        setNarratorAwarded(!!payload.awarded);
+      })
+      .subscribe();
+    return () => {
+      sb.removeChannel(channel);
+      sb.removeChannel(voteChannel);
+    };
+  }, [roomId]);
+
+  if (!room) {
+    return (
+      <div style={{ textAlign: "center", padding: 40 }}>
+        <div style={{ fontSize: 28, animation: "spin 1.5s linear infinite", display: "inline-block" }}>⏳</div>
+        <div style={{ fontSize: 14, color: C.muted, marginTop: 12 }}>{ui.common.loading}</div>
+      </div>
+    );
+  }
+
+  const narratorId = getNarratorId(room, players);
+  const narrator = players.find((player) => player.id === narratorId);
+  const audience = getAudience(players, narratorId);
+  const readyCount = audience.filter((player) => player.ready).length;
+  const allVotes = Object.values(narratorVotes);
+  const yesVotes = allVotes.filter((vote) => vote.value === "yes").length;
+  const noVotes = allVotes.filter((vote) => vote.value === "no").length;
+  const revealWords = audience.map((player) => player.secret_word).filter(Boolean);
+  const tvJoinUrl = `${APP_URL}?room=${room.id}&lang=${lang}`;
+
+  return (
+    <div style={{ animation: "fadeIn .3s ease" }}>
+      <div style={{ ...S.card, padding: viewport.isDesktop ? 22 : 18, background: "linear-gradient(135deg, rgba(96,165,250,.10), rgba(251,191,36,.08))", borderColor: "rgba(96,165,250,.24)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>TV Hub</div>
+            <div style={{ fontSize: viewport.isDesktop ? 54 : 34, fontWeight: 900, letterSpacing: 6, color: C.txt, lineHeight: 1 }}>{room.id}</div>
+            <div style={{ fontSize: 14, color: C.muted, marginTop: 8 }}>{room.host_name || narrator?.name || ui.common.host}</div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={onLeave} style={S.sbtn(C.muted)}>{ui.common.back}</button>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1.1fr .9fr" : "1fr", gap: 14 }}>
+        <div style={{ display: "grid", gap: 14 }}>
+          <div style={{ ...S.card, minHeight: viewport.isDesktop ? 420 : "auto", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.common.status}</div>
+              <div style={{ fontSize: viewport.isDesktop ? 30 : 24, fontWeight: 900, color: C.txt, marginBottom: 12 }}>
+                {room.status === "waiting" && ui.hostTabs.lobby}
+                {room.status === "cards" && ui.hostTabs.cards}
+                {room.status === "playing" && ui.hostTabs.story}
+                {room.status === "revealed" && ui.hostTabs.resolve}
+                {room.status === "voting" && ui.hostTabs.scores}
+                {room.status === "voted" && ui.hostTabs.scores}
+              </div>
+              {room.story && (
+                <div style={{ fontSize: viewport.isDesktop ? 21 : 18, lineHeight: 1.8, color: C.txt }}>
+                  {room.status === "revealed" || room.status === "voting" || room.status === "voted"
+                    ? renderHighlightedStory(room.story, revealWords, C)
+                    : room.story.replace(/\*\*(.*?)\*\*/g, "$1")}
+                </div>
+              )}
+              {!room.story && (
+                <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.6 }}>
+                  {room.status === "cards" && `${readyCount} / ${audience.length} bereit`}
+                  {room.status === "waiting" && ui.hostLobby.waiting}
+                  {!["waiting", "cards"].includes(room.status) && ui.common.loading}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gap: 14 }}>
+          <div style={S.card}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.hostTabs.lobby}</div>
+            <div style={{ display: "grid", gap: 10 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: C.txt }}>{narrator ? `${ui.common.host}: ${narrator.name}` : ui.common.host}</div>
+              <div style={{ fontSize: 13, color: C.muted }}>{audience.length} Mitspieler</div>
+              {(room.status === "waiting" || room.status === "cards") && (
+                <>
+                  <div style={{ display: "flex", justifyContent: "center", marginTop: 6 }}>
+                    <div style={{ padding: 10, borderRadius: 16, background: C.sur2, border: `1px solid ${C.bdr}` }}>
+                      <QRCode url={tvJoinUrl} size={viewport.isDesktop ? 180 : 140} C={C} lang={lang} />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all" }}>{tvJoinUrl}</div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div style={S.card}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>Spieler</div>
+            <div style={{ display: "grid", gap: 8 }}>
+              {audience.map((player) => (
+                <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, background: C.sur2, border: `1px solid ${C.bdr}` }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: C.txt }}>{player.name}</span>
+                  <span style={{ fontSize: 12, color: player.ready ? ACC.greenl : C.muted }}>
+                    {player.ready ? "bereit" : "wartet"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {(room.status === "voting" || room.status === "voted") && (
+            <div style={S.card}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.player.narratorVoteTitle}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ padding: 14, borderRadius: 14, background: "rgba(74,222,128,.10)", border: "1px solid rgba(74,222,128,.24)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.greenl, marginBottom: 8 }}>Ja</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: ACC.greenl }}>{yesVotes}</div>
+                </div>
+                <div style={{ padding: 14, borderRadius: 14, background: "rgba(255,255,255,.03)", border: `1px solid ${C.bdr}` }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>Nein</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: C.txt }}>{noVotes}</div>
+                </div>
+              </div>
+              {room.status === "voted" && narratorAwarded !== null && (
+                <div style={{ marginTop: 12, fontSize: 14, fontWeight: 700, color: narratorAwarded ? ACC.greenl : ACC.gold }}>
+                  {narratorAwarded ? ui.player.narratorVoteApproved : ui.player.narratorVoteRejected}
+                </div>
+              )}
+            </div>
+          )}
+
+          {(room.status === "voting" || room.status === "voted") && (
+            <div style={S.card}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.hostTabs.scores}</div>
+              <div style={{ display: "grid", gap: 8 }}>
+                {[...players].sort((a, b) => (b.score || 0) - (a.score || 0)).map((player) => (
+                  <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", borderRadius: 12, background: C.sur2, border: `1px solid ${C.bdr}` }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: C.txt }}>{player.name}</span>
+                    <span style={{ fontSize: 16, fontWeight: 900, color: ACC.gold }}>{player.score || 0}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const params = new URLSearchParams(window.location.search);
   const urlRoom = params.get("room");
   const rawUrlLang = params.get("lang");
+  const rawView = params.get("view");
   const urlLang = rawUrlLang === "de" || rawUrlLang === "en" ? rawUrlLang : null;
+  const urlView = rawView === "tv" ? "tv" : null;
 
   const [lang, setLang] = useLanguage(urlLang);
   const [contentLang, setContentLang] = useState(() => urlLang || lang);
@@ -3008,12 +3200,12 @@ export default function App() {
   const S = makeStyles(C);
   const ui = UI[lang];
 
-  const [screen, setScreen] = useState(urlRoom ? "join" : "home");
+  const [screen, setScreen] = useState(urlRoom ? (urlView === "tv" ? "tv" : "join") : "home");
   const [roomId, setRoomId] = useState(urlRoom || "");
   const [myName, setMyName] = useState("");
   const [showDebug, setShowDebug] = useState(false);
   const [showVersion, setShowVersion] = useState(false);
-  const isGameScreen = screen === "host" || screen === "player";
+  const isGameScreen = screen === "host" || screen === "player" || screen === "tv";
 
   const tapCount = useRef(0);
   const tapTimer = useRef(null);
@@ -3063,6 +3255,12 @@ export default function App() {
     setRoomId("");
     setMyName("");
     window.history.replaceState({}, "", "/");
+  }
+
+  function handleOpenTv() {
+    if (!roomId) return;
+    setScreen("tv");
+    window.history.replaceState({}, "", `/?room=${roomId}&lang=${lang}&view=tv`);
   }
 
   const GS = `
@@ -3136,7 +3334,9 @@ export default function App() {
           )}
           {screen === "create" && <div><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><CreateRoom onCreated={handleCreated} ui={ui} C={C} S={S} /></div>}
           {screen === "join" && <div><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><JoinScreen initialCode={urlRoom || ""} onJoined={handleJoined} ui={ui} C={C} S={S} /></div>}
-          {(screen === "host" || screen === "player") && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} />}
+          {screen === "host" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onOpenTv={handleOpenTv} />}
+          {screen === "player" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} />}
+          {screen === "tv" && <TVScreen roomId={roomId} lang={lang} ui={ui} C={C} S={S} onLeave={handleLeave} />}
         </main>
       </div>
       {showDebug && <DebugPanel onClose={() => setShowDebug(false)} C={C} S={S} ui={ui} />}
