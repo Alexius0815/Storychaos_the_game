@@ -3117,6 +3117,8 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   const audience = getAudience(players, narratorId);
   const readyCount = audience.filter((player) => player.ready).length;
   const waitingForNarrator = room.host_name === HUB_DISPLAY_NAME && audience.length === 0;
+  const lobbyLikeStatus = room.status === "waiting" || room.status === "cards";
+  const compactLobbyLayout = lobbyLikeStatus && viewport.width >= 1100;
   const allVotes = Object.values(narratorVotes);
   const yesVotes = allVotes.filter((vote) => vote.value === "yes").length;
   const noVotes = allVotes.filter((vote) => vote.value === "no").length;
@@ -3138,9 +3140,9 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: tvTwoPane ? "minmax(0, 1.18fr) minmax(360px, 0.82fr)" : "1fr", gap: 16, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: compactLobbyLayout ? "minmax(0, 1.12fr) minmax(280px, 0.82fr) minmax(260px, 0.76fr)" : tvTwoPane ? "minmax(0, 1.18fr) minmax(360px, 0.82fr)" : "1fr", gap: 16, alignItems: "start" }}>
         <div style={{ display: "grid", gap: 16, minWidth: 0 }}>
-          <div style={{ ...S.card, minHeight: tvTwoPane ? "calc(100vh - 172px)" : viewport.isDesktop ? 420 : "auto", marginBottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
+          <div style={{ ...S.card, minHeight: compactLobbyLayout ? 0 : tvTwoPane ? "calc(100vh - 172px)" : viewport.isDesktop ? 420 : "auto", marginBottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.common.status}</div>
               <div style={{ fontSize: tvLarge ? 36 : viewport.isDesktop ? 30 : 24, fontWeight: 900, color: C.txt, marginBottom: 12 }}>
@@ -3195,7 +3197,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
             </div>
           </div>
 
-          <div style={{ ...S.card, marginBottom: 0 }}>
+          {!compactLobbyLayout && <div style={{ ...S.card, marginBottom: 0 }}>
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>Spieler</div>
             <div style={{ display: "grid", gridTemplateColumns: tvLarge && audience.length > 6 ? "1fr 1fr" : "1fr", gap: 8 }}>
               {audience.map((player) => (
@@ -3207,7 +3209,12 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
                 </div>
               ))}
             </div>
-          </div>
+            {audience.length === 0 && (
+              <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.6 }}>
+                {waitingForNarrator ? ui.tv.waitingDesc : ui.hostLobby.empty}
+              </div>
+            )}
+          </div>}
 
           {(room.status === "voting" || room.status === "voted") && (
             <div style={{ ...S.card, marginBottom: 0 }}>
@@ -3244,6 +3251,30 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
             </div>
           )}
         </div>
+
+        {compactLobbyLayout && (
+          <div style={{ display: "grid", gap: 16, minWidth: 0 }}>
+            <div style={{ ...S.card, marginBottom: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>Spieler</div>
+              {audience.length > 0 ? (
+                <div style={{ display: "grid", gap: 8 }}>
+                  {audience.slice(0, 8).map((player) => (
+                    <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, background: C.sur2, border: `1px solid ${C.bdr}` }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: C.txt }}>{player.name}</span>
+                      <span style={{ fontSize: 12, color: player.ready ? ACC.greenl : C.muted }}>
+                        {player.ready ? "bereit" : "wartet"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.6 }}>
+                  {waitingForNarrator ? ui.tv.waitingDesc : ui.hostLobby.empty}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
