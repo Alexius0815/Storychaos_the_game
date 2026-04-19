@@ -146,6 +146,9 @@ const UI = {
       phaseTitle: "Rundenphase",
       focusView: "Fokusansicht",
       help: "Hilfe",
+      open: "Öffnen",
+      copyLink: "Link kopieren",
+      copied: "Kopiert",
     },
     helpScreen: {
       title: "Hilfe",
@@ -214,6 +217,8 @@ const UI = {
       tvHub: "Party Screen öffnen",
       tvTitle: "Gemeinsamen Screen verbinden",
       tvDesc: "Optional für TV, Beamer oder zweiten Browser. Der Raum läuft auch ohne ihn.",
+      tvOpenExternal: "Extern öffnen",
+      tvCopyExternal: "Link kopieren",
       nextRoundTitle: "Nächste Runde",
       nextRoundDesc: "Der nächste Erzähler übernimmt jetzt und bereitet die neue Runde vor.",
       inviteView: "Einladen",
@@ -453,6 +458,9 @@ const UI = {
       phaseTitle: "Round phase",
       focusView: "Focus view",
       help: "Help",
+      open: "Open",
+      copyLink: "Copy link",
+      copied: "Copied",
     },
     helpScreen: {
       title: "Help",
@@ -521,6 +529,8 @@ const UI = {
       tvHub: "Open Party Screen",
       tvTitle: "Connect a shared screen",
       tvDesc: "Optional for TV, projector, or a second browser. The room works without it.",
+      tvOpenExternal: "Open externally",
+      tvCopyExternal: "Copy link",
       nextRoundTitle: "Next round",
       nextRoundDesc: "The next narrator takes over now and prepares the new round.",
       inviteView: "Invite",
@@ -1574,7 +1584,17 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv 
   const narratorId = getNarratorId(room, players);
   const others = getAudience(players, narratorId);
   const joinUrl = `${APP_URL}?room=${room.id}&lang=${gameLang}`;
+  const tvUrl = `${APP_URL}?room=${room.id}&lang=${lang}&view=tv${room?.password ? `&tv=${encodeURIComponent(room.password)}` : ""}`;
   const [view, setView] = useState("invite");
+  const [copied, setCopied] = useState(false);
+
+  async function copyTvLink() {
+    try {
+      await navigator.clipboard.writeText(tvUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {}
+  }
 
   return (
     <div>
@@ -1603,7 +1623,11 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv 
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.9, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.hostLobby.tvHub}</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: C.txt, letterSpacing: "-0.03em", marginBottom: 6 }}>{ui.hostLobby.tvTitle}</div>
                 <div style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.55, marginBottom: 12 }}>{ui.hostLobby.tvDesc}</div>
-                <button onClick={() => onOpenTv(room?.password || "")} style={{ ...S.sbtn(ACC.gold), background: "rgba(251,191,36,.08)" }}>{ui.hostLobby.tvHub}</button>
+                <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px", marginBottom: 10 }}>{tvUrl}</div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                  <button onClick={() => onOpenTv(room?.password || "", "open")} style={{ ...S.sbtn(ACC.gold), background: "rgba(251,191,36,.08)" }}>{ui.hostLobby.tvOpenExternal}</button>
+                  <button onClick={copyTvLink} style={S.sbtn(C.muted)}>{copied ? ui.common.copied : ui.hostLobby.tvCopyExternal}</button>
+                </div>
               </div>
             )}
           </div>
@@ -3135,6 +3159,14 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   const [narratorVotes, setNarratorVotes] = useState({});
   const [narratorAwarded, setNarratorAwarded] = useState(null);
 
+  function exitTvScreen() {
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    window.location.href = APP_URL;
+  }
+
   useEffect(() => {
     async function load() {
       const { data: currentRoom } = await sb.from("rooms").select("*").eq("id", roomId).single();
@@ -3183,7 +3215,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
           <div style={{ ...tvLabel, color: ACC.gold, marginBottom: 12 }}>{ui.hostLobby.tvHub}</div>
           <div style={{ fontSize: 24, fontWeight: 900, color: tvBody.color, marginBottom: 10 }}>{ui.tv.blockedTitle}</div>
           <div style={{ fontSize: 14, lineHeight: 1.6, color: tvMuted.color, marginBottom: 18 }}>{ui.tv.blockedDesc}</div>
-          <button onClick={onLeave} style={S.pbtn(ACC.gold, "rgba(251,191,36,.10)")}>{ui.common.back}</button>
+          <button onClick={exitTvScreen} style={S.pbtn(ACC.gold, "rgba(251,191,36,.10)")}>{ui.common.back}</button>
         </div>
       </div>
     );
@@ -3211,7 +3243,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
             <div style={{ fontSize: tvLarge ? 14 : 12, color: tvMuted.color, marginTop: 6 }}>{ui.tv.meta}</div>
           </div>
           <div style={{ display: "flex", gap: 8, opacity: 0.72 }}>
-            <button onClick={onLeave} style={S.sbtn(C.muted)}>{ui.common.back}</button>
+            <button onClick={exitTvScreen} style={S.sbtn(C.muted)}>{ui.common.back}</button>
           </div>
         </div>
       </div>
@@ -3423,11 +3455,15 @@ export default function App() {
     window.history.replaceState({}, "", "/");
   }
 
-  function handleOpenTv(tvKey = "") {
+  function handleOpenTv(tvKey = "", mode = "open") {
     if (!roomId) return;
-    setScreen("tv");
     const protectedKey = tvKey ? `&tv=${encodeURIComponent(tvKey)}` : "";
-    window.history.replaceState({}, "", `/?room=${roomId}&lang=${lang}&view=tv${protectedKey}`);
+    const targetUrl = `${APP_URL}?room=${roomId}&lang=${lang}&view=tv${protectedKey}`;
+    if (mode === "copy") {
+      navigator.clipboard?.writeText(targetUrl).catch(() => {});
+      return;
+    }
+    window.open(targetUrl, "_blank", "noopener,noreferrer");
   }
 
   const GS = `
