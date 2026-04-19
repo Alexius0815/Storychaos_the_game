@@ -1670,10 +1670,6 @@ function EntryHero({ ui, C, S, title, desc, accent = ACC.blue }) {
         <div style={{ width: 64, height: 64, display: "grid", placeItems: "center", filter: "drop-shadow(0 10px 24px rgba(0,0,0,.22))" }}>
           <img src={APP_ICON} alt="Story Chaos icon" width="60" height="60" style={{ display: "block", objectFit: "contain" }} />
         </div>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2.4, textTransform: "uppercase", color: C.muted, marginBottom: 5 }}>{ui.subtitle}</div>
-          <div style={{ fontSize: 30, fontWeight: 900, color: C.txt, letterSpacing: "-0.04em", lineHeight: 0.92 }}>Story Chaos</div>
-        </div>
       </div>
       <div style={{ fontSize: 26, fontWeight: 800, color: C.txt, marginBottom: 8, letterSpacing: "-0.04em" }}>{title}</div>
       <p style={{ ...S.bt, fontSize: 14.5, lineHeight: 1.6 }}>{desc}</p>
@@ -3524,10 +3520,6 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
                   <div style={{ width: 72, height: 72, display: "grid", placeItems: "center", filter: "drop-shadow(0 10px 24px rgba(0,0,0,.26))" }}>
                     <img src={APP_ICON} alt="Story Chaos icon" width="66" height="66" style={{ display: "block", objectFit: "contain" }} />
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2.4, textTransform: "uppercase", color: C.muted, marginBottom: 6 }}>{ui.subtitle}</div>
-                    <div style={{ fontSize: 34, fontWeight: 900, color: C.txt, letterSpacing: "-0.05em", lineHeight: 0.92 }}>Story Chaos</div>
                   </div>
                 </div>
                 <div style={{ fontSize: 30, fontWeight: 800, color: C.txt, marginBottom: 8, letterSpacing: "-0.04em" }}>{ui.home.welcome}</div>
