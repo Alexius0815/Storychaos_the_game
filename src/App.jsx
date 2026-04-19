@@ -9,7 +9,6 @@ const APP_URL = "https://storychaos-the-game.vercel.app";
 const APP_ICON = "/icon-192.png";
 const APP_VERSION = __APP_VERSION__;
 const HUB_PLAYER_NAME = "__storychaos_hub__";
-const HUB_DISPLAY_NAME = "TV Hub";
 
 const CONTENT = {
   de: {
@@ -153,28 +152,27 @@ const UI = {
     offline: "Keine Verbindung – bitte WLAN pruefen",
     home: {
       welcome: "Willkommen!",
-      desc: "Erstelle einen Raum und lade per QR-Code ein – oder tritt einem bestehenden Raum bei.",
+      desc: "Erstelle einen Raum und lade per QR-Code ein – oder tritt einem bestehenden Raum bei. Den Party Screen kannst du danach optional verbinden.",
       newGame: "🎮 Neues Spiel starten",
-      tvHub: "📺 TV-Hub starten",
-      creatingTvHub: "TV-Hub wird aufgebaut…",
       joinRoom: "🔗 Raum beitreten",
-      howItWorks: "Wie es funktioniert",
-      steps: [
-        "Host erstellt Raum – optional mit Passwort",
-        "Mitspieler scannen QR mit dem Handy",
-        "Jeder bekommt sein Wort + Aktion aufs Handy",
-        "Alle auf Ich bin bereit drücken",
-        "Host liest KI-Geschichte vor",
-        "Alle reagieren heimlich – Host rät wer was hatte",
+      howItWorks: "Schnell erklärt",
+      highlights: [
+        { title: "Handys bleiben privat", text: "Wort und Aktion sieht nur die jeweilige Person." },
+        { title: "Ein Raum startet alles", text: "Host eröffnet die Runde, alle anderen kommen per QR oder Code dazu." },
+        { title: "Party Screen nur optional", text: "TV, Beamer oder Browser lassen sich später dazuschalten." },
       ],
     },
     join: {
       title: "Raum beitreten",
-      desc: "Gib den Raumcode und deinen Namen ein",
+      desc: "Name, Raumcode und bei Bedarf das Passwort eingeben.",
       roomPlaceholder: "z.B. ABC12",
       namePlaceholder: "Dein Spitzname",
       passwordPlaceholder: "Raumpasswort",
       button: "Beitreten →",
+      cardHintTitle: "Deine Karte bleibt privat",
+      cardHintText: "Wort und Aktion siehst nur du auf deinem Gerät.",
+      qrHintTitle: "Per QR oder Code",
+      qrHintText: "Sobald der Raum läuft, kannst du direkt in die Runde springen.",
       connecting: "Verbinde…",
       emptyError: "Bitte Code und Namen eingeben.",
       roomNotFound: "Raum nicht gefunden.",
@@ -184,11 +182,15 @@ const UI = {
     },
     create: {
       title: "Neues Spiel",
-      desc: "Erstelle einen Raum und lade per QR-Code ein",
+      desc: "Raum eröffnen und danach Mitspieler per QR oder Code einladen.",
       hostName: "Dein Name (Host)",
       namePlaceholder: "Dein Spitzname",
       emptyPassword: "Leer = kein Passwort",
       button: "Raum erstellen →",
+      flowTitle: "Host startet die Runde",
+      flowText: "Nach dem Erstellen landest du direkt in der Lobby und kannst Spieler einladen.",
+      partyTitle: "Party Screen später",
+      partyText: "Den gemeinsamen Bildschirm verbindest du optional erst im laufenden Raum.",
       creating: "Erstelle…",
       emptyError: "Bitte Namen eingeben.",
       genericError: "Fehler. Nochmal versuchen.",
@@ -199,12 +201,12 @@ const UI = {
       empty: "Noch niemand… QR-Code scannen!",
       waiting: "Warte auf Mitspieler…",
       start: (n) => `Spiel starten mit ${n} Spieler${n !== 1 ? "n" : ""} →`,
-      tvHub: "TV-Hub",
+      tvHub: "Party Screen öffnen",
       nextRoundTitle: "Nächste Runde",
       nextRoundDesc: "Der nächste Erzähler übernimmt jetzt und bereitet die neue Runde vor.",
       inviteView: "Einladen",
       playersView: "Mitspieler",
-      tvProtectedHint: "Der TV-Link ist geschuetzt und funktioniert nur ueber den TV-Hub-Button.",
+      tvProtectedHint: "Der Party-Screen-Link ist geschützt und funktioniert nur über diesen Button im laufenden Raum.",
     },
     cards: {
       title: "🎴 Runde vorbereiten",
@@ -373,10 +375,8 @@ const UI = {
       takeOverDesc: "Der bisherige Erzähler scheint nicht mehr verbunden zu sein. Du kannst den Raum übernehmen und weiterspielen.",
     },
     tv: {
-      blockedTitle: "TV-Link gesperrt",
-      blockedDesc: "Dieser TV-Hub braucht den geschuetzten Link aus der Lobby. Bitte direkt dort oeffnen.",
-      waitingTitle: "Warte auf den ersten Erzähler",
-      waitingDesc: "Tritt mit einem Handy bei. Der erste echte Mitspieler uebernimmt automatisch die Runde und startet das Spiel.",
+      blockedTitle: "Party Screen gesperrt",
+      blockedDesc: "Dieser Party Screen braucht den geschützten Link aus dem laufenden Raum. Bitte direkt dort öffnen.",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -445,28 +445,27 @@ const UI = {
     offline: "No connection – please check your Wi-Fi",
     home: {
       welcome: "Welcome!",
-      desc: "Create a room and invite players by QR code – or join an existing room.",
+      desc: "Create a room and invite players by QR code – or join an existing room. You can connect the Party Screen afterwards if you want it.",
       newGame: "🎮 Start new game",
-      tvHub: "📺 Start TV hub",
-      creatingTvHub: "Setting up TV hub…",
       joinRoom: "🔗 Join room",
-      howItWorks: "How it works",
-      steps: [
-        "The host creates a room – optionally with a password",
-        "Players scan the QR code with their phones",
-        "Everyone gets a secret word + action on their phone",
-        "Everyone taps I'm ready",
-        "The host reads the AI story out loud",
-        "Everyone reacts secretly – the host guesses who had what",
+      howItWorks: "Quick guide",
+      highlights: [
+        { title: "Phones stay private", text: "Only the player sees their word and action." },
+        { title: "One room starts everything", text: "The host opens the round, everyone else joins by QR or code." },
+        { title: "Party Screen is optional", text: "TV, projector, or browser can be added later if you want one." },
       ],
     },
     join: {
       title: "Join room",
-      desc: "Enter the room code and your name",
+      desc: "Enter your name, room code, and password only if needed.",
       roomPlaceholder: "e.g. ABC12",
       namePlaceholder: "Your nickname",
       passwordPlaceholder: "Room password",
       button: "Join →",
+      cardHintTitle: "Your card stays private",
+      cardHintText: "Only you can see your word and action on your device.",
+      qrHintTitle: "Join by QR or code",
+      qrHintText: "As soon as the room is live, you can jump straight into the round.",
       connecting: "Connecting…",
       emptyError: "Please enter a code and a name.",
       roomNotFound: "Room not found.",
@@ -476,11 +475,15 @@ const UI = {
     },
     create: {
       title: "New game",
-      desc: "Create a room and invite players by QR code",
+      desc: "Open a room and invite players by QR code or room code.",
       hostName: "Your name (host)",
       namePlaceholder: "Your nickname",
       emptyPassword: "Leave blank = no password",
       button: "Create room →",
+      flowTitle: "The host starts the round",
+      flowText: "After creating the room, you land directly in the lobby and can invite players.",
+      partyTitle: "Party Screen later",
+      partyText: "You connect the shared screen optionally once the room is already running.",
       creating: "Creating…",
       emptyError: "Please enter a name.",
       genericError: "Something went wrong. Please try again.",
@@ -491,12 +494,12 @@ const UI = {
       empty: "No one yet… scan the QR code!",
       waiting: "Waiting for players…",
       start: (n) => `Start game with ${n} player${n !== 1 ? "s" : ""} →`,
-      tvHub: "TV hub",
+      tvHub: "Open Party Screen",
       nextRoundTitle: "Next round",
       nextRoundDesc: "The next narrator takes over now and prepares the new round.",
       inviteView: "Invite",
       playersView: "Players",
-      tvProtectedHint: "The TV link is protected and only works through the TV hub button.",
+      tvProtectedHint: "The Party Screen link is protected and only works through this button in the live room.",
     },
     cards: {
       title: "🎴 Prepare round",
@@ -665,10 +668,8 @@ const UI = {
       takeOverDesc: "The previous narrator seems to be offline. You can take over the room and continue the game.",
     },
     tv: {
-      blockedTitle: "TV link locked",
-      blockedDesc: "This TV hub needs the protected link from the lobby. Please open it there.",
-      waitingTitle: "Waiting for the first narrator",
-      waitingDesc: "Join with a phone. The first real player will automatically take over the round and start the game.",
+      blockedTitle: "Party Screen locked",
+      blockedDesc: "This Party Screen needs the protected link from the live room. Please open it there.",
     },
     debug: {
       title: "🛠 Debug Panel",
@@ -1599,6 +1600,34 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv 
       <button onClick={onStart} disabled={others.length === 0} style={S.pbtn(others.length > 0 ? ACC.green : C.bdr, others.length > 0 ? "rgba(74,222,128,.1)" : C.sur)}>
         {others.length === 0 ? ui.hostLobby.waiting : ui.hostLobby.start(others.length)}
       </button>
+    </div>
+  );
+}
+
+function EntryHero({ ui, C, title, desc, accent = ACC.blue }) {
+  return (
+    <div style={{ ...S.card, textAlign: "left", padding: "22px 18px 18px", background: `linear-gradient(180deg, ${accent}18, ${C.sur})`, borderColor: `${accent}44` }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
+        <div style={{ width: 64, height: 64, display: "grid", placeItems: "center", filter: "drop-shadow(0 10px 24px rgba(0,0,0,.22))" }}>
+          <img src={APP_ICON} alt="Story Chaos icon" width="60" height="60" style={{ display: "block", objectFit: "contain" }} />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2.4, textTransform: "uppercase", color: C.muted, marginBottom: 5 }}>{ui.subtitle}</div>
+          <div style={{ fontSize: 30, fontWeight: 900, color: C.txt, letterSpacing: "-0.04em", lineHeight: 0.92 }}>Story Chaos</div>
+        </div>
+      </div>
+      <div style={{ fontSize: 26, fontWeight: 800, color: C.txt, marginBottom: 8, letterSpacing: "-0.04em" }}>{title}</div>
+      <p style={{ ...S.bt, fontSize: 14.5, lineHeight: 1.6 }}>{desc}</p>
+    </div>
+  );
+}
+
+function EntryNoteCard({ label, title, text, C }) {
+  return (
+    <div style={{ borderRadius: 14, padding: 14, border: `1px solid ${C.bdr}`, background: C.sur2, minWidth: 0 }}>
+      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.9, textTransform: "uppercase", color: C.muted, marginBottom: 7 }}>{label}</div>
+      <div style={{ fontSize: 16, fontWeight: 800, color: C.txt, letterSpacing: "-0.03em", marginBottom: 5 }}>{title}</div>
+      <div style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.5 }}>{text}</div>
     </div>
   );
 }
@@ -2886,26 +2915,14 @@ function JoinScreen({ initialCode, onJoined, ui, C, S }) {
     if (existing) { setError(ui.join.nameTaken); setLoading(false); return; }
     const { data: joinedPlayer, error: joinError } = await sb.from("players").insert({ room_id: room.id, name: name.trim(), is_host: false }).select().single();
     if (joinError || !joinedPlayer) { setError(ui.join.genericError); setLoading(false); return; }
-    const { data: roomPlayers } = await sb.from("players").select("id,name").eq("room_id", room.id);
-    const visiblePlayers = getVisiblePlayers(roomPlayers || []);
-    const shouldTakeOverTvHub = room.host_name === HUB_DISPLAY_NAME && visiblePlayers.length === 1;
-    if (shouldTakeOverTvHub) {
-      await sb.from("rooms").update({ narrator_id: joinedPlayer.id, host_name: joinedPlayer.name, past_narrators: [joinedPlayer.id] }).eq("id", room.id);
-    }
     onJoined(room.id, name.trim());
     setLoading(false);
   }
 
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
-      <div style={{ ...S.card, textAlign: "center", padding: "24px 18px 18px", background: C.bg === "#0d0d14" ? "linear-gradient(180deg, rgba(96,165,250,.10), rgba(96,165,250,.03))" : "linear-gradient(180deg, rgba(96,165,250,.10), rgba(255,255,255,.9))" }}>
-        <div style={{ width: 64, height: 64, margin: "0 auto 12px", borderRadius: 18, display: "grid", placeItems: "center", background: C.sur, border: `1px solid ${C.bdr}`, overflow: "hidden", padding: 8 }}>
-          <img src={APP_ICON} alt="Story Chaos icon" width="48" height="48" style={{ display: "block", borderRadius: 12 }} />
-        </div>
-        <div style={{ fontSize: 24, fontWeight: 800, color: C.txt, marginBottom: 6, letterSpacing: "-0.03em" }}>{ui.join.title}</div>
-        <p style={S.bt}>{ui.join.desc}</p>
-      </div>
-      <div style={{ ...S.card, padding: "18px 16px" }}>
+      <EntryHero ui={ui} C={C} title={ui.join.title} desc={ui.join.desc} accent={ACC.blue} />
+      <div style={{ ...S.card, padding: "18px 16px", marginBottom: 12 }}>
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.roomCode}</label>
         <input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder={ui.join.roomPlaceholder} maxLength={5} style={{ ...S.input, fontSize: 22, fontWeight: 800, letterSpacing: 6, textAlign: "center", marginBottom: 14 }} />
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.yourName}</label>
@@ -2918,6 +2935,10 @@ function JoinScreen({ initialCode, onJoined, ui, C, S }) {
         <button onClick={join} disabled={loading} style={{ ...S.pbtn(ACC.green, "rgba(74,222,128,.1)"), marginTop: 16 }}>
           {loading ? ui.join.connecting : ui.join.button}
         </button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <EntryNoteCard label={ui.common.status} title={ui.join.cardHintTitle} text={ui.join.cardHintText} C={C} />
+        <EntryNoteCard label={ui.hostTabs.lobby} title={ui.join.qrHintTitle} text={ui.join.qrHintText} C={C} />
       </div>
     </div>
   );
@@ -2947,14 +2968,8 @@ function CreateRoom({ onCreated, ui, C, S }) {
 
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
-      <div style={{ ...S.card, textAlign: "center", padding: "24px 18px 18px", background: C.bg === "#0d0d14" ? "linear-gradient(180deg, rgba(251,191,36,.11), rgba(251,191,36,.03))" : "linear-gradient(180deg, rgba(251,191,36,.10), rgba(255,255,255,.9))" }}>
-        <div style={{ width: 64, height: 64, margin: "0 auto 12px", borderRadius: 18, display: "grid", placeItems: "center", background: C.sur, border: `1px solid ${C.bdr}`, overflow: "hidden", padding: 8 }}>
-          <img src={APP_ICON} alt="Story Chaos icon" width="48" height="48" style={{ display: "block", borderRadius: 12 }} />
-        </div>
-        <div style={{ fontSize: 24, fontWeight: 800, color: C.txt, marginBottom: 6, letterSpacing: "-0.03em" }}>{ui.create.title}</div>
-        <p style={S.bt}>{ui.create.desc}</p>
-      </div>
-      <div style={{ ...S.card, padding: "18px 16px" }}>
+      <EntryHero ui={ui} C={C} title={ui.create.title} desc={ui.create.desc} accent={ACC.gold} />
+      <div style={{ ...S.card, padding: "18px 16px", marginBottom: 12 }}>
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.create.hostName}</label>
         <input value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && create()} placeholder={ui.create.namePlaceholder} maxLength={20} style={{ ...S.input, marginBottom: 14 }} />
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>
@@ -2965,6 +2980,10 @@ function CreateRoom({ onCreated, ui, C, S }) {
         <button onClick={create} disabled={loading} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginTop: 16 }}>
           {loading ? ui.create.creating : ui.create.button}
         </button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <EntryNoteCard label={ui.common.host} title={ui.create.flowTitle} text={ui.create.flowText} C={C} />
+        <EntryNoteCard label={ui.hostLobby.tvHub} title={ui.create.partyTitle} text={ui.create.partyText} C={C} />
       </div>
     </div>
   );
@@ -3113,7 +3132,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
     return (
       <div style={{ animation: "fadeIn .3s ease" }}>
         <div style={{ ...S.card, ...tvCard, maxWidth: 560, margin: "48px auto 0", textAlign: "center", padding: 22, borderColor: "rgba(251,191,36,.34)", background: "linear-gradient(180deg, rgba(28,20,8,.96), rgba(12,12,18,.96))" }}>
-          <div style={{ ...tvLabel, color: ACC.gold, marginBottom: 12 }}>TV Hub</div>
+          <div style={{ ...tvLabel, color: ACC.gold, marginBottom: 12 }}>Party Screen</div>
           <div style={{ fontSize: 24, fontWeight: 900, color: tvBody.color, marginBottom: 10 }}>{ui.tv.blockedTitle}</div>
           <div style={{ fontSize: 14, lineHeight: 1.6, color: tvMuted.color, marginBottom: 18 }}>{ui.tv.blockedDesc}</div>
           <button onClick={onLeave} style={S.pbtn(ACC.gold, "rgba(251,191,36,.10)")}>{ui.common.back}</button>
@@ -3126,7 +3145,6 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   const narrator = getVisiblePlayers(players).find((player) => player.id === narratorId);
   const audience = getAudience(players, narratorId);
   const readyCount = audience.filter((player) => player.ready).length;
-  const waitingForNarrator = room.host_name === HUB_DISPLAY_NAME && audience.length === 0;
   const lobbyLikeStatus = room.status === "waiting" || room.status === "cards";
   const compactLobbyLayout = lobbyLikeStatus && viewport.width >= 1100;
   const allVotes = Object.values(narratorVotes);
@@ -3140,7 +3158,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
       <div style={{ ...S.card, ...tvCard, marginBottom: 14, padding: tvPad, background: "linear-gradient(135deg, rgba(14,18,32,.98), rgba(18,16,12,.96))", borderColor: "rgba(255,255,255,.12)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ ...tvLabel, color: "#95b8ff", marginBottom: 6 }}>TV Hub</div>
+            <div style={{ ...tvLabel, color: "#95b8ff", marginBottom: 6 }}>Party Screen</div>
             <div style={{ fontSize: tvLarge ? 56 : viewport.isDesktop ? 46 : 30, fontWeight: 900, letterSpacing: tvLarge ? 7 : 5, color: tvBody.color, lineHeight: 1 }}>{room.id}</div>
             <div style={{ fontSize: tvLarge ? 14 : 12, color: tvMuted.color, marginTop: 6 }}>{room.host_name || narrator?.name || ui.common.host}</div>
           </div>
@@ -3175,13 +3193,6 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
                   {room.status === "cards" && `${readyCount} / ${audience.length} bereit`}
                   {room.status === "waiting" && ui.hostLobby.waiting}
                   {!["waiting", "cards"].includes(room.status) && ui.common.loading}
-                </div>
-              )}
-              {waitingForNarrator && (
-                <div style={{ marginTop: 14, padding: tvLarge ? "18px 20px" : "14px 16px", borderRadius: 16, background: "linear-gradient(180deg, rgba(52,36,10,.92), rgba(10,12,18,.92))", border: "1px solid rgba(251,191,36,.34)" }}>
-                  <div style={{ ...tvLabel, color: ACC.gold, marginBottom: 8 }}>TV Hub</div>
-                  <div style={{ fontSize: tvLarge ? 22 : 18, fontWeight: 900, color: tvBody.color, marginBottom: 6 }}>{ui.tv.waitingTitle}</div>
-                  <div style={{ fontSize: tvLarge ? 14 : 13, lineHeight: 1.55, color: tvMuted.color }}>{ui.tv.waitingDesc}</div>
                 </div>
               )}
             </div>
@@ -3221,7 +3232,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
             </div>
             {audience.length === 0 && (
               <div style={{ fontSize: 13, color: tvMuted.color, lineHeight: 1.5 }}>
-                {waitingForNarrator ? ui.tv.waitingDesc : ui.hostLobby.empty}
+                {ui.hostLobby.empty}
               </div>
             )}
           </div>}
@@ -3279,7 +3290,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
                 </div>
               ) : (
                 <div style={{ fontSize: 13, color: tvMuted.color, lineHeight: 1.5 }}>
-                  {waitingForNarrator ? ui.tv.waitingDesc : ui.hostLobby.empty}
+                  {ui.hostLobby.empty}
                 </div>
               )}
             </div>
@@ -3311,7 +3322,6 @@ export default function App() {
   const [myName, setMyName] = useState("");
   const [showDebug, setShowDebug] = useState(false);
   const [showVersion, setShowVersion] = useState(false);
-  const [creatingTvHub, setCreatingTvHub] = useState(false);
   const isGameScreen = screen === "host" || screen === "player" || screen === "tv";
   const isTvScreen = screen === "tv";
 
@@ -3356,30 +3366,6 @@ export default function App() {
     setRoomId(id);
     setMyName(name);
     setScreen("player");
-  }
-
-  async function createTvHubRoom() {
-    if (creatingTvHub) return;
-    setCreatingTvHub(true);
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    await sb.from("rooms").delete().lt("created_at", cutoff);
-    const id = roomCode();
-    const { error: createError } = await sb.from("rooms").insert({ id, host_name: HUB_DISPLAY_NAME, status: "waiting", password: null });
-    if (createError) {
-      setCreatingTvHub(false);
-      return;
-    }
-    const { data: hubPlayer, error: hubError } = await sb.from("players").insert({ room_id: id, name: HUB_PLAYER_NAME, is_host: true }).select().single();
-    if (hubError || !hubPlayer) {
-      setCreatingTvHub(false);
-      return;
-    }
-    await sb.from("rooms").update({ narrator_id: hubPlayer.id, past_narrators: [], round: 1 }).eq("id", id);
-    setRoomId(id);
-    setMyName("");
-    setScreen("tv");
-    window.history.replaceState({}, "", `/?room=${id}&lang=${lang}&view=tv`);
-    setCreatingTvHub(false);
   }
 
   function handleLeave() {
@@ -3445,31 +3431,35 @@ export default function App() {
         <main>
           {screen === "home" && (
             <div style={{ animation: "fadeIn .3s ease" }}>
-              <div style={{ ...S.card, textAlign: "center", padding: "26px 16px 18px", marginBottom: 14, borderRadius: 16, background: dark ? "linear-gradient(180deg, rgba(28,28,40,.96), rgba(22,22,31,.96))" : "linear-gradient(180deg, rgba(255,255,255,.98), rgba(244,246,252,.98))", boxShadow: dark ? "0 12px 40px rgba(0,0,0,.24)" : "0 18px 45px rgba(15,23,42,.08)" }}>
-                <div style={{ width: 70, height: 70, margin: "0 auto 14px", borderRadius: 20, display: "grid", placeItems: "center", background: dark ? "linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02))" : "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))", border: `1px solid ${dark ? "rgba(255,255,255,.08)" : "rgba(96,165,250,.18)"}`, overflow: "hidden", padding: 9 }}>
-                  <img src={APP_ICON} alt="Story Chaos icon" width="52" height="52" style={{ display: "block", borderRadius: 14 }} />
-                </div>
-                <div style={{ fontSize: 28, fontWeight: 800, color: C.txt, marginBottom: 8, letterSpacing: "-0.03em" }}>{ui.home.welcome}</div>
-                <p style={{ ...S.bt, fontSize: 15, lineHeight: 1.65, marginBottom: 22, maxWidth: 290, marginInline: "auto" }}>{ui.home.desc}</p>
-                <button onClick={() => setScreen("create")} style={{ ...S.pbtn(ACC.blue, dark ? "linear-gradient(180deg, rgba(96,165,250,.18), rgba(96,165,250,.08))" : "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))"), marginBottom: 10, minHeight: 56, borderRadius: 13, boxShadow: "0 0 0 1px rgba(96,165,250,.18) inset" }}>{ui.home.newGame}</button>
-                <button onClick={createTvHubRoom} disabled={creatingTvHub} style={{ ...S.pbtn(ACC.gold, "rgba(251,191,36,.08)"), marginBottom: 10, minHeight: 50, borderRadius: 13 }}>
-                  {creatingTvHub ? ui.home.creatingTvHub : ui.home.tvHub}
-                </button>
-                <button onClick={() => setScreen("join")} style={{ ...S.pbtn(C.bdr, C.sur), minHeight: 54, borderRadius: 13, color: C.txt, background: dark ? "rgba(255,255,255,.02)" : "rgba(255,255,255,.7)" }}>{ui.home.joinRoom}</button>
-              </div>
-              <div style={{ ...S.card, padding: "16px 16px 12px", borderRadius: 16, background: dark ? "rgba(24,24,35,.92)" : "rgba(255,255,255,.92)", boxShadow: dark ? "0 10px 30px rgba(0,0,0,.18)" : "0 16px 40px rgba(15,23,42,.06)" }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2.2, textTransform: "uppercase", color: C.muted, marginBottom: 12 }}>{ui.home.howItWorks}</div>
-                {ui.home.steps.map((step, index) => (
-                  <div key={index} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 0", borderBottom: index < ui.home.steps.length - 1 ? `1px solid ${C.bdr}` : "none" }}>
-                    <span style={{ fontSize: 13, color: ACC.blue, fontWeight: 800, minWidth: 22, paddingTop: 1 }}>{index + 1}.</span>
-                    <span style={{ fontSize: 13.5, color: C.txt, lineHeight: 1.45 }}>{step}</span>
+              <div style={{ ...S.card, textAlign: "left", padding: "22px 18px 18px", marginBottom: 14, borderRadius: 18, background: dark ? "linear-gradient(180deg, rgba(24,28,42,.98), rgba(18,20,30,.96))" : "linear-gradient(180deg, rgba(255,255,255,.98), rgba(243,247,255,.98))", boxShadow: dark ? "0 12px 40px rgba(0,0,0,.24)" : "0 18px 45px rgba(15,23,42,.08)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+                  <div style={{ width: 72, height: 72, display: "grid", placeItems: "center", filter: "drop-shadow(0 10px 24px rgba(0,0,0,.26))" }}>
+                    <img src={APP_ICON} alt="Story Chaos icon" width="66" height="66" style={{ display: "block", objectFit: "contain" }} />
                   </div>
-                ))}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2.4, textTransform: "uppercase", color: C.muted, marginBottom: 6 }}>{ui.subtitle}</div>
+                    <div style={{ fontSize: 34, fontWeight: 900, color: C.txt, letterSpacing: "-0.05em", lineHeight: 0.92 }}>Story Chaos</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 30, fontWeight: 800, color: C.txt, marginBottom: 8, letterSpacing: "-0.04em" }}>{ui.home.welcome}</div>
+                <p style={{ ...S.bt, fontSize: 15, lineHeight: 1.62, marginBottom: 18 }}>{ui.home.desc}</p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
+                  <button onClick={() => setScreen("create")} style={{ ...S.pbtn(ACC.blue, dark ? "linear-gradient(180deg, rgba(96,165,250,.18), rgba(96,165,250,.08))" : "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))"), minHeight: 56, borderRadius: 13, boxShadow: "0 0 0 1px rgba(96,165,250,.18) inset" }}>{ui.home.newGame}</button>
+                  <button onClick={() => setScreen("join")} style={{ ...S.pbtn(C.bdr, C.sur), minHeight: 52, borderRadius: 13, color: C.txt, background: dark ? "rgba(255,255,255,.02)" : "rgba(255,255,255,.7)" }}>{ui.home.joinRoom}</button>
+                </div>
+              </div>
+              <div style={{ ...S.card, padding: "16px", borderRadius: 16, background: dark ? "rgba(24,24,35,.92)" : "rgba(255,255,255,.92)", boxShadow: dark ? "0 10px 30px rgba(0,0,0,.18)" : "0 16px 40px rgba(15,23,42,.06)" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2.2, textTransform: "uppercase", color: C.muted, marginBottom: 12 }}>{ui.home.howItWorks}</div>
+                <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr 1fr" : "1fr", gap: 10 }}>
+                  {ui.home.highlights.map((item) => (
+                    <EntryNoteCard key={item.title} label={ui.home.howItWorks} title={item.title} text={item.text} C={C} />
+                  ))}
+                </div>
               </div>
             </div>
           )}
-          {screen === "create" && <div><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><CreateRoom onCreated={handleCreated} ui={ui} C={C} S={S} /></div>}
-          {screen === "join" && <div><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><JoinScreen initialCode={urlRoom || ""} onJoined={handleJoined} ui={ui} C={C} S={S} /></div>}
+          {screen === "create" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><CreateRoom onCreated={handleCreated} ui={ui} C={C} S={S} /></div>}
+          {screen === "join" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><JoinScreen initialCode={urlRoom || ""} onJoined={handleJoined} ui={ui} C={C} S={S} /></div>}
           {screen === "host" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onOpenTv={handleOpenTv} />}
           {screen === "player" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} />}
           {screen === "tv" && <TVScreen roomId={roomId} lang={lang} ui={ui} C={C} S={S} onLeave={handleLeave} tvKey={urlTvKey} />}
