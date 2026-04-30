@@ -625,6 +625,33 @@ function pick(list, rng) {
   return list[Math.floor(rng() * list.length)];
 }
 
+const SAFE_MENTION_TEMPLATES = {
+  de: {
+    first: [
+      (a, b) => `Noch klang alles harmlos, bis ausgerechnet **${a}** Thema wurde. Als kurz darauf auch **${b}** fiel, bekam selbst das Schweigen im Raum schlechte Schauspielerqualitaeten.`,
+      (a, b) => `Jemand brachte ploetzlich **${a}** ins Gespraech, und sofort wirkte die Runde eine Spur zu aufmerksam. Bei **${b}** wurde das Ganze dann so auffaellig beilaufig, dass genau das schon wieder komisch war.`,
+      (a, b) => `Sobald das Stichwort **${a}** im Raum stand, wurden mehrere Gesichter gleichzeitig sehr beschaeftigt. Als wenig spaeter auch **${b}** erwaehnt wurde, war die gespielte Gelassenheit endgueltig zu ehrgeizig.`,
+    ],
+    second: [
+      (a, b) => `Spaeter kam **${a}** noch einmal zur Sprache, diesmal als so schlechte Erklaerung, dass mehrere Leute sofort verdaechtig ruhig wurden. Als direkt danach wieder **${b}** auftauchte, war das Pokerface der Runde praktisch nur noch Dekoration.`,
+      (a, b) => `Kurz vor Schluss wurde **${a}** erneut eingeworfen, als wuerde das irgendwen beruhigen. Bei **${b}** war dann endgueltig klar, dass hier mehrere Menschen gleichzeitig viel zu elegant scheiterten.`,
+      (a, b) => `Gerade als sich alle wieder gefangen hatten, kam **${a}** noch einmal auf. Als wenig spaeter erneut **${b}** fiel, kippte die Stimmung wieder in genau dieses herrlich verdaechtige Halbgrinsen.`,
+    ],
+  },
+  en: {
+    first: [
+      (a, b) => `Everything still sounded harmless until **${a}** suddenly became a topic. When **${b}** came up right after that, even the silence in the room developed terrible acting skills.`,
+      (a, b) => `Someone casually brought **${a}** into the conversation, and the whole group became one shade too attentive. By the time **${b}** was mentioned as well, the fake calm had become the funniest part of the room.`,
+      (a, b) => `The moment **${a}** entered the conversation, several faces found urgent reasons to look elsewhere. When **${b}** appeared shortly after, the shared poker face was already working overtime.`,
+    ],
+    second: [
+      (a, b) => `Later, **${a}** came up again as such a weak explanation that several people instantly became suspiciously quiet. When **${b}** followed right after, the group's self-control was basically decorative.`,
+      (a, b) => `Near the end, **${a}** was thrown in again as if that should calm anyone down. Once **${b}** returned as well, it was obvious that several people were failing very elegantly at staying casual.`,
+      (a, b) => `Just when everybody had almost recovered, **${a}** resurfaced. When **${b}** showed up again a moment later, the mood slipped straight back into that delightful half-smiling suspicion.`,
+    ],
+  },
+};
+
 function getSceneTemplateBank(lang, genreId, pass) {
   const banks = {
     de: {
@@ -812,7 +839,7 @@ function normalizeGenreId(lang, genreId) {
 }
 
 function buildWordPass(words, lang, genreId, pass, rng) {
-  const templates = getSceneTemplateBank(lang, genreId, pass);
+  const templates = SAFE_MENTION_TEMPLATES[lang]?.[pass === 0 ? "first" : "second"] || getSceneTemplateBank(lang, genreId, pass);
   const fragments = [];
   const rotated = [...words];
   if (pass === 1 && rotated.length > 1) {
@@ -834,7 +861,7 @@ export function countBackupVariants(lang, genreId) {
   const actualGenre = normalizeGenreId(lang, genreId);
   const bank = BACKUP_STORY_BANKS[lang]?.[actualGenre];
   if (!bank) return 0;
-  const templateCount = Math.max(getSceneTemplateBank(lang, actualGenre, 0).length, 1) * Math.max(getSceneTemplateBank(lang, actualGenre, 1).length, 1);
+  const templateCount = Math.max((SAFE_MENTION_TEMPLATES[lang]?.first || []).length, 1) * Math.max((SAFE_MENTION_TEMPLATES[lang]?.second || []).length, 1);
   return bank.openers.length
     * bank.settings.length
     * bank.complications.length

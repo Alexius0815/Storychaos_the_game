@@ -1235,14 +1235,14 @@ function analyzeStory(text, words, minChars) {
 
 function buildRepairSentence(word, contentLang, index = 0) {
   const de = [
-    `Dabei wurde **${word}** spaeter noch einmal als erstaunlich schlechte Erklaerung benutzt, und genau dadurch wurde die Szene erst richtig lustig.`,
-    `Kurz danach kam **${word}** erneut auf den Tisch, diesmal so betont laessig, dass es sofort wieder verdaechtig wirkte.`,
-    `Spaeter tauchte **${word}** noch einmal auf, jetzt mit genau der Energie eines Details, auf das eigentlich niemand zu deutlich reagieren wollte.`,
+    `Dabei kam **${word}** spaeter noch einmal zur Sprache, und genau diese betont lockere Erwaehnung machte alles erst richtig komisch.`,
+    `Kurz danach fiel **${word}** erneut, diesmal so laessig, dass es sofort wieder verdaechtig wirkte.`,
+    `Spaeter wurde **${word}** noch einmal eingeworfen, mit genau der Energie eines Details, auf das eigentlich niemand zu deutlich reagieren wollte.`,
   ];
   const en = [
-    `A moment later, **${word}** was used as a remarkably bad explanation, which somehow made the whole scene much funnier.`,
-    `Soon after that, **${word}** came up again in such an overly casual way that it became suspicious immediately.`,
-    `Later, **${word}** returned with exactly the kind of energy nobody wanted to react to too obviously.`,
+    `A moment later, **${word}** came up again, and that overly relaxed mention somehow made the whole scene funnier.`,
+    `Soon after that, **${word}** returned in such a casual way that it became suspicious immediately.`,
+    `Later, **${word}** was mentioned again with exactly the kind of energy nobody wanted to react to too obviously.`,
   ];
   const bank = contentLang === "de" ? de : en;
   return bank[index % bank.length];
