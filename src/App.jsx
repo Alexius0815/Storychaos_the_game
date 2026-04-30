@@ -214,6 +214,8 @@ const UI = {
       empty: "Noch niemand… QR-Code scannen!",
       waiting: "Warte auf Mitspieler…",
       start: (n) => `Spiel starten mit ${n} Spieler${n !== 1 ? "n" : ""} →`,
+      removePlayer: "Entfernen",
+      removingPlayer: "Entferne…",
       tvHub: "Party Screen öffnen",
       tvTitle: "Gemeinsamen Screen verbinden",
       tvDesc: "Optional für TV, Beamer oder zweiten Browser. Der Raum läuft auch ohne ihn.",
@@ -224,6 +226,8 @@ const UI = {
       inviteView: "Einladen",
       playersView: "Mitspieler",
       tvProtectedHint: "Der Party-Screen-Link ist geschützt und funktioniert nur über diesen Button im laufenden Raum.",
+      confirmRemovePlayer: (name) => `Willst du ${name} wirklich aus dem Raum entfernen?`,
+      removePlayerError: "Der Mitspieler konnte nicht entfernt werden. Bitte nochmal versuchen.",
     },
     cards: {
       title: "🎴 Runde vorbereiten",
@@ -390,6 +394,7 @@ const UI = {
       voteView: "Abstimmen",
       takeOverTitle: "Kein aktiver Erzähler",
       takeOverDesc: "Der bisherige Erzähler scheint nicht mehr verbunden zu sein. Du kannst den Raum übernehmen und weiterspielen.",
+      kicked: "Du wurdest vom Erzähler aus dem Raum entfernt.",
     },
     tv: {
       blockedTitle: "Party Screen gesperrt",
@@ -526,6 +531,8 @@ const UI = {
       empty: "No one yet… scan the QR code!",
       waiting: "Waiting for players…",
       start: (n) => `Start game with ${n} player${n !== 1 ? "s" : ""} →`,
+      removePlayer: "Remove",
+      removingPlayer: "Removing…",
       tvHub: "Open Party Screen",
       tvTitle: "Connect a shared screen",
       tvDesc: "Optional for TV, projector, or a second browser. The room works without it.",
@@ -536,6 +543,8 @@ const UI = {
       inviteView: "Invite",
       playersView: "Players",
       tvProtectedHint: "The Party Screen link is protected and only works through this button in the live room.",
+      confirmRemovePlayer: (name) => `Do you really want to remove ${name} from the room?`,
+      removePlayerError: "The player could not be removed. Please try again.",
     },
     cards: {
       title: "🎴 Prepare round",
@@ -702,6 +711,7 @@ const UI = {
       voteView: "Vote",
       takeOverTitle: "No active narrator",
       takeOverDesc: "The previous narrator seems to be offline. You can take over the room and continue the game.",
+      kicked: "The narrator removed you from the room.",
     },
     tv: {
       blockedTitle: "Party Screen locked",
@@ -1606,13 +1616,14 @@ function ExitIconButton({ onClick, label, C, S }) {
   );
 }
 
-function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv }) {
+function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv, onRemovePlayer }) {
   const narratorId = getNarratorId(room, players);
   const others = getAudience(players, narratorId);
   const joinUrl = `${APP_URL}?room=${room.id}&lang=${gameLang}`;
   const tvUrl = `${APP_URL}?room=${room.id}&lang=${lang}&view=tv${room?.password ? `&tv=${encodeURIComponent(room.password)}` : ""}`;
   const [view, setView] = useState("invite");
   const [copied, setCopied] = useState(false);
+  const [removingPlayerId, setRemovingPlayerId] = useState(null);
 
   async function copyTvLink() {
     try {
@@ -1620,6 +1631,18 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv 
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {}
+  }
+
+  async function handleRemovePlayer(player) {
+    if (!onRemovePlayer || removingPlayerId) return;
+    const confirmed = window.confirm(ui.hostLobby.confirmRemovePlayer(player.name));
+    if (!confirmed) return;
+    setRemovingPlayerId(player.id);
+    const ok = await onRemovePlayer(player);
+    if (!ok) {
+      window.alert(ui.hostLobby.removePlayerError);
+    }
+    setRemovingPlayerId(null);
   }
 
   return (
@@ -1674,6 +1697,13 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv 
                   <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: `1px solid ${C.bdr}` }}>
                     <span style={{ width: 8, height: 8, borderRadius: "50%", background: ACC.green, flexShrink: 0 }} />
                     <span style={{ fontSize: 15, fontWeight: 600, color: C.txt, flex: 1 }}>{player.name}</span>
+                    <button
+                      onClick={() => handleRemovePlayer(player)}
+                      disabled={removingPlayerId === player.id}
+                      style={{ ...S.sbtn(ACC.red), background: "rgba(248,113,113,.08)", borderColor: "rgba(248,113,113,.24)" }}
+                    >
+                      {removingPlayerId === player.id ? ui.hostLobby.removingPlayer : ui.hostLobby.removePlayer}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -2662,6 +2692,11 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
     onLeave();
   }
 
+  async function removePlayer(player) {
+    const { error } = await sb.from("players").delete().eq("id", player.id);
+    return !error;
+  }
+
   const tabs = [
     { id: "lobby", icon: "🏠", label: ui.hostTabs.lobby },
     { id: "cards", icon: "🎴", label: ui.hostTabs.cards },
@@ -2725,7 +2760,7 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
           ))}
         </div>
       </nav>
-      {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} onStart={() => setTab("cards")} onOpenTv={onOpenTv} />}
+      {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} onStart={() => setTab("cards")} onOpenTv={onOpenTv} onRemovePlayer={removePlayer} />}
       {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} lang={lang} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setAwardedPlayerIds([]); setTab("ready"); }} />}
       {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onAllReady={() => setTab("story")} />}
       {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} onOpenResolution={openResolution} />}
@@ -2758,6 +2793,8 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
         setIsReady(!!currentPlayer.ready);
         setRerolled(!!currentPlayer.rerolled);
         setContentLang((current) => detectLanguageFromSample(currentPlayer.secret_word, currentPlayer.secret_action, current));
+      } else {
+        setPlayer(null);
       }
     }
     load();
@@ -2772,6 +2809,12 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
             vibrate([100, 50, 200]);
             setCardRevealed({ word: false, action: false });
           }
+        }
+      })
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "players", filter: `room_id=eq.${roomId}` }, (payload) => {
+        if (payload.old?.name === playerName) {
+          window.alert(ui.player.kicked);
+          onLeave();
         }
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "rooms", filter: `id=eq.${roomId}` }, (payload) => setRoom(payload.new))
@@ -2789,7 +2832,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
       sb.removeChannel(channel);
       sb.removeChannel(voteChannel);
     };
-  }, [roomId, playerName, setContentLang]);
+  }, [roomId, playerName, setContentLang, onLeave, ui.player.kicked]);
 
   async function doReroll() {
     const storyStarted = !!room?.story || ["playing", "revealed", "voting", "voted"].includes(room?.status);
