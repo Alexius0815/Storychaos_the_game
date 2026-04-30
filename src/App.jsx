@@ -214,7 +214,7 @@ const UI = {
       empty: "Noch niemand… QR-Code scannen!",
       waiting: "Warte auf Mitspieler…",
       start: (n) => `Spiel starten mit ${n} Spieler${n !== 1 ? "n" : ""} →`,
-      removePlayer: "Entfernen",
+      removePlayer: "Mitspieler entfernen",
       removingPlayer: "Entferne…",
       tvHub: "Party Screen öffnen",
       tvTitle: "Gemeinsamen Screen verbinden",
@@ -227,6 +227,7 @@ const UI = {
       playersView: "Mitspieler",
       tvProtectedHint: "Der Party-Screen-Link ist geschützt und funktioniert nur über diesen Button im laufenden Raum.",
       confirmRemovePlayer: (name) => `Willst du ${name} wirklich aus dem Raum entfernen?`,
+      confirmRemovePlayerRunning: (name) => `${name} ist bereits in einer laufenden Runde. Wirklich jetzt entfernen?`,
       removePlayerError: "Der Mitspieler konnte nicht entfernt werden. Bitte nochmal versuchen.",
     },
     cards: {
@@ -531,7 +532,7 @@ const UI = {
       empty: "No one yet… scan the QR code!",
       waiting: "Waiting for players…",
       start: (n) => `Start game with ${n} player${n !== 1 ? "s" : ""} →`,
-      removePlayer: "Remove",
+      removePlayer: "Remove player",
       removingPlayer: "Removing…",
       tvHub: "Open Party Screen",
       tvTitle: "Connect a shared screen",
@@ -544,6 +545,7 @@ const UI = {
       playersView: "Players",
       tvProtectedHint: "The Party Screen link is protected and only works through this button in the live room.",
       confirmRemovePlayer: (name) => `Do you really want to remove ${name} from the room?`,
+      confirmRemovePlayerRunning: (name) => `${name} is already in a live round. Remove them anyway?`,
       removePlayerError: "The player could not be removed. Please try again.",
     },
     cards: {
@@ -1616,6 +1618,37 @@ function ExitIconButton({ onClick, label, C, S }) {
   );
 }
 
+function RemovePlayerIconButton({ onClick, label, busy, C, S }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={busy}
+      title={busy ? `${label}…` : label}
+      aria-label={busy ? `${label}…` : label}
+      style={{
+        ...S.sbtn(ACC.red),
+        width: 30,
+        height: 30,
+        minWidth: 30,
+        padding: 0,
+        borderRadius: 999,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 14,
+        fontWeight: 800,
+        lineHeight: 1,
+        background: busy ? "rgba(248,113,113,.14)" : "rgba(248,113,113,.06)",
+        borderColor: "rgba(248,113,113,.22)",
+        opacity: busy ? 0.7 : 0.9,
+        cursor: busy ? "wait" : "pointer",
+      }}
+    >
+      {busy ? "…" : "✕"}
+    </button>
+  );
+}
+
 function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv, onRemovePlayer }) {
   const narratorId = getNarratorId(room, players);
   const others = getAudience(players, narratorId);
@@ -1635,7 +1668,12 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv,
 
   async function handleRemovePlayer(player) {
     if (!onRemovePlayer || removingPlayerId) return;
-    const confirmed = window.confirm(ui.hostLobby.confirmRemovePlayer(player.name));
+    const runningRound = room?.status && !["waiting", "cards"].includes(room.status);
+    const confirmed = window.confirm(
+      runningRound
+        ? ui.hostLobby.confirmRemovePlayerRunning(player.name)
+        : ui.hostLobby.confirmRemovePlayer(player.name)
+    );
     if (!confirmed) return;
     setRemovingPlayerId(player.id);
     const ok = await onRemovePlayer(player);
@@ -1694,16 +1732,28 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv,
             ) : (
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                 {others.map((player) => (
-                  <li key={player.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: `1px solid ${C.bdr}` }}>
+                  <li
+                    key={player.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 0",
+                      borderBottom: `1px solid ${C.bdr}`,
+                      opacity: removingPlayerId === player.id ? 0.45 : 1,
+                      transform: removingPlayerId === player.id ? "scale(.985)" : "scale(1)",
+                      transition: "opacity .18s ease, transform .18s ease",
+                    }}
+                  >
                     <span style={{ width: 8, height: 8, borderRadius: "50%", background: ACC.green, flexShrink: 0 }} />
                     <span style={{ fontSize: 15, fontWeight: 600, color: C.txt, flex: 1 }}>{player.name}</span>
-                    <button
+                    <RemovePlayerIconButton
                       onClick={() => handleRemovePlayer(player)}
-                      disabled={removingPlayerId === player.id}
-                      style={{ ...S.sbtn(ACC.red), background: "rgba(248,113,113,.08)", borderColor: "rgba(248,113,113,.24)" }}
-                    >
-                      {removingPlayerId === player.id ? ui.hostLobby.removingPlayer : ui.hostLobby.removePlayer}
-                    </button>
+                      busy={removingPlayerId === player.id}
+                      label={ui.hostLobby.removePlayer}
+                      C={C}
+                      S={S}
+                    />
                   </li>
                 ))}
               </ul>
