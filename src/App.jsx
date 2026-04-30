@@ -1235,14 +1235,14 @@ function analyzeStory(text, words, minChars) {
 
 function buildRepairSentence(word, contentLang, index = 0) {
   const de = [
-    `Dabei fiel plötzlich wieder **${word}** auf, obwohl zuerst niemand darauf reagieren wollte.`,
-    `Kurz danach tauchte **${word}** noch einmal auf, diesmal in einem völlig anderen Zusammenhang.`,
-    `Später wurde **${word}** erneut erwähnt, und genau das machte die Szene erst richtig verdächtig.`,
+    `Dabei wurde **${word}** spaeter noch einmal als erstaunlich schlechte Erklaerung benutzt, und genau dadurch wurde die Szene erst richtig lustig.`,
+    `Kurz danach kam **${word}** erneut auf den Tisch, diesmal so betont laessig, dass es sofort wieder verdaechtig wirkte.`,
+    `Spaeter tauchte **${word}** noch einmal auf, jetzt mit genau der Energie eines Details, auf das eigentlich niemand zu deutlich reagieren wollte.`,
   ];
   const en = [
-    `A moment later, **${word}** came up again, even though nobody wanted to react to it.`,
-    `Soon after that, **${word}** appeared once more in a completely different context.`,
-    `Later, **${word}** was mentioned again, which made the whole scene feel much more suspicious.`,
+    `A moment later, **${word}** was used as a remarkably bad explanation, which somehow made the whole scene much funnier.`,
+    `Soon after that, **${word}** came up again in such an overly casual way that it became suspicious immediately.`,
+    `Later, **${word}** returned with exactly the kind of energy nobody wanted to react to too obviously.`,
   ];
   const bank = contentLang === "de" ? de : en;
   return bank[index % bank.length];
@@ -1250,14 +1250,14 @@ function buildRepairSentence(word, contentLang, index = 0) {
 
 function buildPaddingSentence(contentLang, index = 0) {
   const de = [
-    "Je länger die Geschichte wurde, desto mehr wirkten die kleinen Reaktionen wie geheime Hinweise.",
-    "Niemand wollte zu deutlich sein, aber gerade dieses bemühte Unauffälligsein machte alles noch verdächtiger.",
-    "Am Ende passte nicht jedes Detail logisch zusammen, doch genau das machte die Runde so unterhaltsam.",
+    "Je laenger die Szene lief, desto klarer wurde, dass hier weniger die Geschichte als die Gesichter die groesste Show lieferten.",
+    "Niemand wollte zu viel verraten, aber genau dieses uebermotivierte Nicht-Reagieren machte alles erst richtig unterhaltsam.",
+    "Am Ende lebte die Geschichte weniger von Logik als von herrlich schlechtem Timing und viel zu ehrgeizigen Pokerfaces.",
   ];
   const en = [
-    "The longer the story went on, the more every tiny reaction felt like a hidden clue.",
-    "Nobody wanted to be too obvious, but that effort to stay subtle made everything look even more suspicious.",
-    "By the end, not every detail made perfect sense, but that was exactly what made the round so entertaining.",
+    "The longer the scene went on, the clearer it became that the faces were putting on the real show.",
+    "Nobody wanted to reveal too much, but that overcommitted effort to stay subtle made everything more entertaining.",
+    "By the end, the story lived less from logic than from terrible timing and wildly ambitious poker faces.",
   ];
   const bank = contentLang === "de" ? de : en;
   return bank[index % bank.length];
@@ -1577,6 +1577,32 @@ function DebugPanel({ onClose, C, S, ui }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function ExitIconButton({ onClick, label, C, S }) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      style={{
+        ...S.sbtn(C.muted),
+        width: 34,
+        height: 34,
+        minWidth: 34,
+        padding: 0,
+        borderRadius: 999,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 16,
+        fontWeight: 800,
+        lineHeight: 1,
+      }}
+    >
+      ⎋
+    </button>
   );
 }
 
@@ -2687,7 +2713,7 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
           <button onClick={deleteRoom} disabled={deletingRoom} style={{ ...S.sbtn(C.muted), borderColor: "rgba(248,113,113,.3)", color: ACC.redl, background: "transparent", opacity: deletingRoom ? 0.7 : 0.9, fontSize: 11, padding: "8px 10px" }}>
             {deletingRoom ? ui.common.deleting : ui.common.deleteRoom}
           </button>
-          <button onClick={onLeave} style={{ ...S.sbtn(C.muted), fontSize: 11, padding: "8px 10px" }}>{ui.common.leave}</button>
+          <ExitIconButton onClick={onLeave} label={ui.common.leave} C={C} S={S} />
         </div>
       </div>
       <nav>
@@ -2817,9 +2843,17 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
   return (
     <div>
       <div style={{ ...S.card, borderColor: "rgba(96,165,250,.3)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))", textAlign: "center", padding: "12px 18px" }}>
-        <div style={{ fontSize: 11, color: C.muted, marginBottom: 2 }}>{ui.player.inRoom}</div>
-        <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: 4, color: C.txt }}>{roomId}</div>
-        <div style={{ fontSize: 13, color: ACC.blue, marginTop: 2 }}>{ui.player.as} {playerName}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "34px 1fr 34px", alignItems: "start", gap: 10 }}>
+          <div />
+          <div>
+            <div style={{ fontSize: 11, color: C.muted, marginBottom: 2 }}>{ui.player.inRoom}</div>
+            <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: 4, color: C.txt }}>{roomId}</div>
+            <div style={{ fontSize: 13, color: ACC.blue, marginTop: 2 }}>{ui.player.as} {playerName}</div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <ExitIconButton onClick={onLeave} label={ui.common.leaveRoom} C={C} S={S} />
+          </div>
+        </div>
       </div>
 
       <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
@@ -2955,10 +2989,6 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
           </div>
         </div>
       )}
-
-      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-        <button onClick={onLeave} style={{ ...S.sbtn(C.muted), opacity: 0.8 }}>{ui.common.leaveRoom}</button>
-      </div>
     </div>
   );
 }

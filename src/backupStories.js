@@ -625,33 +625,184 @@ function pick(list, rng) {
   return list[Math.floor(rng() * list.length)];
 }
 
-function chooseTemplate(index, pass, lang) {
-  const deFirst = [
-    (a, b) => `Zuerst fiel ausgerechnet **${a}** auf, kurz darauf bekam auch **${b}** mehr Aufmerksamkeit, als irgendwem lieb sein konnte.`,
-    (a, b) => `Mitten in der Szene wurde plötzlich **${a}** erwähnt, und fast im selben Atemzug tauchte auch **${b}** auf.`,
-    (a, b) => `Noch wirkte alles harmlos, bis **${a}** auffällig wichtig wurde und **${b}** direkt danach ebenfalls eine Rolle spielte.`,
-    (a, b) => `Gerade als man sich sicher fühlte, schob sich **${a}** in den Mittelpunkt, gefolgt von **${b}**, das niemand so schnell erwartet hatte.`,
-  ];
-  const deSecond = [
-    (a, b) => `Später kam **${a}** noch einmal zurück, diesmal in einem ganz anderen Zusammenhang, und auch **${b}** wurde erneut verdächtig präsent.`,
-    (a, b) => `Ein paar Sätze später tauchte **${a}** wieder auf, während **${b}** plötzlich so selbstverständlich klang, dass es sofort misstrauisch machte.`,
-    (a, b) => `Als die Lage schon kompliziert genug war, wurde **${a}** erneut wichtig, und **${b}** bekam gleich danach eine zweite, sehr fragwürdige Bühne.`,
-    (a, b) => `Niemand war darauf vorbereitet, dass **${a}** noch einmal auftauchen würde, doch kurz darauf stand auch **${b}** wieder mitten im Geschehen.`,
-  ];
-  const enFirst = [
-    (a, b) => `First, **${a}** suddenly became important, and moments later **${b}** drew much more attention than anyone wanted.`,
-    (a, b) => `Right in the middle of the scene, **${a}** came up, and **${b}** followed almost immediately after.`,
-    (a, b) => `Everything still looked harmless until **${a}** became oddly central and **${b}** slipped into the story right after it.`,
-    (a, b) => `Just when the scene felt safe, **${a}** moved into focus, followed by **${b}**, which nobody expected that quickly.`,
-  ];
-  const enSecond = [
-    (a, b) => `Later, **${a}** returned in a completely different context, and **${b}** also showed up again in a suspiciously natural way.`,
-    (a, b) => `A few lines later, **${a}** appeared once more, while **${b}** sounded so casual that it became suspicious instantly.`,
-    (a, b) => `When the situation was already messy enough, **${a}** became important again, and **${b}** received an equally questionable second entrance.`,
-    (a, b) => `Nobody was prepared for **${a}** to return, but shortly after that **${b}** was back in the middle of everything too.`,
-  ];
-  const bank = lang === "de" ? (pass === 0 ? deFirst : deSecond) : (pass === 0 ? enFirst : enSecond);
-  return bank[index % bank.length];
+function getSceneTemplateBank(lang, genreId, pass) {
+  const banks = {
+    de: {
+      alltag: {
+        first: [
+          (a, b) => `Im ganz normalen Alltag hielt plötzlich jemand **${a}** für absolut dringend, während bei **${b}** mehrere Leute so taten, als hätten sie dazu ganz sicher keine Meinung.`,
+          (a, b) => `An der harmlosesten Stelle der Geschichte entwickelte sich ausgerechnet um **${a}** eine Diskussion, und bei **${b}** wurde verdächtig schnell auf den Boden geschaut.`,
+          (a, b) => `Jemand erklärte mit viel zu ernster Stimme, **${a}** sei heute "wirklich wichtig", und kaum fiel **${b}**, klang jedes Hüsteln plötzlich wie ein Geständnis.`,
+        ],
+        second: [
+          (a, b) => `Später diente **${a}** auf einmal als erstaunlich schlechte Ausrede, und **${b}** wurde so übertrieben beiläufig erwähnt, dass es sofort wieder verdächtig wurde.`,
+          (a, b) => `Kurz vor Schluss tauchte **${a}** erneut auf, diesmal angeblich ganz zufällig, während bei **${b}** mehrere Gesichter gleichzeitig viel zu ruhig wurden.`,
+          (a, b) => `Als eigentlich schon alles geklärt schien, wurde **${a}** noch einmal in den Raum geworfen, und **${b}** bekam sofort die Aura eines sehr schlechten Geheimnisses.`,
+        ],
+      },
+      urlaub: {
+        first: [
+          (a, b) => `Mitten im Ferienmodus behauptete jemand, ohne **${a}** könne dieser Tag unmöglich funktionieren, und bei **${b}** wirkte die ganze Reisegruppe plötzlich erschreckend aufmerksam.`,
+          (a, b) => `Eigentlich sollte niemand diskutieren, doch rund um **${a}** entstand sofort Urlaubsdrama, während **${b}** behandelt wurde, als müsse es heimlich mit ins Handgepäck.`,
+          (a, b) => `Noch bevor die Szene richtig losging, klang **${a}** wie ein fragwürdiger Geheimtipp, und bei **${b}** schaute plötzlich jeder so, als hätte das Hotel Wände aus Papier.`,
+        ],
+        second: [
+          (a, b) => `Später wurde **${a}** als vollkommen normale Ferienidee verkauft, was ungefähr so glaubwürdig war wie Sand in der Bettdecke, und **${b}** machte die Sache endgültig verdächtig.`,
+          (a, b) => `Kurz darauf kam **${a}** erneut auf, diesmal als herrlich schlechte Reisebegründung, während **${b}** mehrere Leute in eine verdächtige Urlaubsstille schickte.`,
+          (a, b) => `Als man dachte, die Sache sei vorbei, bekam **${a}** noch einen zweiten Auftritt, und **${b}** klang plötzlich wie etwas, das man besser nie beim Check-in erklärt.`,
+        ],
+      },
+      party: {
+        first: [
+          (a, b) => `Auf der Party bestand ausgerechnet jemand darauf, dass **${a}** "gut für die Stimmung" sei, und als kurz darauf **${b}** fiel, studierten mehrere Leute schlagartig sehr intensiv ihre Getränke.`,
+          (a, b) => `Mitten zwischen Musik und Snacks wurde **${a}** so ernst verteidigt, als hinge der Abend davon ab, während **${b}** die Art von Schweigen auslöste, die nur auf Partys richtig lustig ist.`,
+          (a, b) => `Jemand verkündete mit der Überzeugung eines schlechten DJs, **${a}** gehöre einfach dazu, und bei **${b}** wirkte plötzlich sogar das Konfetti skeptisch.`,
+        ],
+        second: [
+          (a, b) => `Später wurde **${a}** als Ausrede für das ganze Durcheinander benutzt, und **${b}** klang so verdächtig beiläufig, dass sofort wieder mehrere Augenbrauen hochgingen.`,
+          (a, b) => `Kurz vor dem Höhepunkt tauchte **${a}** erneut auf, diesmal mit der Energie einer sehr schlechten Idee, und **${b}** machte den Raum endgültig zu einem kleinen Reaktionslabor.`,
+          (a, b) => `Als schon alle so taten, als sei wieder alles normal, fiel **${a}** noch einmal, und **${b}** sorgte direkt dafür, dass das kollektiv gespielte Pokerface krachend zusammenfiel.`,
+        ],
+      },
+      arbeit: {
+        first: [
+          (a, b) => `Im Meeting wurde **${a}** plötzlich behandelt, als stünde es offiziell auf der Tagesordnung, und bei **${b}** sah man mehreren Leuten an, dass ihr professioneller Gesichtsausdruck gerade Überstunden machte.`,
+          (a, b) => `Jemand formulierte **${a}** mit der Ernsthaftigkeit eines Vorstandspapiers, während **${b}** die gesamte Büroluft in diesen verdächtigen Zustand zwischen Sachlichkeit und Panik versetzte.`,
+          (a, b) => `Noch wirkte alles professionell, bis **${a}** als völlig normaler Punkt verkauft wurde und **${b}** mehreren Kolleginnen und Kollegen prompt den inneren Ruhemodus ruinierte.`,
+        ],
+        second: [
+          (a, b) => `Später kam **${a}** noch einmal zurück, diesmal als erstaunlich mutige Begründung, und **${b}** machte aus nüchterner Arbeit endgültig einen kleinen Bürokrimi.`,
+          (a, b) => `Kurz vor Schluss wurde **${a}** erneut erwähnt, als hätte das alle beruhigen müssen, während **${b}** in mehreren Gesichtern gleichzeitig eine sehr schlechte Schadensbegrenzung auslöste.`,
+          (a, b) => `Als man glaubte, die Sache sei sauber protokolliert, bekam **${a}** einen zweiten Auftritt, und **${b}** klang plötzlich wie das Detail, das man niemals im Protokoll lesen möchte.`,
+        ],
+      },
+      natur: {
+        first: [
+          (a, b) => `Mitten in der schönen Landschaft klang **${a}** auf einmal wie ein völlig unnötiger, aber sehr ernster Streitpunkt, und bei **${b}** wurde sogar die entspannte Aussicht kurz verdächtig still.`,
+          (a, b) => `Gerade als alle ruhig bleiben wollten, bekam **${a}** erstaunlich viel Gewicht, während **${b}** mehrere Gesichter in diesen herrlich entlarvenden Naturmodus aus Schock und Höflichkeit schob.`,
+          (a, b) => `Jemand brachte **${a}** mit der Sicherheit eines Wanderführers ins Spiel, und kaum fiel **${b}**, wirkte selbst der Wind, als wolle er das bitte genauer hören.`,
+        ],
+        second: [
+          (a, b) => `Später wurde **${a}** noch einmal erwähnt, diesmal als ganz schlechte Erklärung für alles, und **${b}** machte aus der Idylle endgültig eine Bühne für verdächtige Mini-Reaktionen.`,
+          (a, b) => `Kurz vor Schluss tauchte **${a}** wieder auf, erstaunlich selbstbewusst, während **${b}** mehrere Leute gleichzeitig so gelassen wirken ließ, dass es sofort auffiel.`,
+          (a, b) => `Als die Szene eigentlich wieder friedlich wirkte, bekam **${a}** einen zweiten Auftritt, und **${b}** sorgte dafür, dass man plötzlich sogar dem Vogelgezwitscher misstrauen konnte.`,
+        ],
+      },
+      zukunft: {
+        first: [
+          (a, b) => `In dieser futuristischen Szene wurde **${a}** plötzlich mit maximalem Technikernst behandelt, während **${b}** mehrere Menschen schlagartig daran erinnerte, wie analog peinliche Reaktionen sein können.`,
+          (a, b) => `Jemand klang bei **${a}** so überzeugt, als hätte ein Roboter das abgesegnet, und kaum tauchte **${b}** auf, wirkte die ganze smarte Kulisse verdächtig menschlich.`,
+          (a, b) => `Noch glänzte alles geschniegelt nach Zukunft, bis **${a}** zur seltsam wichtigen Variable wurde und **${b}** mehrere Gesichter in ein sehr unmodernes Zucken schickte.`,
+        ],
+        second: [
+          (a, b) => `Später kam **${a}** noch einmal zurück, diesmal als Erklärung mit starkem Software-Update-Gefühl, und **${b}** machte die Hightech-Fassade endgültig herrlich porös.`,
+          (a, b) => `Kurz darauf wurde **${a}** erneut erwähnt, als müsste das irgendwen beruhigen, während **${b}** in mehreren Köpfen gleichzeitig das Alarmfenster öffnete.`,
+          (a, b) => `Als die Lage schon futuristisch genug war, bekam **${a}** einen zweiten Auftritt, und **${b}** klang sofort wie der Grund, warum diese Zukunft besser nie in die Presse kommt.`,
+        ],
+      },
+      krimi: {
+        first: [
+          (a, b) => `Im ersten verdächtigen Moment wurde **${a}** direkt wie ein mögliches Beweisstück behandelt, und bei **${b}** sah man mehreren Leuten an, dass sie innerlich sofort Ermittlungen aufgenommen hatten.`,
+          (a, b) => `Jemand sprach **${a}** mit der Schwere eines Kriminalromans aus, und kaum fiel **${b}**, bekam die ganze Szene den Charme einer viel zu höflichen Vernehmung.`,
+          (a, b) => `Noch versuchte die Geschichte ruhig zu bleiben, bis **${a}** verdächtig wichtig wurde und **${b}** mehrere Gesichter in diese herrliche Mischung aus Unschuld und Panik schob.`,
+        ],
+        second: [
+          (a, b) => `Später tauchte **${a}** noch einmal auf, jetzt mit klarer "das kommt im dritten Akt zurück"-Energie, und **${b}** sorgte sofort für kollektiv schlechtes Schauspiel.`,
+          (a, b) => `Kurz vor der gedanklichen Auflösung kam **${a}** erneut ins Spiel, während **${b}** mehrere Menschen gleichzeitig viel zu still machte, um noch glaubwürdig harmlos zu wirken.`,
+          (a, b) => `Als man schon glaubte, genug Hinweise zu haben, bekam **${a}** einen zweiten Auftritt, und **${b}** klang genau wie das Detail, bei dem im Krimi plötzlich alle nervös werden.`,
+        ],
+      },
+    },
+    en: {
+      alltag: {
+        first: [
+          (a, b) => `In the middle of ordinary daily life, someone suddenly treated **${a}** as critically important, while **${b}** made several people stare at the floor with suspicious dedication.`,
+          (a, b) => `At the most harmless point in the story, **${a}** somehow turned into a full discussion, and the moment **${b}** appeared, the room developed very guilty posture.`,
+          (a, b) => `Someone announced **${a}** with the seriousness of breaking news, and when **${b}** came up right after, even a tiny cough sounded like a confession.`,
+        ],
+        second: [
+          (a, b) => `Later, **${a}** returned as a remarkably weak excuse, and **${b}** was mentioned so casually that it immediately became suspicious again.`,
+          (a, b) => `Near the end, **${a}** came back under the disguise of coincidence, while **${b}** made several faces become much too calm at once.`,
+          (a, b) => `Just when things seemed settled, **${a}** was thrown into the room again, and **${b}** instantly gained the aura of a terrible secret.`,
+        ],
+      },
+      urlaub: {
+        first: [
+          (a, b) => `Right in the middle of vacation mode, someone claimed the day could not possibly work without **${a}**, and **${b}** made the whole group suspiciously alert.`,
+          (a, b) => `Nobody should have been arguing, yet **${a}** immediately created travel drama, while **${b}** was treated like something that probably should not be explained at check-in.`,
+          (a, b) => `Before the scene had even warmed up, **${a}** sounded like a terrible holiday tip, and **${b}** made everyone look as if the hotel walls were far too thin.`,
+        ],
+        second: [
+          (a, b) => `Later, **${a}** was sold as a perfectly normal vacation idea, which was about as convincing as sand in a hotel bed, and **${b}** sealed the suspicion.`,
+          (a, b) => `Shortly after that, **${a}** returned as a gloriously bad travel justification, while **${b}** pushed several people into a very suspicious holiday silence.`,
+          (a, b) => `Just when the scene looked finished, **${a}** earned a second entrance, and **${b}** instantly sounded like something no one should say near reception.`,
+        ],
+      },
+      party: {
+        first: [
+          (a, b) => `At the party, someone insisted **${a}** was "great for the vibe", and the second **${b}** appeared, several people began studying their drinks like exam material.`,
+          (a, b) => `Between music and snacks, **${a}** was defended with absurd seriousness, while **${b}** created the exact kind of silence that only makes a party funnier.`,
+          (a, b) => `Someone announced **${a}** with the confidence of a terrible DJ, and when **${b}** came up, even the confetti seemed skeptical.`,
+        ],
+        second: [
+          (a, b) => `Later, **${a}** was used as an excuse for the entire mess, and **${b}** sounded so suspiciously casual that eyebrows immediately started moving again.`,
+          (a, b) => `Right before the scene peaked, **${a}** returned with the energy of a very bad idea, and **${b}** turned the room into a tiny reaction laboratory.`,
+          (a, b) => `When everybody was pretending things were normal again, **${a}** came back once more, and **${b}** promptly shattered the shared poker face.`,
+        ],
+      },
+      arbeit: {
+        first: [
+          (a, b) => `In the meeting, **${a}** was suddenly treated like an official agenda item, while **${b}** made several professional expressions do unpaid overtime.`,
+          (a, b) => `Someone presented **${a}** with the authority of a board memo, and **${b}** turned the office air into that suspicious state between objectivity and panic.`,
+          (a, b) => `Everything still looked professional until **${a}** was introduced as perfectly normal and **${b}** quietly ruined multiple people's internal calm mode.`,
+        ],
+        second: [
+          (a, b) => `Later, **${a}** returned as a surprisingly bold justification, and **${b}** transformed routine office life into a compact workplace mystery.`,
+          (a, b) => `Near the end, **${a}** was mentioned again as if that should reassure anyone, while **${b}** triggered very bad damage control in several faces at once.`,
+          (a, b) => `Just when the matter seemed safely documented, **${a}** made a second appearance, and **${b}** sounded exactly like the detail nobody wants recorded in the minutes.`,
+        ],
+      },
+      natur: {
+        first: [
+          (a, b) => `In the middle of beautiful scenery, **${a}** somehow became an unnecessarily serious topic, and **${b}** made even the calm view go suspiciously quiet.`,
+          (a, b) => `Right when everyone wanted to stay relaxed, **${a}** gained absurd weight, while **${b}** pushed several faces into that delightful outdoor mix of shock and politeness.`,
+          (a, b) => `Someone brought up **${a}** with the confidence of a tour guide, and the second **${b}** appeared, even the wind seemed to want more detail.`,
+        ],
+        second: [
+          (a, b) => `Later, **${a}** came up again as a terrible explanation for everything, and **${b}** turned the scenery into a stage for suspicious micro-reactions.`,
+          (a, b) => `Near the end, **${a}** returned with surprising confidence, while **${b}** made several people look so calm that it instantly became obvious.`,
+          (a, b) => `Just when the scene seemed peaceful again, **${a}** got a second entrance, and **${b}** made even the birdsong feel slightly untrustworthy.`,
+        ],
+      },
+      zukunft: {
+        first: [
+          (a, b) => `In this futuristic setting, **${a}** was suddenly treated with maximum technical seriousness, while **${b}** reminded everyone how gloriously analog embarrassment still is.`,
+          (a, b) => `Someone described **${a}** with the confidence of a robot-approved solution, and once **${b}** arrived, the whole smart setting felt suspiciously human.`,
+          (a, b) => `Everything was still shining with future energy until **${a}** became weirdly important and **${b}** sent several faces into a deeply old-fashioned twitch.`,
+        ],
+        second: [
+          (a, b) => `Later, **${a}** came back as an explanation with strong software-update energy, and **${b}** made the high-tech facade beautifully fragile.`,
+          (a, b) => `Shortly after that, **${a}** was mentioned again as if that should calm anybody, while **${b}** opened the mental alarm window in several heads at once.`,
+          (a, b) => `When the moment was already futuristic enough, **${a}** received a second entrance, and **${b}** immediately sounded like the reason this version of the future never reaches the press.`,
+        ],
+      },
+      krimi: {
+        first: [
+          (a, b) => `In the first properly suspicious moment, **${a}** was treated like possible evidence, and **${b}** made several people begin a full investigation in their own heads.`,
+          (a, b) => `Someone said **${a}** with the weight of a detective novel, and once **${b}** appeared, the whole scene felt like a very polite interrogation.`,
+          (a, b) => `The story was still trying to stay calm until **${a}** became suspiciously important and **${b}** pushed several faces into that wonderful mix of innocence and panic.`,
+        ],
+        second: [
+          (a, b) => `Later, **${a}** returned with clear third-act energy, and **${b}** immediately caused a fresh wave of collective bad acting.`,
+          (a, b) => `Near the mental reveal, **${a}** reappeared while **${b}** made several people far too quiet to remain credibly harmless.`,
+          (a, b) => `Just when enough clues seemed to exist, **${a}** got a second entrance, and **${b}** sounded exactly like the detail that makes everyone nervous in a mystery.`,
+        ],
+      },
+    },
+  };
+
+  const genreBank = banks[lang]?.[genreId] || banks[lang]?.alltag;
+  return genreBank?.[pass === 0 ? "first" : "second"] || [];
 }
 
 function normalizeGenreId(lang, genreId) {
@@ -660,16 +811,20 @@ function normalizeGenreId(lang, genreId) {
   return ids[0];
 }
 
-function buildWordPass(words, lang, pass, rng) {
+function buildWordPass(words, lang, genreId, pass, rng) {
+  const templates = getSceneTemplateBank(lang, genreId, pass);
   const fragments = [];
   const rotated = [...words];
   if (pass === 1 && rotated.length > 1) {
     rotated.push(rotated.shift());
   }
+  let templateCursor = Math.floor(rng() * Math.max(templates.length, 1));
   for (let index = 0; index < rotated.length; index += 2) {
     const current = rotated[index];
     const next = rotated[index + 1] || rotated[0];
-    const sentence = chooseTemplate(index + Math.floor(rng() * 10), pass, lang)(current, next);
+    const template = templates[templateCursor % templates.length];
+    templateCursor += 1;
+    const sentence = template ? template(current, next) : `${current} ${next}`;
     fragments.push(sentence);
   }
   return fragments.join(" ");
@@ -679,13 +834,15 @@ export function countBackupVariants(lang, genreId) {
   const actualGenre = normalizeGenreId(lang, genreId);
   const bank = BACKUP_STORY_BANKS[lang]?.[actualGenre];
   if (!bank) return 0;
+  const templateCount = Math.max(getSceneTemplateBank(lang, actualGenre, 0).length, 1) * Math.max(getSceneTemplateBank(lang, actualGenre, 1).length, 1);
   return bank.openers.length
     * bank.settings.length
     * bank.complications.length
     * bank.reactions.length
     * bank.endings.length
     * BACKUP_BRIDGES[lang].length
-    * BACKUP_CRESCENDOS[lang].length;
+    * BACKUP_CRESCENDOS[lang].length
+    * templateCount;
 }
 
 export function buildBackupStory({ lang, genreId, words, minChars = 350, difficulty = "mix", salt = "" }) {
@@ -698,11 +855,11 @@ export function buildBackupStory({ lang, genreId, words, minChars = 350, difficu
   const parts = [
     pick(bank.openers, rng),
     pick(bank.settings, rng),
-    buildWordPass(words, lang, 0, rng),
+    buildWordPass(words, lang, actualGenre, 0, rng),
     pick(BACKUP_BRIDGES[lang], rng),
     pick(bank.complications, rng),
     styleBank.length > 0 ? pick(styleBank, rng) : "",
-    buildWordPass(words, lang, 1, rng),
+    buildWordPass(words, lang, actualGenre, 1, rng),
     pick(BACKUP_CRESCENDOS[lang], rng),
     pick(bank.reactions, rng),
     pick(bank.endings, rng),
