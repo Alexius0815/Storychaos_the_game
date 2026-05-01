@@ -654,6 +654,18 @@ const SAFE_MENTION_TEMPLATES = {
 
 const CURATED_SCENE_BANKS = {
   de: {
+    urlaub: {
+      first: [
+        (a, b) => `Noch beim Frühstücksbuffet erklärte jemand mit viel zu ernster Urlaubsstimme, **${a}** sei heute der Schlüssel zu einem gelungenen Tag. Als kurz darauf auch **${b}** am Tisch landete, begann die halbe Runde plötzlich auffällig interessiert in ihre Brötchen zu schauen.`,
+        (a, b) => `Am Hotelpool lief alles entspannt, bis **${a}** auf einmal wie ein heikles Reisethema behandelt wurde. Als wenig später auch **${b}** bei einer erstaunlich schwachen Ausflugsbegründung auftauchte, wirkte selbst die Sonnencreme im Raum nervös.`,
+        (a, b) => `Noch bevor der Ausflug richtig begann, wurde **${a}** mit der Überzeugung eines schlechten Reiseführers angepriesen. Als kurz danach auch **${b}** fiel, schauten mehrere Leute so, als wolle man dieses Gespräch lieber nicht in der Nähe der Rezeption fortsetzen.`,
+      ],
+      second: [
+        (a, b) => `Später versuchte jemand, **${a}** als völlig normale Urlaubslösung zu verkaufen, was ungefähr so glaubwürdig war wie Sand im Hotelbett. Als direkt danach **${b}** wieder auftauchte, wurde aus Ferienruhe endgültig ein hübsch verpacktes Nervenspiel.`,
+        (a, b) => `Kurz vor dem nächsten Programmpunkt bekam **${a}** einen zweiten Auftritt, diesmal mit der Energie einer sehr schlechten Reiseidee. Als auch **${b}** wieder auftauchte, war klar, dass hier mehrere Menschen gleichzeitig viel zu unschuldig wirken wollten.`,
+        (a, b) => `Gerade als alle so taten, als sei die Lage wieder entspannt, wurde **${a}** noch einmal erwähnt. Bei **${b}** bekam die Gruppe dann schlagartig genau den Gesichtsausdruck, mit dem man sonst verlorene Koffer erklärt.`,
+      ],
+    },
     party: {
       first: [
         (a, b) => `Noch bevor die Musik zum zweiten Mal lauter gemacht wurde, stand **${a}** plötzlich auf einem handgeschriebenen Zettel neben den Snacks. Als kurz darauf auch **${b}** in einer viel zu ernsten Diskussion auftauchte, sah man mehreren Leuten an, dass sie jetzt schon schlechte Ausreden planten.`,
@@ -690,8 +702,44 @@ const CURATED_SCENE_BANKS = {
         (a, b) => `Gerade als die Runde so tat, als sei alles wieder professionell eingeordnet, wurde **${a}** noch einmal in den Raum geworfen. Bei **${b}** war dann sofort klar, dass hier mehrere Menschen gleichzeitig sehr talentfrei sachlich blieben.`,
       ],
     },
+    zukunft: {
+      first: [
+        (a, b) => `Bei der futuristischen Vorführung lief alles geschniegelt, bis **${a}** plötzlich mit beängstigend viel Technikernst behandelt wurde. Als kurz darauf auch **${b}** in einer stolz präsentierten Demo auftauchte, sah man mehreren Leuten an, dass ihr inneres Betriebssystem gerade Notfallgeräusche machte.`,
+        (a, b) => `In dem Moment, als jemand **${a}** wie die Lösung aller modernen Probleme ankündigte, bekam die Szene ihren ersten Riss. Sobald wenig später auch **${b}** auf dem Display erschien, wirkte die ganze Hightech-Kulisse verdächtig menschlich überfordert.`,
+        (a, b) => `Noch glänzte alles nach smarter Zukunft, bis **${a}** auf einmal wie eine heikle Systemfrage klang. Als kurz danach **${b}** folgte, sah der Raum aus wie eine Präsentation, in der gerade sehr höflich Panik entsteht.`,
+      ],
+      second: [
+        (a, b) => `Später wurde **${a}** noch einmal als völlig logisches Update verkauft, was ungefähr so beruhigend wirkte wie ein blinkender Warnhinweis ohne Erklärung. Als direkt danach **${b}** zurückkam, war die smarte Fassade endgültig nur noch Dekoration.`,
+        (a, b) => `Kurz vor Schluss bekam **${a}** einen zweiten Auftritt, diesmal mit der Selbstsicherheit eines Produkts, das gleich abstürzt. Als auch **${b}** wieder auftauchte, scheiterte die coole Zukunfts-Mimik gleich an mehreren Stellen gleichzeitig.`,
+        (a, b) => `Gerade als alle so tun wollten, als sei diese Zukunft komplett unter Kontrolle, landete **${a}** noch einmal mitten im Raum. Bei **${b}** war dann klar, dass mehrere Menschen gleichzeitig sehr analog nervös wurden.`,
+      ],
+    },
+    krimi: {
+      first: [
+        (a, b) => `Schon im ersten verdächtigen Moment wurde **${a}** so betrachtet, als liege es seit Stunden in einer Beweismitteltüte. Als kurz darauf auch **${b}** in einem viel zu ruhigen Nebensatz auftauchte, bekam die ganze Szene den Charme einer höflichen Vernehmung mit schlechtem Pokerface.`,
+        (a, b) => `Im Krimimodus brauchte es nur ein einziges Mal **${a}**, damit mehrere Blicke gleichzeitig in Richtung Alibi kippten. Als wenig später auch **${b}** fiel, wirkte selbst das Schweigen, als wolle es später noch Aussagen machen.`,
+        (a, b) => `Noch war alles nur Andeutung, bis **${a}** plötzlich wie ein Detail klang, das man sich merken sollte. Als kurz darauf auch **${b}** auftauchte, sah der Raum aus wie ein schlecht getarnter Ermittlungsworkshop.`,
+      ],
+      second: [
+        (a, b) => `Später kam **${a}** noch einmal zurück, diesmal mit exakt der Energie eines Hinweises, der im dritten Akt plötzlich wichtig wird. Als direkt danach auch **${b}** wieder auftauchte, bekamen mehrere Gesichter gleichzeitig den Ausdruck von Menschen mit spontanem Tatortwissen.`,
+        (a, b) => `Kurz vor der gedanklichen Auflösung wurde **${a}** erneut in den Raum gestellt, als hätte das irgendwen beruhigen müssen. Bei **${b}** war dann sofort klar, dass zu viele Leute sehr auffällig unschuldig wirken wollten.`,
+        (a, b) => `Gerade als man glaubte, der Fall werde wieder harmloser, bekam **${a}** einen zweiten Auftritt. Als kurz darauf **${b}** folgte, wurde aus Spannung endgültig dieses herrliche Halbgrinsen, mit dem Gruppen kollektiv schlechte Detektivarbeit leisten.`,
+      ],
+    },
   },
   en: {
+    urlaub: {
+      first: [
+        (a, b) => `At the breakfast buffet, someone used far too much vacation seriousness to explain why **${a}** would decide the entire day. When **${b}** appeared at the table right after that, half the group became suspiciously interested in their pastries.`,
+        (a, b) => `Everything by the hotel pool looked relaxed until **${a}** suddenly turned into a sensitive travel topic. Once **${b}** showed up inside a very weak excursion plan a moment later, even the sunscreen felt nervous.`,
+        (a, b) => `Before the trip had properly begun, **${a}** was promoted with the confidence of a terrible tour guide. When **${b}** followed shortly after, several people looked like this conversation should definitely not continue near reception.`,
+      ],
+      second: [
+        (a, b) => `Later, someone tried to sell **${a}** as a perfectly normal vacation solution, which worked about as well as sand in a hotel bed. When **${b}** returned right after that, holiday calm officially became decorative.`,
+        (a, b) => `Shortly before the next activity, **${a}** earned a second entrance with the energy of a very bad travel idea. Once **${b}** came back too, it became obvious that several people were trying much too hard to look innocent.`,
+        (a, b) => `Just when everybody was pretending the mood had recovered, **${a}** was mentioned again. At **${b}**, the whole group instantly produced the exact facial expression usually reserved for lost luggage explanations.`,
+      ],
+    },
     party: {
       first: [
         (a, b) => `Before the music was turned up for the second time, **${a}** suddenly appeared on a handwritten note next to the snacks. When **${b}** entered an absurdly serious discussion right after that, several people visibly started planning bad excuses.`,
@@ -726,6 +774,30 @@ const CURATED_SCENE_BANKS = {
         (a, b) => `Later, someone tried to frame **${a}** as a perfectly logical explanation, which worked about as well as nervous laughter during a monthly report. When **${b}** returned immediately afterwards, the meeting was emotionally no longer compliant.`,
         (a, b) => `Near the end, **${a}** got a second appearance, this time with far too much confidence. Once **${b}** resurfaced as well, several people looked like they were already planning an off-record debrief in their heads.`,
         (a, b) => `Just when the room was pretending everything had been professionally resolved, **${a}** was thrown back in. At **${b}**, it became instantly clear that several people were failing very visibly at staying objective.`,
+      ],
+    },
+    zukunft: {
+      first: [
+        (a, b) => `The futuristic demo still looked polished until **${a}** was suddenly treated with alarming technical importance. When **${b}** appeared in a proudly presented feature right after that, several faces developed internal error messages in real time.`,
+        (a, b) => `The moment someone announced **${a}** as the answer to every modern problem, the scene developed its first visible crack. Once **${b}** showed up on the display as well, the whole high-tech setup felt suspiciously human and overwhelmed.`,
+        (a, b) => `Everything was still glowing with future energy until **${a}** suddenly sounded like a delicate system issue. When **${b}** followed shortly after, the room looked like a product launch politely drifting into panic.`,
+      ],
+      second: [
+        (a, b) => `Later, **${a}** returned as a perfectly logical update, which felt about as calming as a flashing warning without any explanation. When **${b}** came back immediately afterwards, the smart facade was reduced to decoration.`,
+        (a, b) => `Near the end, **${a}** made a second appearance with the confidence of a product about to crash live on stage. Once **${b}** resurfaced as well, the cool futuristic expressions failed in several places at once.`,
+        (a, b) => `Just when everyone wanted to act as if this future was fully under control, **${a}** landed in the middle of the scene again. At **${b}**, it became clear that multiple people had become very analog-level nervous.`,
+      ],
+    },
+    krimi: {
+      first: [
+        (a, b) => `In the very first suspicious moment, **${a}** was examined like it had been sitting in an evidence bag for hours. When **${b}** appeared in an overly calm side remark right after that, the whole thing took on the energy of a very polite interrogation with terrible poker faces.`,
+        (a, b) => `The mystery tone only needed one mention of **${a}** before several glances tilted toward possible alibis. Once **${b}** showed up shortly after, even the silence in the room felt ready to testify later.`,
+        (a, b) => `Everything was still only implication until **${a}** suddenly sounded like the detail everyone should remember. When **${b}** followed soon after, the room looked like a badly disguised investigation workshop.`,
+      ],
+      second: [
+        (a, b) => `Later, **${a}** returned with exactly the energy of a clue that becomes important in act three. When **${b}** resurfaced right after that, several faces instantly looked like they had developed spontaneous crime-scene expertise.`,
+        (a, b) => `Shortly before the mental reveal, **${a}** was brought back as if that should calm anybody down. At **${b}**, it became obvious that too many people were trying far too hard to look innocent.`,
+        (a, b) => `Just when the case seemed to be getting harmless again, **${a}** received a second entrance. When **${b}** followed right after, the tension tipped into that delightful half-smile groups get when they are collectively doing terrible detective work.`,
       ],
     },
   },

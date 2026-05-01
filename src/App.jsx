@@ -39,6 +39,15 @@ const {
   actionLookups: ACTION_LOOKUPS,
 } = buildCardLookups(CONTENT);
 
+const WORD_CATEGORY_LOOKUP = Object.fromEntries(
+  Object.entries(CONTENT).map(([lang, content]) => {
+    const entries = Object.entries(content.words || {}).flatMap(([category, words]) =>
+      (words || []).map((word) => [word.toLowerCase(), category]),
+    );
+    return [lang, Object.fromEntries(entries)];
+  }),
+);
+
 function normalizeLang(value) {
   return value === "en" ? "en" : "de";
 }
@@ -132,10 +141,39 @@ function buildFreestyleStory(words) {
 
 function buildFreestylePromptWords(realWords, contentLang) {
   const sourceWords = ALL_WORDS_BY_LANG[contentLang] || [];
+  const categoryLookup = WORD_CATEGORY_LOOKUP[contentLang] || {};
   const realSet = new Set(realWords.map((word) => word.toLowerCase()));
-  const decoyPool = shuffle(sourceWords.filter((word) => !realSet.has(word.toLowerCase())));
-  const decoyCount = Math.min(decoyPool.length, Math.max(realWords.length * 2, 4));
-  return shuffle([...realWords, ...decoyPool.slice(0, decoyCount)]);
+  const usedDecoys = new Set();
+  const decoys = [];
+
+  for (const word of realWords) {
+    const category = categoryLookup[word.toLowerCase()];
+    const categoryPool = shuffle(
+      sourceWords.filter((candidate) => {
+        const lower = candidate.toLowerCase();
+        return !realSet.has(lower) && !usedDecoys.has(lower) && categoryLookup[lower] === category;
+      }),
+    );
+    for (const candidate of categoryPool.slice(0, 2)) {
+      usedDecoys.add(candidate.toLowerCase());
+      decoys.push(candidate);
+    }
+  }
+
+  const fallbackPool = shuffle(
+    sourceWords.filter((candidate) => {
+      const lower = candidate.toLowerCase();
+      return !realSet.has(lower) && !usedDecoys.has(lower);
+    }),
+  );
+  const targetCount = Math.max(realWords.length * 2, 4);
+  for (const candidate of fallbackPool) {
+    if (decoys.length >= targetCount) break;
+    usedDecoys.add(candidate.toLowerCase());
+    decoys.push(candidate);
+  }
+
+  return shuffle([...realWords, ...decoys]);
 }
 
 function detectRoundLanguage(room, players, fallback = "de") {
