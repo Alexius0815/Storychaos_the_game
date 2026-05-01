@@ -20,8 +20,8 @@ const FREESTYLE_STORY_PREFIX = "[[freestyle]]";
 
 const FF = "system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
 const THEMES = {
-  dark: { bg: "#0d0d14", sur: "#16161f", sur2: "#1e1e2a", bdr: "#2a2a3a", txt: "#f0f0f5", muted: "#9090a8" },
-  light: { bg: "#f4f4f8", sur: "#ffffff", sur2: "#eeeef4", bdr: "#d0d0e0", txt: "#111118", muted: "#606078" },
+  dark: { mode: "dark", bg: "#0d0d14", sur: "#16161f", sur2: "#1e1e2a", bdr: "#2a2a3a", txt: "#f0f0f5", muted: "#9090a8" },
+  light: { mode: "light", bg: "#eef1f7", sur: "#ffffff", sur2: "#e6ebf3", bdr: "#b8c2d6", txt: "#101521", muted: "#465268" },
 };
 const ACC = { blue: "#60a5fa", bluel: "#bfdbfe", red: "#f87171", redl: "#fecaca", gold: "#fbbf24", green: "#4ade80", greenl: "#bbf7d0" };
 
@@ -90,14 +90,15 @@ function useViewport() {
 }
 
 function makeStyles(C) {
+  const isLight = C.mode === "light";
   return {
-    card: { background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 16, padding: 18, marginBottom: 14, boxShadow: C.bg === "#0d0d14" ? "0 12px 32px rgba(0,0,0,.18)" : "0 16px 40px rgba(15,23,42,.06)" },
-    card2: { background: C.sur2, border: `1px solid ${C.bdr}`, borderRadius: 16, padding: 18, marginBottom: 14 },
+    card: { background: C.sur, border: `${isLight ? 1.5 : 1}px solid ${C.bdr}`, borderRadius: 16, padding: 18, marginBottom: 14, boxShadow: isLight ? "0 14px 36px rgba(15,23,42,.08)" : "0 12px 32px rgba(0,0,0,.18)" },
+    card2: { background: C.sur2, border: `${isLight ? 1.5 : 1}px solid ${C.bdr}`, borderRadius: 16, padding: 18, marginBottom: 14 },
     st: { fontSize: 16, fontWeight: 800, color: C.txt, display: "flex", alignItems: "center", gap: 8, marginBottom: 12, letterSpacing: "-0.02em" },
     bt: { fontSize: 14, lineHeight: 1.7, color: C.muted },
-    input: { width: "100%", background: C.sur2, border: `1.5px solid ${C.bdr}`, color: C.txt, fontFamily: FF, fontSize: 16, padding: "14px 15px", borderRadius: 13, outline: "none", boxShadow: "inset 0 1px 0 rgba(255,255,255,.03)" },
-    pbtn: (col, bg) => ({ width: "100%", minHeight: 56, padding: "15px 16px", borderRadius: 13, fontSize: 17, fontWeight: 800, lineHeight: 1.2, border: `1.5px solid ${col}`, background: bg, color: col, cursor: "pointer", transition: "all .15s", display: "block", boxShadow: `0 0 0 1px ${col}18 inset` }),
-    sbtn: (col) => ({ fontSize: 13, fontWeight: 800, padding: "8px 12px", borderRadius: 10, border: `1px solid ${col}`, background: "transparent", color: col, cursor: "pointer" }),
+    input: { width: "100%", background: isLight ? "#f8fafc" : C.sur2, border: `1.5px solid ${C.bdr}`, color: C.txt, fontFamily: FF, fontSize: 16, padding: "14px 15px", borderRadius: 13, outline: "none", boxShadow: isLight ? "inset 0 1px 0 rgba(255,255,255,.7)" : "inset 0 1px 0 rgba(255,255,255,.03)" },
+    pbtn: (col, bg) => ({ width: "100%", minHeight: 56, padding: "15px 16px", borderRadius: 13, fontSize: 17, fontWeight: 800, lineHeight: 1.2, border: `1.5px solid ${col}`, background: bg, color: col, cursor: "pointer", transition: "all .15s", display: "block", boxShadow: isLight ? `0 1px 0 rgba(255,255,255,.7) inset, 0 0 0 1px ${col}20 inset` : `0 0 0 1px ${col}18 inset` }),
+    sbtn: (col) => ({ fontSize: 13, fontWeight: 800, padding: "8px 12px", borderRadius: 10, border: `1px solid ${col}`, background: isLight ? "rgba(15,23,42,.03)" : "transparent", color: col, cursor: "pointer" }),
   };
 }
 
