@@ -2,48 +2,96 @@
 
 ## Overview
 
-Story Chaos now supports bilingual play in German and English.
+Story Chaos supports bilingual play in German and English.
 
-The project distinguishes between two different language concepts:
+The game separates two different language layers:
 
-- `UI language`: the language of buttons, labels, helper text, and interface messages on a device
-- `Game language`: the language used for secret words, secret actions, category labels, genre labels, and AI-generated stories
+- `UI language`
+- `Round language`
 
-## Behavior
+## What These Mean
 
-- The UI language can be toggled locally per device.
-- The host selects the game language when dealing cards.
-- Join links carry the active game language so the room context stays consistent.
-- Rerolls try to stay in the same game language as the original card set.
-- The AI story prompt is generated in the selected game language.
+`UI language`
 
-## Why This Split Exists
+- buttons
+- labels
+- helper text
+- status messages
+- screen copy on the current device
 
-This separation allows mixed-language groups to play together more comfortably.
+`Round language`
+
+- secret words
+- secret actions
+- category labels
+- genre labels
+- local story generation
+- optional AI retry prompts
+- Freestyle prompt pool language
+
+## Current Behavior
+
+- The `UI language` can be switched locally on each device.
+- Before cards are dealt, the round follows the active top-level `DE / EN` setting.
+- After cards are dealt, the round language stays stable for that round.
+- Join and Party Screen links carry the current round language.
+- Rerolls stay within the current round language.
+- Freestyle prompt pools are built in the active round language.
+- Local stories and optional AI retries also use the active round language.
+
+## Why The Split Exists
+
+This lets mixed-language groups play together more comfortably.
 
 Examples:
-- A German-speaking player can keep the interface in German while joining an English round.
-- A host can run a German round while another player prefers the English UI.
+
+- One player can keep the interface in German while the round itself runs in English.
+- A host can prepare an English round while another player still prefers German UI labels.
+- The optional Party Screen can show the shared round in the correct round language without forcing every personal device into the same UI language.
 
 ## Current Scope
 
-The bilingual update currently covers:
+The bilingual support currently covers:
 
 - home screen
-- create/join flow
-- host controls
-- player card flow
-- timer, reveal, scoreboard, and round overview
+- create / join flow
+- host lobby
+- round setup
+- ready flow
+- story / freestyle flow
+- reveal flow
+- scoring and narrator vote
+- next narrator flow
+- player view
+- Party Screen
 - debug panel
-- German and English game content pools
-- German and English AI prompts
+- German and English content pools
+- German and English story-generation prompts
 
-## Future Cleanup
+## Implementation Status
 
-Right now the language dictionaries live inside `src/App.jsx` for speed and simplicity.
+The bilingual setup is no longer embedded as one giant block inside `src/App.jsx`.
 
-If the project grows further, a good follow-up would be:
+It is already split into dedicated modules:
 
-- move UI strings into dedicated translation files
-- move game content into separate data modules
-- add automated checks for missing translation keys
+- `src/content/`
+- `src/i18n/`
+- `src/constants/`
+- `src/game/`
+
+That means the product now has a cleaner distinction between:
+
+- visible UI copy
+- gameplay content
+- round-state logic
+
+## Remaining Long-Term Improvement
+
+The current app logic keeps round language stable well enough for live play.
+
+The cleanest future step would still be:
+
+- persisting `game_language` or `round_language` directly on the room in the database
+
+That would make the language state even more explicit across reconnects, older links, and future backend features.
+
