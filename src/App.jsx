@@ -152,6 +152,24 @@ function buildFreestylePromptWords(realWords, contentLang) {
   return shuffle([...realWords, ...decoyPool.slice(0, decoyCount)]);
 }
 
+function detectRoundLanguage(room, players, fallback = "de") {
+  const candidates = [
+    ...(room?.story_words || []),
+    ...((players || []).flatMap((player) => [player.secret_word, player.secret_action]).filter(Boolean)),
+  ];
+
+  if (candidates.length === 0) return fallback;
+
+  let deHits = 0;
+  let enHits = 0;
+  for (const sample of candidates) {
+    const detected = detectLanguageFromSample(sample, sample, fallback, WORD_LOOKUPS, ACTION_LOOKUPS);
+    if (detected === "en") enHits += 1;
+    else deHits += 1;
+  }
+  return enHits > deHits ? "en" : "de";
+}
+
 function renderHighlightedStory(text, highlightWords, C) {
   const clean = (text || "").replace(/\*\*(.*?)\*\*/g, "$1");
   if (!highlightWords?.length) return clean;
@@ -1888,7 +1906,8 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   const yesVotes = allVotes.filter((vote) => vote.value === "yes").length;
   const noVotes = allVotes.filter((vote) => vote.value === "no").length;
   const revealWords = audience.map((player) => player.secret_word).filter(Boolean);
-  const tvJoinUrl = `${APP_URL}?room=${room.id}&lang=${lang}`;
+  const roundLang = detectRoundLanguage(room, players, lang);
+  const tvJoinUrl = `${APP_URL}?room=${room.id}&lang=${roundLang}`;
   const tvFreestyleWords = parseFreestyleWords(room.story);
   const tvFreestyleMode = tvFreestyleWords.length > 0;
 
@@ -2127,10 +2146,10 @@ export default function App() {
     window.history.replaceState({}, "", "/");
   }
 
-  function handleOpenTv(tvKey = "", mode = "open") {
+  function handleOpenTv(tvKey = "", mode = "open", targetLang = contentLang) {
     if (!roomId) return;
     const protectedKey = tvKey ? `&tv=${encodeURIComponent(tvKey)}` : "";
-    const targetUrl = `${APP_URL}?room=${roomId}&lang=${lang}&view=tv${protectedKey}`;
+    const targetUrl = `${APP_URL}?room=${roomId}&lang=${targetLang || contentLang || lang}&view=tv${protectedKey}`;
     if (mode === "copy") {
       navigator.clipboard?.writeText(targetUrl).catch(() => {});
       return;

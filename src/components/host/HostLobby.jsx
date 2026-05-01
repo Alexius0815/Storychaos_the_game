@@ -7,7 +7,7 @@ export default function HostLobby({ room, players, gameLang, lang, ui, C, S, acc
   const narratorId = getNarratorId(room, players, hubPlayerName);
   const others = getAudience(players, narratorId, hubPlayerName);
   const joinUrl = `${appUrl}?room=${room.id}&lang=${gameLang}`;
-  const tvUrl = `${appUrl}?room=${room.id}&lang=${lang}&view=tv${room?.password ? `&tv=${encodeURIComponent(room.password)}` : ""}`;
+  const tvUrl = `${appUrl}?room=${room.id}&lang=${gameLang}&view=tv${room?.password ? `&tv=${encodeURIComponent(room.password)}` : ""}`;
   const [view, setView] = useState("invite");
   const [copied, setCopied] = useState(false);
   const [removingPlayerId, setRemovingPlayerId] = useState(null);
@@ -67,7 +67,7 @@ export default function HostLobby({ room, players, gameLang, lang, ui, C, S, acc
                 <div style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.55, marginBottom: 12 }}>{ui.hostLobby.tvDesc}</div>
                 <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px", marginBottom: 10 }}>{tvUrl}</div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                  <button onClick={() => onOpenTv(room?.password || "", "open")} style={{ ...S.sbtn(acc.gold), background: "rgba(251,191,36,.08)" }}>{ui.hostLobby.tvOpenExternal}</button>
+                  <button onClick={() => onOpenTv(room?.password || "", "open", gameLang)} style={{ ...S.sbtn(acc.gold), background: "rgba(251,191,36,.08)" }}>{ui.hostLobby.tvOpenExternal}</button>
                   <button onClick={copyTvLink} style={S.sbtn(C.muted)}>{copied ? ui.common.copied : ui.hostLobby.tvCopyExternal}</button>
                 </div>
               </div>
