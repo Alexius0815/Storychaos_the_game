@@ -795,6 +795,11 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
       <div style={{ animation: "fadeIn .22s ease" }}>
         <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.bg === "#0d0d14" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", minHeight: compactScoreHeight }}>
           <div style={{ ...S.st, marginBottom: 8 }}>{ui.scores.narratorVoteTitle}</div>
+          {nextCandidates.length > 0 && room?.status === GAME_PHASES.VOTED && (
+            <button onClick={() => setView("next")} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginBottom: 12 }}>
+              {ui.scores.continueToNext}
+            </button>
+          )}
           <p style={S.bt}>{ui.scores.narratorVoteDesc}</p>
           {narrator && (
             <div style={{ background: C.sur2, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.bdr}`, marginTop: 12 }}>
@@ -838,13 +843,6 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
                   </div>
                 </div>
               )}
-            </div>
-          )}
-          {nextCandidates.length > 0 && room?.status === GAME_PHASES.VOTED && (
-            <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-end" }}>
-              <button onClick={() => setView("next")} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), width: viewport.isDesktop ? 220 : "100%" }}>
-                {ui.scores.continueToNext}
-              </button>
             </div>
           )}
         </div>
@@ -910,6 +908,9 @@ function NextNarratorView({ room, players, ui, C, S, onChooseNarrator, onBack })
           <div style={S.st}>{ui.scores.nextTitle}</div>
           <button onClick={onBack} style={S.sbtn(C.muted)}>{ui.common.back}</button>
         </div>
+        <button onClick={startNextRound} disabled={!canAdvance || startingNextRound} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginBottom: 16 }}>
+          {startingNextRound ? ui.common.loading : ui.scores.nextRound}
+        </button>
         <p style={{ ...S.bt, marginBottom: 16 }}>{nextCandidates.length > 1 ? ui.scores.nextDesc : ui.scores.nextAuto}</p>
         <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop && nextCandidates.length > 2 ? "1fr 1fr" : "1fr", gap: 10, marginTop: 12 }}>
           {nextCandidates.map((player) => {
@@ -937,9 +938,6 @@ function NextNarratorView({ room, players, ui, C, S, onChooseNarrator, onBack })
             );
           })}
         </div>
-        <button onClick={startNextRound} disabled={!canAdvance || startingNextRound} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginTop: 16 }}>
-          {startingNextRound ? ui.common.loading : ui.scores.nextRound}
-        </button>
         {!canAdvance && <p style={{ fontSize: 12, color: C.muted, marginTop: 10 }}>{ui.scores.chooseFirst}</p>}
       </div>
     </div>
