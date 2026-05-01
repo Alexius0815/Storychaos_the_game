@@ -1,0 +1,12 @@
+export const GAME_PHASES = {
+  WAITING: "waiting",
+  CARDS: "cards",
+  PLAYING: "playing",
+  REVEALED: "revealed",
+  VOTING: "voting",
+  VOTED: "voted",
+};
+
+export const PRE_STORY_PHASES = [GAME_PHASES.WAITING, GAME_PHASES.CARDS];
+export const ACTIVE_ROUND_PHASES = [GAME_PHASES.PLAYING, GAME_PHASES.REVEALED, GAME_PHASES.VOTING, GAME_PHASES.VOTED];
+export const SCORE_PHASES = [GAME_PHASES.VOTING, GAME_PHASES.VOTED];

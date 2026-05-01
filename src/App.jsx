@@ -1,762 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { buildBackupStory } from "./backupStories";
+import { CONTENT } from "./content";
+import { UI } from "./i18n";
+import { sb } from "./lib/supabase";
+import { ACTIVE_ROUND_PHASES, GAME_PHASES, PRE_STORY_PHASES, SCORE_PHASES } from "./constants/phases";
 
-const SUPABASE_URL = "https://iioipzphjxzoiofnukjs.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpb2lwenBoanh6b2lvZm51a2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNzYzOTMsImV4cCI6MjA5MTc1MjM5M30.aIO5sXDUNNk01lTcqb79f4BowKXy4YH4Er0OrB8gx8U";
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const APP_URL = "https://storychaos-the-game.vercel.app";
 const APP_ICON = "/icon-192.png";
 const APP_VERSION = __APP_VERSION__;
 const HUB_PLAYER_NAME = "__storychaos_hub__";
 
-const CONTENT = {
-  de: {
-    words: {
-      alltag: ["Auto","Katze","Pizza","Schule","Chef","Kaffee","Polizei","Internet","Garten","Fußball","Zug","Krankenhaus","Party","Nachbar","Arzt","Supermarkt","Kühlschrank","Fahrrad","Briefkasten","Teppich","Fenster","Treppe","Aufzug","Klingel"],
-      essen: ["Sushi","Burger","Nudeln","Kuchen","Brot","Käse","Bier","Wein","Smoothie","Pommes","Salat","Steak","Schokolade","Chips","Ananas","Erdbeere","Honig","Marmelade","Espresso","Wassermelone"],
-      natur: ["Blitz","Schnee","Nebel","Sturm","Regenbogen","Vollmond","Baum","Rose","Pilz","Schmetterling","Adler","Wolf","Bär","Fuchs","Löwe","Pinguin","Kaktus","Vulkan","Lawine","Gletscher"],
-      tech: ["Passwort","Selfie","Roboter","Drohne","KI","Podcast","Streaming","Update","Meme","Emoji","Algorithmus","Darkmode","WLAN","Akku","Hologramm","Smartwatch","VR-Brille","Satellit","Chip","Ladestation"],
-      orte: ["Flughafen","Bahnhof","Museum","Bibliothek","Bunker","Tempel","Palast","Insel","Gefängnis","Leuchtturm","Marktplatz","Dachterrasse","Tiefgarage","Höhle","Wüste","Dschungel","Friedhof","Kaserne","Schloss","Turm"],
-      gefühle: ["Panik","Eifersucht","Euphorie","Heimweh","Albtraum","Stille","Neugier","Schwindel","Gänsehaut","Langeweile","Sehnsucht","Trotz","Scham","Stolz","Ehrfurcht"],
-      objekte: ["Koffer","Kompass","Tagebuch","Spiegel","Kerze","Brief","Maske","Uhr","Schere","Luftballon","Bumerang","Laterne","Zauberstab","Fernglas","Schnorchel","Lupe","Würfel","Teleskop","Schachtel","Schlüssel"],
-      misc: ["Geist","Einhorn","Detektiv","Heldin","Schurke","Guru","Kapitän","Influencer","Therapeut","Rentner","Azubi","Praktikant","Zwilling","Legende","Fremder"],
-    },
-    actions: {
-      easy: [
-        "Zwinkere","Kratz dich an der Nase","Räuspere dich","Schau kurz auf den Boden",
-        "Strecke dich","Richte deine Haare","Klopf einmal auf den Tisch","Verschränke die Arme",
-        "Lehne dich zurück","Seufze leise","Beiß dir auf die Lippe","Reib dir die Hände",
-        "Zucke mit den Schultern","Schnippe mit den Fingern","Schau auf deine Uhr",
-        "Nicke einmal kurz","Lege einen Finger an die Lippen","Streich dir übers Kinn",
-      ],
-      medium: [
-        "Lache plötzlich laut","Sag: Interessant...","Klatsche in die Hände","Sag: Ach wirklich?!",
-        "Mach ein überraschtes Gesicht","Steh halb auf und setz dich wieder","Tipp jemanden an",
-        "Mach ein Foto (oder so tun als ob)","Sag: Moment mal...","Sag: Na sowas!",
-        "Klatsch dir auf die Stirn","Heb die Hand als wärst du in der Schule",
-        "Schau dramatisch zur Seite","Rutsch auf dem Stuhl rum","Zeig auf jemand anderen",
-        "Sag: Das kenn ich und nicke wissend","Summ leise vor dich hin","Schau zur Decke und nicke",
-      ],
-      chaos: [
-        "Spring auf und ruf: HEUREKA!","Wiederhole laut das letzte Wort","Unterbrech mit: HMM!",
-        "Tu so als hätte dich jemand getreten","Mach eine dramatische Pause und schau alle an",
-        "Ruf: Bingo! und bereue es sofort","Sag deinen Namen rückwärts",
-        "Klatsch beide Hände auf Wangen wie Kevin","Flüster Nachbar etwas Unverständliches",
-        "Steh auf geh einen Schritt und setz dich wieder","Sing eine kurze Note",
-        "Tu so als greifst du etwas aus der Luft","Sag: Ich sage nur... dann schweigen",
-        "Fake-Niese dreimal hintereinander","Schreib etwas Imaginäres in die Luft",
-        "Starre jemanden 4 Sekunden stumm an","Heb beide Daumen hoch und grinse",
-      ],
-    },
-    genres: [
-      { id: "alltag", label: "Alltag", emoji: "🏠", desc: "Supermarkt, Büro, Nachbarschaft" },
-      { id: "urlaub", label: "Urlaub", emoji: "✈️", desc: "Strand, Hotel, Abenteuer" },
-      { id: "party", label: "Party", emoji: "🎉", desc: "Feiern, Freunde, Chaos" },
-      { id: "arbeit", label: "Arbeit", emoji: "💼", desc: "Meeting, Chef, Kantine" },
-      { id: "natur", label: "Natur", emoji: "🌲", desc: "Wald, Tiere, Abenteuer" },
-      { id: "zukunft", label: "Zukunft", emoji: "🚀", desc: "KI, Roboter, Raumfahrt" },
-      { id: "krimi", label: "Krimi", emoji: "🔍", desc: "Detektiv, Verdacht, Spannung" },
-      { id: "random", label: "Zufall", emoji: "🎲", desc: "Komplett überraschend" },
-    ],
-    diffLabels: { easy: "😇 Leicht", medium: "😏 Mittel", chaos: "😈 Chaos", mix: "🎲 Mix" },
-    categoryLabels: { alltag: "🏠 Alltag", essen: "🍕 Essen", natur: "🌲 Natur", tech: "🤖 Tech", orte: "🏛 Orte", gefühle: "💫 Gefühle", objekte: "🎩 Objekte", misc: "👤 Personen" },
-    aiSystem: "Kreativer Geschichtenerzähler auf Deutsch.",
-    aiPrompt: (genre, words, minChars, targetChars) => `Schreibe eine witzige Geschichte auf Deutsch im Stil "${genre}". Die Geschichte muss mindestens ${minChars} Zeichen lang sein und idealerweise etwa ${targetChars} Zeichen haben. Verwende ALLE diese Wörter: ${words.join(", ")}. Jedes dieser Wörter muss mindestens zweimal vorkommen. Die beiden Vorkommen eines Wortes sollen in der Regel in unterschiedlichen Sätzen stehen, nicht direkt im selben Satz. Markiere jedes vorkommende Zielwort mit **Wort**. NUR die Geschichte, kein Titel, keine Liste, keine Erklärung. Locker, lebendig und gut zum Vorlesen.`,
-  },
-  en: {
-    words: {
-      alltag: ["Car","Cat","Pizza","School","Boss","Coffee","Police","Internet","Garden","Soccer","Train","Hospital","Party","Neighbor","Doctor","Supermarket","Fridge","Bicycle","Mailbox","Carpet","Window","Stairs","Elevator","Doorbell"],
-      essen: ["Sushi","Burger","Noodles","Cake","Bread","Cheese","Beer","Wine","Smoothie","Fries","Salad","Steak","Chocolate","Chips","Pineapple","Strawberry","Honey","Jam","Espresso","Watermelon"],
-      natur: ["Lightning","Snow","Fog","Storm","Rainbow","Full Moon","Tree","Rose","Mushroom","Butterfly","Eagle","Wolf","Bear","Fox","Lion","Penguin","Cactus","Volcano","Avalanche","Glacier"],
-      tech: ["Password","Selfie","Robot","Drone","AI","Podcast","Streaming","Update","Meme","Emoji","Algorithm","Dark Mode","Wi-Fi","Battery","Hologram","Smartwatch","VR Headset","Satellite","Chip","Charging Station"],
-      orte: ["Airport","Station","Museum","Library","Bunker","Temple","Palace","Island","Prison","Lighthouse","Market Square","Rooftop Terrace","Parking Garage","Cave","Desert","Jungle","Graveyard","Barracks","Castle","Tower"],
-      gefühle: ["Panic","Jealousy","Euphoria","Homesickness","Nightmare","Silence","Curiosity","Dizziness","Goosebumps","Boredom","Longing","Defiance","Shame","Pride","Awe"],
-      objekte: ["Suitcase","Compass","Diary","Mirror","Candle","Letter","Mask","Clock","Scissors","Balloon","Boomerang","Lantern","Magic Wand","Binoculars","Snorkel","Magnifying Glass","Dice","Telescope","Box","Key"],
-      misc: ["Ghost","Unicorn","Detective","Heroine","Villain","Guru","Captain","Influencer","Therapist","Retiree","Apprentice","Intern","Twin","Legend","Stranger"],
-    },
-    actions: {
-      easy: [
-        "Wink","Scratch your nose","Clear your throat","Look briefly at the floor",
-        "Stretch","Fix your hair","Tap the table once","Cross your arms",
-        "Lean back","Sigh quietly","Bite your lip","Rub your hands",
-        "Shrug your shoulders","Snap your fingers","Look at your watch",
-        "Nod once","Put a finger to your lips","Stroke your chin",
-      ],
-      medium: [
-        "Laugh out loud","Say: Interesting...","Clap your hands","Say: Oh really?!",
-        "Make a surprised face","Half-stand up and sit back down","Tap someone",
-        "Pretend to take a photo","Say: Hold on...","Say: No way!",
-        "Slap your forehead","Raise your hand like you're in school",
-        "Look dramatically to the side","Wiggle in your chair","Point at someone else",
-        "Say: I know that and nod wisely","Hum quietly","Look at the ceiling and nod",
-      ],
-      chaos: [
-        "Jump up and shout: EUREKA!","Repeat the last word out loud","Interrupt with: HMM!",
-        "Pretend someone kicked you","Make a dramatic pause and stare at everyone",
-        "Shout: Bingo! and regret it immediately","Say your name backwards",
-        "Put both hands on your cheeks like Kevin","Whisper something unintelligible to your neighbor",
-        "Stand up, take one step, and sit back down","Sing one short note",
-        "Pretend to grab something from the air","Say: I will only say this... then fall silent",
-        "Fake sneeze three times in a row","Write something imaginary in the air",
-        "Stare at someone silently for 4 seconds","Give two thumbs up and grin",
-      ],
-    },
-    genres: [
-      { id: "alltag", label: "Everyday Life", emoji: "🏠", desc: "Supermarket, office, neighborhood" },
-      { id: "urlaub", label: "Vacation", emoji: "✈️", desc: "Beach, hotel, adventure" },
-      { id: "party", label: "Party", emoji: "🎉", desc: "Celebration, friends, chaos" },
-      { id: "arbeit", label: "Work", emoji: "💼", desc: "Meeting, boss, cafeteria" },
-      { id: "natur", label: "Nature", emoji: "🌲", desc: "Forest, animals, adventure" },
-      { id: "zukunft", label: "Future", emoji: "🚀", desc: "AI, robots, space travel" },
-      { id: "krimi", label: "Mystery", emoji: "🔍", desc: "Detective, suspicion, suspense" },
-      { id: "random", label: "Random", emoji: "🎲", desc: "Completely unexpected" },
-    ],
-    diffLabels: { easy: "😇 Easy", medium: "😏 Medium", chaos: "😈 Chaos", mix: "🎲 Mix" },
-    categoryLabels: { alltag: "🏠 Everyday", essen: "🍕 Food", natur: "🌲 Nature", tech: "🤖 Tech", orte: "🏛 Places", gefühle: "💫 Feelings", objekte: "🎩 Objects", misc: "👤 Characters" },
-    aiSystem: "Creative storyteller in English.",
-    aiPrompt: (genre, words, minChars, targetChars) => `Write a funny story in English in the style "${genre}". The story must be at least ${minChars} characters long and should ideally land around ${targetChars} characters. Use ALL of these words: ${words.join(", ")}. Every target word must appear at least twice. The repeated occurrences of a word should usually appear in different sentences, not directly in the same sentence. Mark every target word occurrence with **word**. Return ONLY the story, with no title, no list, and no explanation. Keep it lively and fun to read aloud.`,
-  },
-};
-
-const UI = {
-  de: {
-    subtitle: "Das Partyspiel gegen den Erzähler",
-    aria: { toggleTheme: "Theme wechseln", toggleLanguage: "Sprache wechseln" },
-    common: {
-      room: "Raum",
-      leave: "Verlassen",
-      deleteRoom: "Raum löschen",
-      deleting: "Lösche…",
-      takeOverRoom: "Raum übernehmen",
-      takingOver: "Übernehme…",
-      leaveRoom: "Raum verlassen",
-      back: "← Zurück",
-      loading: "Verbinde…",
-      optional: "optional",
-      close: "Schließen",
-      refresh: "Erneut prüfen",
-      none: "Keine",
-      roomCode: "Raumcode",
-      password: "Passwort",
-      yourName: "Dein Name",
-      host: "Host",
-      status: "Status",
-      story: "Story",
-      phaseTitle: "Rundenphase",
-      focusView: "Fokusansicht",
-      help: "Hilfe",
-      open: "Öffnen",
-      copyLink: "Link kopieren",
-      copied: "Kopiert",
-    },
-    helpScreen: {
-      title: "Hilfe",
-      desc: "Alles Wichtige vor der ersten Runde, kurz und ohne Regelwand.",
-      cards: [
-        { label: "Start", title: "Raum starten", text: "Eine Person eröffnet den Raum. Alle anderen kommen per QR oder Raumcode dazu." },
-        { label: "Privat", title: "Handys bleiben geheim", text: "Wort und Aktion sieht immer nur die jeweilige Person." },
-        { label: "Ablauf", title: "Vorlesen, auflösen, punkten", text: "Die Geschichte läuft gemeinsam, danach folgen Reveal und Punkte." },
-        { label: "Party Screen", title: "Nur wenn ihr wollt", text: "TV, Browser oder Beamer werden optional nach dem Start verbunden." },
-      ],
-    },
-    confirmDeleteRoom: "Willst du diesen Raum wirklich löschen? Alle Spieler und der aktuelle Spielstand werden entfernt.",
-    deleteRoomError: "Der Raum konnte nicht gelöscht werden. Bitte nochmal versuchen.",
-    offline: "Keine Verbindung – bitte WLAN pruefen",
-    home: {
-      welcome: "Willkommen!",
-      desc: "Erstelle einen Raum und lade per QR-Code ein – oder tritt einem bestehenden Raum bei. Den Party Screen kannst du danach optional verbinden.",
-      newGame: "🎮 Neues Spiel starten",
-      joinRoom: "🔗 Raum beitreten",
-      howItWorks: "Schnell erklärt",
-      highlights: [
-        { title: "Handys bleiben privat", text: "Wort und Aktion sieht nur die jeweilige Person." },
-        { title: "Ein Raum startet alles", text: "Host eröffnet die Runde, alle anderen kommen per QR oder Code dazu." },
-        { title: "Party Screen nur optional", text: "TV, Beamer oder Browser lassen sich später dazuschalten." },
-      ],
-    },
-    join: {
-      title: "Raum beitreten",
-      desc: "Name, Raumcode und bei Bedarf das Passwort eingeben.",
-      roomPlaceholder: "z.B. ABC12",
-      namePlaceholder: "Dein Spitzname",
-      passwordPlaceholder: "Raumpasswort",
-      button: "Beitreten →",
-      cardHintTitle: "Deine Karte bleibt privat",
-      cardHintText: "Wort und Aktion siehst nur du auf deinem Gerät.",
-      qrHintTitle: "Per QR oder Code",
-      qrHintText: "Sobald der Raum läuft, kannst du direkt in die Runde springen.",
-      connecting: "Verbinde…",
-      emptyError: "Bitte Code und Namen eingeben.",
-      roomNotFound: "Raum nicht gefunden.",
-      wrongPassword: "Falsches Passwort!",
-      nameTaken: "Dieser Name ist schon vergeben.",
-      genericError: "Fehler. Nochmal versuchen.",
-    },
-    create: {
-      title: "Neues Spiel",
-      desc: "Raum eröffnen und danach Mitspieler per QR oder Code einladen.",
-      hostName: "Dein Name (Host)",
-      namePlaceholder: "Dein Spitzname",
-      emptyPassword: "Leer = kein Passwort",
-      button: "Raum erstellen →",
-      flowTitle: "Host startet die Runde",
-      flowText: "Nach dem Erstellen landest du direkt in der Lobby und kannst Spieler einladen.",
-      partyTitle: "Party Screen später",
-      partyText: "Den gemeinsamen Bildschirm verbindest du optional erst im laufenden Raum.",
-      creating: "Erstelle…",
-      emptyError: "Bitte Namen eingeben.",
-      genericError: "Fehler. Nochmal versuchen.",
-    },
-    hostLobby: {
-      joinHint: "Mitspieler scannen den QR-Code oder geben den Code ein",
-      joined: (n) => `👥 Beigetreten (${n})`,
-      empty: "Noch niemand… QR-Code scannen!",
-      waiting: "Warte auf Mitspieler…",
-      start: (n) => `Spiel starten mit ${n} Spieler${n !== 1 ? "n" : ""} →`,
-      removePlayer: "Mitspieler entfernen",
-      removingPlayer: "Entferne…",
-      tvHub: "Party Screen öffnen",
-      tvTitle: "Gemeinsamen Screen verbinden",
-      tvDesc: "Optional für TV, Beamer oder zweiten Browser. Der Raum läuft auch ohne ihn.",
-      tvOpenExternal: "Extern öffnen",
-      tvCopyExternal: "Link kopieren",
-      nextRoundTitle: "Nächste Runde",
-      nextRoundDesc: "Der nächste Erzähler übernimmt jetzt und bereitet die neue Runde vor.",
-      inviteView: "Einladen",
-      playersView: "Mitspieler",
-      tvProtectedHint: "Der Party-Screen-Link ist geschützt und funktioniert nur über diesen Button im laufenden Raum.",
-      confirmRemovePlayer: (name) => `Willst du ${name} wirklich aus dem Raum entfernen?`,
-      confirmRemovePlayerRunning: (name) => `${name} ist bereits in einer laufenden Runde. Wirklich jetzt entfernen?`,
-      removePlayerError: "Der Mitspieler konnte nicht entfernt werden. Bitte nochmal versuchen.",
-    },
-    cards: {
-      title: "🎴 Runde vorbereiten",
-      desc: 'Jeder bekommt ein geheimes Wort und eine Aktion direkt aufs Handy. Danach muss jeder auf "Ich bin bereit" drücken bevor du die Geschichte generieren kannst.',
-      explainTitle: "Was stellst du hier ein?",
-      explainDesc: "Das sind keine verschiedenen Spielmodi. Du baust nur die nächste Runde zusammen: Sprache, Aktionsstil und Wortwelten.",
-      gameLanguage: "Spielsprache",
-      gameLanguageHelp: "Bestimmt, in welcher Sprache Wörter, Aktionen und KI-Geschichte in dieser Runde erzeugt werden.",
-      difficulty: "Aktions-Schwierigkeit",
-      difficultyHelp: {
-        easy: "Unauffällige, eher kleine Reaktionen",
-        medium: "Deutlichere Reaktionen mit mehr Risiko",
-        chaos: "Lauter, auffälliger und absurder",
-        mix: "Bunte Mischung aus allen Stufen",
-      },
-      categories: "Wort-Kategorien",
-      categoriesHelp: "Hier legst du fest, aus welchen Themenbereichen die geheimen Wörter kommen.",
-      minCategory: "Mindestens eine Kategorie auswählen!",
-      players: (n) => `Mitspieler (${n})`,
-      noPlayers: "Noch keine Mitspieler beigetreten.",
-      deal: "🃏 Karten austeilen",
-      dealing: "Verteile…",
-      setupView: "Einstellungen",
-      playersView: "Mitspieler",
-    },
-    ready: {
-      title: "⏳ Warte auf Bereitschaft",
-      desc: 'Jeder Mitspieler muss seine Karte angeschaut und auf "Ich bin bereit" getippt haben.',
-      status: "Status",
-      readyCount: (a, b) => `${a} / ${b} bereit`,
-      rerolled: "neu gezogen",
-      allReady: "Alle sind bereit!",
-      continue: "Geschichte generieren →",
-    },
-    storyGen: {
-      title: "✨ Vorlesen",
-      desc: "Wähle ein Thema. Die Geschichte enthält die Wörter aller Mitspieler. Du liest vor – beobachte die Reaktionen!",
-      flowTitle: "Ablauf dieser Runde",
-      flowSteps: ["Karten sind verteilt", "Alle sind bereit", "Geschichte vorlesen", "Danach getrennt auflösen und Punkte vergeben"],
-      theme: "Thema",
-      storyLength: "Geschichtenlänge",
-      storyLengthValue: (n) => `${n} Zeichen mindestens`,
-      storyLengthHelp: "Mit dem Regler bestimmst du die Mindestlänge der Geschichte. Mehr Länge gibt der KI mehr Platz für doppelte Wortnennungen.",
-      generate: "Geschichte erzeugen",
-      generating: "Wird gebaut…",
-      writing: "Lokaler Erzähler schreibt…",
-      regenerate: "Neu lokal ↻",
-      regenerateAi: "Mit KI neu",
-      writingAi: "KI probiert Bonus-Varianten…",
-      aiError: "Die Geschichte konnte gerade nicht sauber erzeugt werden. Kurz warten und nochmal versuchen.",
-      readNow: "Jetzt vorlesen!",
-      hiddenHint: "Wörter sind versteckt – beobachte wer wann reagiert!",
-      revealTitle: "Auflösen – erst nach dem Raten!",
-      revealDesc: "Wechsle danach in die Auflösung. Dort siehst du die Geschichte mit markierten Wörtern und alle Karten der Mitspieler.",
-      resolveCta: "Zur Auflösung",
-    },
-    resolution: {
-      title: "🎭 Auflösung",
-      desc: "Hier wird die Geschichte aufgedeckt. Erst danach geht es weiter zur Punktevergabe.",
-      revealStoryTitle: "Aufgedeckte Geschichte",
-      revealStoryDesc: "Jetzt siehst du die Geschichte mit den markierten Wörtern aller Mitspieler.",
-      word: "🔵 Wort",
-      action: "🔴 Aktion",
-      continueToPoints: "Zur Punktevergabe",
-    },
-    scores: {
-      title: "🏆 Punktevergabe",
-      desc: "Hier vergibst du als Erzähler die Runde und die Mitspieler stimmen über deinen Punkt ab.",
-      rulesTitle: "Punkteregeln",
-      rules: [
-        "Der Erzähler kann jedem Mitspieler in dieser Runde höchstens 1 Punkt geben.",
-        "Die Mitspieler stimmen am Ende ab, ob der Erzähler 1 Punkt bekommt.",
-      ],
-      pointsTitle: "Punkte vergeben",
-      pointsDesc: "Du entscheidest als Erzähler, wer für diese Runde Punkte bekommt.",
-      pointsRule: "Jeder Mitspieler kann in dieser Runde höchstens 1 Punkt von dir bekommen.",
-      currentScore: "Punktestand",
-      addPoint: "+1 Punkt",
-      pointGiven: "Punkt vergeben",
-      narratorVoteTitle: "Abstimmung für den Erzähler",
-      narratorVoteDesc: "Stimmt ab, ob der Erzähler für diese Runde einen Punkt verdient hat.",
-      narratorVoteWaiting: (a, b) => `${a} von ${b} Stimmen eingegangen`,
-      narratorVoteYes: "Ja",
-      narratorVoteNo: "Nein",
-      narratorVoteApproved: "Mehrheit dafür: Der Erzähler bekommt 1 Punkt.",
-      narratorVoteRejected: "Keine Mehrheit: Der Erzähler bekommt keinen Punkt.",
-      narratorVotePending: "Warte auf die Stimmen der Mitspieler.",
-      narratorVoteLive: "Live-Ergebnis",
-      narratorVoteDone: "Abstimmung abgeschlossen",
-      nextTitle: "Nächsten Erzähler wählen",
-      nextDesc: "Bestimme jetzt, wer in der nächsten Runde die Hauptansicht bekommt.",
-      nextAuto: "Der nächste Erzähler steht schon fest.",
-      nextRound: "Nächste Runde starten",
-      chooseFirst: "Wähle zuerst den nächsten Erzähler.",
-      nextUp: (name) => `Nächste Runde: ${name} ist Erzähler`,
-      roundSummaryTitle: "Runde abgeschlossen",
-      roundSummaryDesc: "Vergib oben Punkte, prüfe den Erzählerpunkt und bestimme dann den nächsten Erzähler.",
-      actionView: "Vergabe",
-      voteView: "Voting",
-      boardView: "Punktestand",
-      nextView: "Nächster",
-      continueToVote: "Zum Voting",
-      continueToNext: "Zur Erzählerwahl",
-    },
-    timer: {
-      duration: "Dauer",
-      minutes: "min",
-      seconds: "Sekunden",
-      minSec: "min:sek",
-      done: "Zeit ist um!",
-      guessPhase: "Ratephase starten",
-      start: "START",
-      pause: "PAUSE",
-      reset: "RESET",
-      aria: (n) => `${n} Sekunden`,
-    },
-    rounds: {
-      title: "🔄 Runden-Übersicht",
-      round: "Runde",
-      currentNarrator: "Aktueller Erzähler",
-      current: "dran",
-      done: "war dran",
-      waiting: "wartet",
-      chooseNext: "Nächster",
-      allNarrators: "🎉 Alle waren Erzähler!",
-      gameFinished: "Spiel beendet – Endstand im Punkte-Tab",
-    },
-    hostTabs: { lobby: "Lobby", cards: "Runde", ready: "Bereit", story: "Vorlesen", resolve: "Auflösen", scores: "Punkte", next: "Nächster" },
-    player: {
-      inRoom: "Du bist in Raum",
-      as: "als",
-      waitingCards: "Warte auf Karten…",
-      hostDealing: "Der Host teilt gleich die Karten aus!",
-      secretCards: "Deine geheimen Karten",
-      reroll: "1x neu ziehen",
-      rerolled: "neu gezogen",
-      secretWord: "Geheimwort",
-      secretAction: "Geheime Aktion",
-      tapReveal: "Tippen zum Aufdecken",
-      readyButton: "✅ Ich bin bereit!",
-      readyState: "✅ Bereit – warte auf die Geschichte!",
-      revealBoth: 'Decke beide Karten auf um "Ich bin bereit" zu sehen',
-      storyRunning: "Story läuft!",
-      reactHint: "Reagiere wenn dein Wort fällt. Bleib unauffällig 😏",
-      yourWord: "Dein Wort:",
-      narratorVoteTitle: "Abstimmung",
-      narratorVoteDesc: "Stimmt ab, ob der Erzähler für diese Runde einen Punkt verdient hat.",
-      narratorVoteYes: "Ja, +1",
-      narratorVoteNo: "Nein",
-      narratorVoteSent: "Deine Stimme wurde gezählt.",
-      narratorVoteApproved: "Die Gruppe gibt dem Erzähler 1 Punkt.",
-      narratorVoteRejected: "Die Gruppe gibt dem Erzähler keinen Punkt.",
-      narratorVotePending: "Warte auf das Endergebnis…",
-      phaseWaiting: "Warte auf den Erzähler",
-      phaseCards: "Karten anschauen",
-      phaseReady: "Bereit machen",
-      phaseStory: "Reagieren",
-      phaseReveal: "Auflösung läuft",
-      phaseVoting: "Abstimmen",
-      phaseResult: "Runde beendet",
-      pointsTitle: "Punkte dieser Runde",
-      pointsDesc: "Die Geschichte ist vorbei. Jetzt vergibt der Erzähler Punkte und ihr stimmt über seinen Punkt ab.",
-      cardView: "Deine Karte",
-      voteView: "Abstimmen",
-      takeOverTitle: "Kein aktiver Erzähler",
-      takeOverDesc: "Der bisherige Erzähler scheint nicht mehr verbunden zu sein. Du kannst den Raum übernehmen und weiterspielen.",
-      kicked: "Du wurdest vom Erzähler aus dem Raum entfernt.",
-    },
-    tv: {
-      blockedTitle: "Party Screen gesperrt",
-      blockedDesc: "Dieser Party Screen braucht den geschützten Link aus dem laufenden Raum. Bitte direkt dort öffnen.",
-      label: "Gemeinsamer Screen",
-      meta: "Read-only • zeigt nur gemeinsame Infos",
-    },
-    debug: {
-      title: "🛠 Debug Panel",
-      supabase: "Supabase",
-      connection: "Verbindung",
-      checking: "Prüfe...",
-      aiApis: "KI-APIs",
-      aiApisHint: "Vom aktuellen Browser/Host aus getestet.",
-      testAll: "Alle testen",
-      testing: "Teste…",
-      notTested: "Noch nicht getestet",
-      serviceNotConnected: "In diesem Build nicht verbunden",
-      serviceAuthMissing: "API-Zugang fehlt auf diesem Gerät",
-      serviceRateLimited: "Dienst erreichbar, aber gerade gebremst",
-      serviceTimeout: "Dienst antwortet zu langsam",
-      serviceHttpError: (code) => `Dienst antwortet mit HTTP ${code}`,
-      servicePreview: "Antwortprobe",
-      rooms: (n) => `Räume (${n})`,
-      deleteOld: "Alte löschen",
-      noRooms: "Keine Räume",
-      logs: (n) => `Logs (${n})`,
-      noLogs: "Keine Logs",
-      ok: "OK",
-      fail: "FEHLER",
-      deletedRooms: "Alte Räume gelöscht",
-      debugOpened: "Debug geöffnet",
-      sessions: "Sessions",
-      checkSessions: "Sessions prüfen",
-      checkingSessions: "Prüfe Sessions…",
-      activeSessions: (n) => `${n} aktiv`,
-      noActiveSessions: "Keine aktiven Sessions",
-      narratorMissing: "Kein aktiver Erzähler",
-      deleteInactive: "Inaktive löschen",
-      roomDeleted: "Raum gelöscht",
-    },
-  },
-  en: {
-    subtitle: "The party game against the narrator",
-    aria: { toggleTheme: "Toggle theme", toggleLanguage: "Toggle language" },
-    common: {
-      room: "Room",
-      leave: "Leave",
-      deleteRoom: "Delete room",
-      deleting: "Deleting…",
-      takeOverRoom: "Take over room",
-      takingOver: "Taking over…",
-      leaveRoom: "Leave room",
-      back: "← Back",
-      loading: "Connecting…",
-      optional: "optional",
-      close: "Close",
-      refresh: "Check again",
-      none: "None",
-      roomCode: "Room code",
-      password: "Password",
-      yourName: "Your name",
-      host: "Host",
-      status: "Status",
-      story: "Story",
-      phaseTitle: "Round phase",
-      focusView: "Focus view",
-      help: "Help",
-      open: "Open",
-      copyLink: "Copy link",
-      copied: "Copied",
-    },
-    helpScreen: {
-      title: "Help",
-      desc: "Everything important before the first round, kept short and useful.",
-      cards: [
-        { label: "Start", title: "Start a room", text: "One person opens the room. Everyone else joins by QR or room code." },
-        { label: "Private", title: "Phones stay secret", text: "Each word and action stays visible only to the player who got it." },
-        { label: "Flow", title: "Read, reveal, score", text: "The story happens together, then the round moves into reveal and scoring." },
-        { label: "Party Screen", title: "Only if you want it", text: "TV, browser, or projector are connected optionally after the game starts." },
-      ],
-    },
-    confirmDeleteRoom: "Do you really want to delete this room? All players and the current game state will be removed.",
-    deleteRoomError: "The room could not be deleted. Please try again.",
-    offline: "No connection – please check your Wi-Fi",
-    home: {
-      welcome: "Welcome!",
-      desc: "Create a room and invite players by QR code – or join an existing room. You can connect the Party Screen afterwards if you want it.",
-      newGame: "🎮 Start new game",
-      joinRoom: "🔗 Join room",
-      howItWorks: "Quick guide",
-      highlights: [
-        { title: "Phones stay private", text: "Only the player sees their word and action." },
-        { title: "One room starts everything", text: "The host opens the round, everyone else joins by QR or code." },
-        { title: "Party Screen is optional", text: "TV, projector, or browser can be added later if you want one." },
-      ],
-    },
-    join: {
-      title: "Join room",
-      desc: "Enter your name, room code, and password only if needed.",
-      roomPlaceholder: "e.g. ABC12",
-      namePlaceholder: "Your nickname",
-      passwordPlaceholder: "Room password",
-      button: "Join →",
-      cardHintTitle: "Your card stays private",
-      cardHintText: "Only you can see your word and action on your device.",
-      qrHintTitle: "Join by QR or code",
-      qrHintText: "As soon as the room is live, you can jump straight into the round.",
-      connecting: "Connecting…",
-      emptyError: "Please enter a code and a name.",
-      roomNotFound: "Room not found.",
-      wrongPassword: "Wrong password!",
-      nameTaken: "That name is already taken.",
-      genericError: "Something went wrong. Please try again.",
-    },
-    create: {
-      title: "New game",
-      desc: "Open a room and invite players by QR code or room code.",
-      hostName: "Your name (host)",
-      namePlaceholder: "Your nickname",
-      emptyPassword: "Leave blank = no password",
-      button: "Create room →",
-      flowTitle: "The host starts the round",
-      flowText: "After creating the room, you land directly in the lobby and can invite players.",
-      partyTitle: "Party Screen later",
-      partyText: "You connect the shared screen optionally once the room is already running.",
-      creating: "Creating…",
-      emptyError: "Please enter a name.",
-      genericError: "Something went wrong. Please try again.",
-    },
-    hostLobby: {
-      joinHint: "Players scan the QR code or enter the code manually",
-      joined: (n) => `👥 Joined (${n})`,
-      empty: "No one yet… scan the QR code!",
-      waiting: "Waiting for players…",
-      start: (n) => `Start game with ${n} player${n !== 1 ? "s" : ""} →`,
-      removePlayer: "Remove player",
-      removingPlayer: "Removing…",
-      tvHub: "Open Party Screen",
-      tvTitle: "Connect a shared screen",
-      tvDesc: "Optional for TV, projector, or a second browser. The room works without it.",
-      tvOpenExternal: "Open externally",
-      tvCopyExternal: "Copy link",
-      nextRoundTitle: "Next round",
-      nextRoundDesc: "The next narrator takes over now and prepares the new round.",
-      inviteView: "Invite",
-      playersView: "Players",
-      tvProtectedHint: "The Party Screen link is protected and only works through this button in the live room.",
-      confirmRemovePlayer: (name) => `Do you really want to remove ${name} from the room?`,
-      confirmRemovePlayerRunning: (name) => `${name} is already in a live round. Remove them anyway?`,
-      removePlayerError: "The player could not be removed. Please try again.",
-    },
-    cards: {
-      title: "🎴 Prepare round",
-      desc: 'Each player gets a secret word and a secret action right on their phone. After that, everyone must tap "I\'m ready" before you can generate the story.',
-      explainTitle: "What are you setting here?",
-      explainDesc: "These are not different game modes. You are just preparing the next round: language, action style, and word themes.",
-      gameLanguage: "Game language",
-      gameLanguageHelp: "This decides the language for the secret words, actions, and AI story in this round.",
-      difficulty: "Action difficulty",
-      difficultyHelp: {
-        easy: "Subtle and low-key reactions",
-        medium: "More obvious reactions with more risk",
-        chaos: "Louder, weirder, and much easier to spot",
-        mix: "A mixed pool from every difficulty",
-      },
-      categories: "Word categories",
-      categoriesHelp: "Choose which theme buckets the secret words can come from.",
-      minCategory: "Select at least one category!",
-      players: (n) => `Players (${n})`,
-      noPlayers: "No players have joined yet.",
-      deal: "🃏 Deal cards",
-      dealing: "Dealing…",
-      setupView: "Setup",
-      playersView: "Players",
-    },
-    ready: {
-      title: "⏳ Waiting for readiness",
-      desc: 'Every player needs to inspect their card and tap "I\'m ready".',
-      status: "Status",
-      readyCount: (a, b) => `${a} / ${b} ready`,
-      rerolled: "rerolled",
-      allReady: "Everyone is ready!",
-      continue: "Generate story →",
-    },
-    storyGen: {
-      title: "✨ Read aloud",
-      desc: "Choose a theme. The story includes every player's word. Read it aloud and watch the reactions!",
-      flowTitle: "Round flow",
-      flowSteps: ["Cards are dealt", "Everyone is ready", "Read the story aloud", "Then reveal and award points in separate steps"],
-      theme: "Theme",
-      storyLength: "Story length",
-      storyLengthValue: (n) => `${n} characters minimum`,
-      storyLengthHelp: "Use the slider to set the minimum story length. More length gives the AI more room for repeated word appearances.",
-      generate: "Generate story",
-      generating: "Building…",
-      writing: "Local narrator is writing…",
-      regenerate: "New local ↻",
-      regenerateAi: "Retry with AI",
-      writingAi: "AI is trying bonus variations…",
-      aiError: "The story could not be generated cleanly right now. Wait a moment and try again.",
-      readNow: "Read this aloud!",
-      hiddenHint: "The words are hidden – watch who reacts and when!",
-      revealTitle: "Reveal – only after the guesses!",
-      revealDesc: "Then switch to the reveal screen. There you see the story with highlighted words and all player cards.",
-      resolveCta: "Go to reveal",
-    },
-    resolution: {
-      title: "🎭 Reveal",
-      desc: "This is the reveal step. Scoring happens afterwards in its own screen.",
-      revealStoryTitle: "Revealed story",
-      revealStoryDesc: "You now see the story with every highlighted player word.",
-      word: "🔵 Word",
-      action: "🔴 Action",
-      continueToPoints: "Go to scoring",
-    },
-    scores: {
-      title: "🏆 Scoring",
-      desc: "Here the narrator awards player points and the group votes on the narrator point.",
-      rulesTitle: "Scoring rules",
-      rules: [
-        "The narrator can give each player at most 1 point this round.",
-        "At the end, the players vote on whether the narrator gets 1 point.",
-      ],
-      pointsTitle: "Award points",
-      pointsDesc: "As the narrator, you decide who earns points this round.",
-      pointsRule: "Each player can get at most 1 point from you this round.",
-      currentScore: "Score",
-      addPoint: "+1 point",
-      pointGiven: "Point given",
-      narratorVoteTitle: "Vote for the narrator",
-      narratorVoteDesc: "Vote on whether the narrator deserves 1 point for this round.",
-      narratorVoteWaiting: (a, b) => `${a} of ${b} votes received`,
-      narratorVoteYes: "Yes",
-      narratorVoteNo: "No",
-      narratorVoteApproved: "Majority says yes: the narrator gets 1 point.",
-      narratorVoteRejected: "No majority: the narrator gets no point.",
-      narratorVotePending: "Waiting for the players to vote.",
-      narratorVoteLive: "Live result",
-      narratorVoteDone: "Vote finished",
-      nextTitle: "Choose the next narrator",
-      nextDesc: "Decide who gets the main narrator view for the next round.",
-      nextAuto: "The next narrator is already decided.",
-      nextRound: "Start next round",
-      chooseFirst: "Choose the next narrator first.",
-      nextUp: (name) => `Next round: ${name} is the narrator`,
-      roundSummaryTitle: "Round complete",
-      roundSummaryDesc: "Award points above, check the narrator vote, then choose the next narrator.",
-      actionView: "Scoring",
-      voteView: "Vote",
-      boardView: "Scoreboard",
-      nextView: "Next",
-      continueToVote: "Go to vote",
-      continueToNext: "Go to narrator choice",
-    },
-    timer: {
-      duration: "Duration",
-      minutes: "min",
-      seconds: "seconds",
-      minSec: "min:sec",
-      done: "Time's up!",
-      guessPhase: "Start the guessing phase",
-      start: "START",
-      pause: "PAUSE",
-      reset: "RESET",
-      aria: (n) => `${n} seconds`,
-    },
-    rounds: {
-      title: "🔄 Round overview",
-      round: "Round",
-      currentNarrator: "Current narrator",
-      current: "active",
-      done: "done",
-      waiting: "waiting",
-      chooseNext: "Next",
-      allNarrators: "🎉 Everyone has been the narrator!",
-      gameFinished: "Game finished – final scores are in the score tab",
-    },
-    hostTabs: { lobby: "Lobby", cards: "Round", ready: "Ready", story: "Read", resolve: "Reveal", scores: "Scores", next: "Next" },
-    player: {
-      inRoom: "You are in room",
-      as: "as",
-      waitingCards: "Waiting for cards…",
-      hostDealing: "The host is about to deal the cards!",
-      secretCards: "Your secret cards",
-      reroll: "reroll once",
-      rerolled: "rerolled",
-      secretWord: "Secret word",
-      secretAction: "Secret action",
-      tapReveal: "Tap to reveal",
-      readyButton: "✅ I'm ready!",
-      readyState: "✅ Ready – waiting for the story!",
-      revealBoth: 'Reveal both cards to see "I\'m ready"',
-      storyRunning: "Story in progress!",
-      reactHint: "React when your word appears. Stay subtle 😏",
-      yourWord: "Your word:",
-      narratorVoteTitle: "Vote",
-      narratorVoteDesc: "Vote on whether the narrator deserves 1 point for this round.",
-      narratorVoteYes: "Yes, +1",
-      narratorVoteNo: "No",
-      narratorVoteSent: "Your vote has been counted.",
-      narratorVoteApproved: "The group gives the narrator 1 point.",
-      narratorVoteRejected: "The group gives the narrator no point.",
-      narratorVotePending: "Waiting for the final result…",
-      phaseWaiting: "Waiting for the narrator",
-      phaseCards: "Check your cards",
-      phaseReady: "Get ready",
-      phaseStory: "React",
-      phaseReveal: "Reveal in progress",
-      phaseVoting: "Vote",
-      phaseResult: "Round complete",
-      pointsTitle: "Round scoring",
-      pointsDesc: "The story is over. The narrator is now awarding points and you vote on the narrator point.",
-      cardView: "Your card",
-      voteView: "Vote",
-      takeOverTitle: "No active narrator",
-      takeOverDesc: "The previous narrator seems to be offline. You can take over the room and continue the game.",
-      kicked: "The narrator removed you from the room.",
-    },
-    tv: {
-      blockedTitle: "Party Screen locked",
-      blockedDesc: "This Party Screen needs the protected link from the live room. Please open it there.",
-      label: "Shared screen",
-      meta: "Read-only • shared information only",
-    },
-    debug: {
-      title: "🛠 Debug Panel",
-      supabase: "Supabase",
-      connection: "Connection",
-      checking: "Checking...",
-      aiApis: "AI APIs",
-      aiApisHint: "Tested from the current browser/host.",
-      testAll: "Test all",
-      testing: "Testing…",
-      notTested: "Not tested yet",
-      serviceNotConnected: "Not connected in this build",
-      serviceAuthMissing: "Missing API access on this device",
-      serviceRateLimited: "Service is reachable but currently rate limited",
-      serviceTimeout: "Service is responding too slowly",
-      serviceHttpError: (code) => `Service returned HTTP ${code}`,
-      servicePreview: "Response preview",
-      rooms: (n) => `Rooms (${n})`,
-      deleteOld: "Delete old",
-      noRooms: "No rooms",
-      logs: (n) => `Logs (${n})`,
-      noLogs: "No logs",
-      ok: "OK",
-      fail: "FAIL",
-      deletedRooms: "Deleted old rooms",
-      debugOpened: "Opened debug panel",
-      sessions: "Sessions",
-      checkSessions: "Check sessions",
-      checkingSessions: "Checking sessions…",
-      activeSessions: (n) => `${n} active`,
-      noActiveSessions: "No active sessions",
-      narratorMissing: "No active narrator",
-      deleteInactive: "Delete inactive",
-      roomDeleted: "Deleted room",
-    },
-  },
-};
 
 const FF = "system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
 const THEMES = {
@@ -890,9 +143,9 @@ function getPlayerPhase(room, player, bothRevealed, isReady, ui) {
   if (!player?.secret_word || !player?.secret_action) return ui.player.phaseWaiting;
   if (!bothRevealed) return ui.player.phaseCards;
   if (!isReady) return ui.player.phaseReady;
-  if (room?.status === "revealed") return ui.player.phaseReveal;
-  if (room?.status === "voting") return ui.player.phaseVoting;
-  if (room?.status === "voted") return ui.player.phaseResult;
+  if (room?.status === GAME_PHASES.REVEALED) return ui.player.phaseReveal;
+  if (room?.status === GAME_PHASES.VOTING) return ui.player.phaseVoting;
+  if (room?.status === GAME_PHASES.VOTED) return ui.player.phaseResult;
   if (room?.story) return ui.player.phaseStory;
   return ui.player.phaseWaiting;
 }
@@ -1668,7 +921,7 @@ function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv,
 
   async function handleRemovePlayer(player) {
     if (!onRemovePlayer || removingPlayerId) return;
-    const runningRound = room?.status && !["waiting", "cards"].includes(room.status);
+    const runningRound = room?.status && !PRE_STORY_PHASES.includes(room.status);
     const confirmed = window.confirm(
       runningRound
         ? ui.hostLobby.confirmRemovePlayerRunning(player.name)
@@ -1844,7 +1097,7 @@ function HostCards({ room, players, ui, lang, contentLang, setContentLang, C, S,
     for (let index = 0; index < others.length; index += 1) {
       await sb.from("players").update({ secret_word: ws[index], secret_action: actions[index], ready: false, rerolled: false }).eq("id", others[index].id);
     }
-    await sb.from("rooms").update({ status: "cards", story_words: ws, difficulty: diff }).eq("id", room.id);
+    await sb.from("rooms").update({ status: GAME_PHASES.CARDS, story_words: ws, difficulty: diff }).eq("id", room.id);
     onCardsDealt(ws);
     vibrate([100, 50, 100]);
     setLoading(false);
@@ -2028,7 +1281,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
       return;
     }
     setStory(validStory);
-    await sb.from("rooms").update({ story: validStory, status: "playing" }).eq("id", room.id);
+    await sb.from("rooms").update({ story: validStory, status: GAME_PHASES.PLAYING }).eq("id", room.id);
     setLoading(false);
   }
 
@@ -2246,7 +1499,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
   const compactScoreHeight = viewport.isDesktop ? "min(58vh, 560px)" : "auto";
 
   useEffect(() => {
-    if (!allVoted || room?.status !== "voting" || !onFinalizeNarratorVote || finalizingNarratorVote) return;
+    if (!allVoted || room?.status !== GAME_PHASES.VOTING || !onFinalizeNarratorVote || finalizingNarratorVote) return;
     onFinalizeNarratorVote(yesVotes > noVotes);
   }, [allVoted, room?.status, onFinalizeNarratorVote, finalizingNarratorVote, yesVotes, noVotes]);
 
@@ -2346,7 +1599,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
                   <div style={{ fontSize: 30, fontWeight: 800, color: C.txt, lineHeight: 1 }}>{noVotes}</div>
                 </div>
               </div>
-              {room?.status === "voted" ? (
+              {room?.status === GAME_PHASES.VOTED ? (
                 <div style={{ marginTop: 14, padding: "18px 18px", borderRadius: 16, background: narratorAwarded ? "linear-gradient(180deg, rgba(74,222,128,.16), rgba(74,222,128,.06))" : "linear-gradient(180deg, rgba(148,163,184,.14), rgba(148,163,184,.06))", border: `1px solid ${narratorAwarded ? "rgba(74,222,128,.30)" : C.bdr}`, color: narratorAwarded ? ACC.greenl : C.txt }}>
                   <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 8 }}>
                     {ui.scores.narratorVoteDone}
@@ -2367,7 +1620,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
               )}
             </div>
           )}
-          {nextCandidates.length > 0 && room?.status === "voted" && (
+          {nextCandidates.length > 0 && room?.status === GAME_PHASES.VOTED && (
             <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-end" }}>
               <button onClick={() => setView("next")} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), width: viewport.isDesktop ? 220 : "100%" }}>
                 {ui.scores.continueToNext}
@@ -2662,7 +1915,7 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
       past_narrators: nextPast,
       story: null,
       story_words: [],
-      status: "waiting",
+      status: GAME_PHASES.WAITING,
     }).eq("id", roomId);
 
     await sb.from("players").update({
@@ -2685,7 +1938,7 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
     setNarratorAwarded(false);
     setFinalizingNarratorVote(false);
     setAwardedPlayerIds([]);
-    await sb.from("rooms").update({ status: "revealed" }).eq("id", roomId);
+    await sb.from("rooms").update({ status: GAME_PHASES.REVEALED }).eq("id", roomId);
     setTab("resolve");
   }
 
@@ -2693,7 +1946,7 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
     setNarratorVotes({});
     setNarratorAwarded(false);
     setFinalizingNarratorVote(false);
-    await sb.from("rooms").update({ status: "voting" }).eq("id", roomId);
+    await sb.from("rooms").update({ status: GAME_PHASES.VOTING }).eq("id", roomId);
     if (voteChannelRef.current) {
       await voteChannelRef.current.send({ type: "broadcast", event: "vote-reset", payload: {} });
     }
@@ -2707,13 +1960,13 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
   }
 
   async function finalizeNarratorVote(awarded) {
-    if (finalizingNarratorVote || room?.status === "voted") return;
+    if (finalizingNarratorVote || room?.status === GAME_PHASES.VOTED) return;
     setFinalizingNarratorVote(true);
     const narrator = players.find((player) => player.id === narratorId);
     if (awarded && narrator) {
       await sb.from("players").update({ score: (narrator.score || 0) + 1 }).eq("id", narrator.id);
     }
-    await sb.from("rooms").update({ status: "voted" }).eq("id", roomId);
+    await sb.from("rooms").update({ status: GAME_PHASES.VOTED }).eq("id", roomId);
     setNarratorAwarded(!!awarded);
     if (voteChannelRef.current) {
       await voteChannelRef.current.send({ type: "broadcast", event: "vote-result", payload: { awarded: !!awarded } });
@@ -2885,7 +2138,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
   }, [roomId, playerName, setContentLang, onLeave, ui.player.kicked]);
 
   async function doReroll() {
-    const storyStarted = !!room?.story || ["playing", "revealed", "voting", "voted"].includes(room?.status);
+    const storyStarted = !!room?.story || ACTIVE_ROUND_PHASES.includes(room?.status);
     if (rerolled || !player || storyStarted) return;
     const { data: all } = await sb.from("players").select("secret_word,secret_action").eq("room_id", roomId);
     const usedWords = all.map((entry) => entry.secret_word).filter(Boolean);
@@ -2930,8 +2183,8 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
   const hasCards = player.secret_word && player.secret_action;
   const bothRevealed = cardRevealed.word && cardRevealed.action;
   const playerPhase = getPlayerPhase(room, player, bothRevealed, isReady, ui);
-  const storyStarted = !!room.story || ["playing", "revealed", "voting", "voted"].includes(room.status);
-  const inPointsView = room.status === "voting" || room.status === "voted";
+  const storyStarted = !!room.story || ACTIVE_ROUND_PHASES.includes(room.status);
+  const inPointsView = SCORE_PHASES.includes(room.status);
 
   return (
     <div>
@@ -2990,7 +2243,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
           </div>
 
           <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
-            {pointsView === "vote" && room.status === "voting" && (
+            {pointsView === "vote" && room.status === GAME_PHASES.VOTING && (
               <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.player.narratorVoteTitle}</div>
                 <p style={{ ...S.bt, marginBottom: 12 }}>{ui.player.narratorVoteDesc}</p>
@@ -3007,7 +2260,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
               </div>
             )}
 
-            {pointsView === "vote" && room.status === "voted" && voteResult !== null && (
+            {pointsView === "vote" && room.status === GAME_PHASES.VOTED && voteResult !== null && (
               <div style={{ ...S.card, borderColor: voteResult ? "rgba(74,222,128,.3)" : C.bdr, background: voteResult ? "linear-gradient(180deg, rgba(74,222,128,.12), rgba(74,222,128,.05))" : "linear-gradient(180deg, rgba(148,163,184,.14), rgba(148,163,184,.06))", marginTop: 12, padding: "18px 18px", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: voteResult ? ACC.green : C.muted, marginBottom: 8 }}>
                   {ui.player.narratorVoteTitle}
@@ -3018,7 +2271,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
               </div>
             )}
 
-            {pointsView === "vote" && room.status === "voted" && voteResult === null && (
+            {pointsView === "vote" && room.status === GAME_PHASES.VOTED && voteResult === null && (
               <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "rgba(96,165,250,.06)", marginTop: 12 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: ACC.bluel }}>{ui.player.narratorVotePending}</div>
               </div>
@@ -3148,7 +2401,7 @@ function CreateRoom({ onCreated, ui, C, S }) {
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     await sb.from("rooms").delete().lt("created_at", cutoff);
     const id = roomCode();
-    const { error: createError } = await sb.from("rooms").insert({ id, host_name: name.trim(), status: "waiting", password: pw || null });
+    const { error: createError } = await sb.from("rooms").insert({ id, host_name: name.trim(), status: GAME_PHASES.WAITING, password: pw || null });
     if (createError) { setError(ui.create.genericError); setLoading(false); return; }
     const { data: hostPlayer, error: hostError } = await sb.from("players").insert({ room_id: id, name: name.trim(), is_host: true }).select().single();
     if (hostError) { setError(ui.create.genericError); setLoading(false); return; }
@@ -3344,7 +2597,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   const narrator = getVisiblePlayers(players).find((player) => player.id === narratorId);
   const audience = getAudience(players, narratorId);
   const readyCount = audience.filter((player) => player.ready).length;
-  const lobbyLikeStatus = room.status === "waiting" || room.status === "cards";
+  const lobbyLikeStatus = PRE_STORY_PHASES.includes(room.status);
   const compactLobbyLayout = lobbyLikeStatus && viewport.width >= 1100;
   const allVotes = Object.values(narratorVotes);
   const yesVotes = allVotes.filter((vote) => vote.value === "yes").length;
@@ -3373,25 +2626,25 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
             <div>
               <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.common.status}</div>
               <div style={{ fontSize: tvLarge ? 30 : viewport.isDesktop ? 25 : 21, fontWeight: 900, color: tvBody.color, marginBottom: 10 }}>
-                {room.status === "waiting" && ui.hostTabs.lobby}
-                {room.status === "cards" && ui.hostTabs.cards}
-                {room.status === "playing" && ui.hostTabs.story}
-                {room.status === "revealed" && ui.hostTabs.resolve}
-                {room.status === "voting" && ui.hostTabs.scores}
-                {room.status === "voted" && ui.hostTabs.scores}
+                {room.status === GAME_PHASES.WAITING && ui.hostTabs.lobby}
+                {room.status === GAME_PHASES.CARDS && ui.hostTabs.cards}
+                {room.status === GAME_PHASES.PLAYING && ui.hostTabs.story}
+                {room.status === GAME_PHASES.REVEALED && ui.hostTabs.resolve}
+                {room.status === GAME_PHASES.VOTING && ui.hostTabs.scores}
+                {room.status === GAME_PHASES.VOTED && ui.hostTabs.scores}
               </div>
               {room.story && (
                 <div style={{ fontSize: tvLarge ? 19 : viewport.isDesktop ? 17 : 15, lineHeight: 1.72, color: tvBody.color, overflowWrap: "anywhere" }}>
-                  {room.status === "revealed" || room.status === "voting" || room.status === "voted"
+                  {room.status === GAME_PHASES.REVEALED || SCORE_PHASES.includes(room.status)
                     ? renderHighlightedStory(room.story, revealWords, C)
                     : room.story.replace(/\*\*(.*?)\*\*/g, "$1")}
                 </div>
               )}
               {!room.story && (
                 <div style={{ fontSize: tvLarge ? 17 : 15, color: tvMuted.color, lineHeight: 1.55 }}>
-                  {room.status === "cards" && `${readyCount} / ${audience.length} bereit`}
-                  {room.status === "waiting" && ui.hostLobby.waiting}
-                  {!["waiting", "cards"].includes(room.status) && ui.common.loading}
+                  {room.status === GAME_PHASES.CARDS && `${readyCount} / ${audience.length} bereit`}
+                  {room.status === GAME_PHASES.WAITING && ui.hostLobby.waiting}
+                  {!PRE_STORY_PHASES.includes(room.status) && ui.common.loading}
                 </div>
               )}
             </div>
@@ -3404,7 +2657,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
             <div style={{ display: "grid", gap: 10 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: tvBody.color }}>{narrator ? `${ui.common.host}: ${narrator.name}` : ui.common.host}</div>
               <div style={{ fontSize: 12, color: tvMuted.color }}>{audience.length} Mitspieler</div>
-              {(room.status === "waiting" || room.status === "cards") && (
+              {PRE_STORY_PHASES.includes(room.status) && (
                 <>
                   <div style={{ display: "flex", justifyContent: "center", marginTop: 6 }}>
                     <div style={{ padding: 8, borderRadius: 14, background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.10)" }}>
@@ -3436,7 +2689,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
             )}
           </div>}
 
-          {(room.status === "voting" || room.status === "voted") && (
+          {(SCORE_PHASES.includes(room.status)) && (
             <div style={{ ...S.card, ...tvCard, marginBottom: 0, padding: tvPad }}>
               <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.player.narratorVoteTitle}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -3449,7 +2702,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
                   <div style={{ fontSize: 22, fontWeight: 900, color: tvBody.color }}>{noVotes}</div>
                 </div>
               </div>
-              {room.status === "voted" && narratorAwarded !== null && (
+              {room.status === GAME_PHASES.VOTED && narratorAwarded !== null && (
                 <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: narratorAwarded ? ACC.greenl : ACC.gold }}>
                   {narratorAwarded ? ui.player.narratorVoteApproved : ui.player.narratorVoteRejected}
                 </div>
@@ -3457,7 +2710,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
             </div>
           )}
 
-          {(room.status === "voting" || room.status === "voted") && (
+          {(SCORE_PHASES.includes(room.status)) && (
             <div style={{ ...S.card, ...tvCard, marginBottom: 0, padding: tvPad }}>
               <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.hostTabs.scores}</div>
               <div style={{ display: "grid", gap: 8 }}>
