@@ -40,9 +40,11 @@ export default function HostStory({
   const hasStoryStage = !!story && !loading;
   const freestyleMode = isFreestyleStory(story);
   const freestyleWords = parseFreestyleWords(story);
+  const selectedGenreLabel = content.genres.find((entry) => entry.id === genre)?.label || "";
 
   async function buildStory(mode = "local") {
-    if (!genre || words.length === 0) return;
+    if (words.length === 0) return;
+    if (mode !== "freestyle" && !genre) return;
     setLoading(true);
     setLoadingMode(mode);
     setError("");
@@ -123,21 +125,26 @@ export default function HostStory({
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 6 }}>{ui.storyGen.title}</div>
-                  <div style={{ fontSize: 16, color: C.txt, fontWeight: 800, letterSpacing: "-0.02em" }}>{genre ? content.genres.find((entry) => entry.id === genre)?.label || ui.storyGen.theme : ui.storyGen.theme}</div>
+                  <div style={{ fontSize: 16, color: C.txt, fontWeight: 800, letterSpacing: "-0.02em" }}>{ui.storyGen.primaryMode}</div>
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                  <button onClick={() => buildStory("freestyle")} disabled={loading || words.length === 0} style={{ ...S.sbtn(acc.blue), minHeight: 40, padding: "8px 12px", fontSize: 12, whiteSpace: "nowrap", background: "rgba(96,165,250,.10)" }}>
+                    {loading && loadingMode === "freestyle" ? ui.storyGen.generating : ui.storyGen.freestylePrimary}
+                  </button>
                   <button onClick={() => buildStory("local")} disabled={!genre || loading || words.length === 0} style={{ ...S.sbtn(genre ? acc.gold : C.muted), minHeight: 40, padding: "8px 12px", fontSize: 12, whiteSpace: "nowrap", background: genre ? "rgba(251,191,36,.10)" : "transparent" }}>
                     {loading && loadingMode === "local" ? ui.storyGen.generating : ui.storyGen.generate}
                   </button>
-                  <button onClick={() => buildStory("freestyle")} disabled={!genre || loading || words.length === 0} style={{ ...S.sbtn(genre ? acc.blue : C.muted), minHeight: 40, padding: "8px 12px", fontSize: 12, whiteSpace: "nowrap", background: genre ? "rgba(96,165,250,.10)" : "transparent" }}>
-                  {ui.storyGen.freestyle}
-                </button>
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: genre ? acc.gold : C.muted, background: genre ? "rgba(251,191,36,.10)" : C.sur, border: `1px solid ${genre ? "rgba(251,191,36,.24)" : C.bdr}`, padding: "6px 10px", borderRadius: 999 }}>
-                  {genre ? `${ui.storyGen.theme}: ${content.genres.find((entry) => entry.id === genre)?.label || ui.storyGen.theme}` : ui.storyGen.theme}
+                <span style={{ fontSize: 12, fontWeight: 700, color: acc.blue, background: "rgba(96,165,250,.10)", border: "1px solid rgba(96,165,250,.24)", padding: "6px 10px", borderRadius: 999 }}>
+                  {ui.storyGen.freestyleChip}
                 </span>
+                {genre && (
+                  <span style={{ fontSize: 12, fontWeight: 700, color: acc.gold, background: "rgba(251,191,36,.10)", border: "1px solid rgba(251,191,36,.24)", padding: "6px 10px", borderRadius: 999 }}>
+                    {ui.storyGen.localThemeChip(selectedGenreLabel)}
+                  </span>
+                )}
                 <span style={{ fontSize: 12, fontWeight: 700, color: C.muted, background: C.sur, border: `1px solid ${C.bdr}`, padding: "6px 10px", borderRadius: 999 }}>
                   {ui.storyGen.storyLengthValue(storyMinChars)}
                 </span>
@@ -159,6 +166,8 @@ export default function HostStory({
               </fieldset>
 
               <div style={{ ...S.card2, marginBottom: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: acc.gold, marginBottom: 10 }}>{ui.storyGen.localOptionTitle}</div>
+                <p style={{ ...S.bt, marginTop: 0, marginBottom: 12 }}>{ui.storyGen.localOptionDesc}</p>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.storyGen.storyLength}</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: C.txt, marginBottom: 10 }}>{ui.storyGen.storyLengthValue(storyMinChars)}</div>
                 <input type="range" min="350" max="900" step="50" value={storyMinChars} onChange={(event) => setStoryMinChars(Number(event.target.value))} style={{ width: "100%", accentColor: acc.gold, cursor: "pointer" }} />
