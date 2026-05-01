@@ -4,9 +4,9 @@
   <img src="public/icon-192.png" alt="Story Chaos app icon" width="140" />
 </p>
 
-> The real-time party game where nobody stays unnoticed.
+> The browser party game for secret words, bad poker faces, and dramatic reveals.
 
-**Story Chaos** is a browser-based multiplayer party game for 2 to 8 players. One person reads an AI-generated story aloud while the others hold secret words and secret actions on their phones. As soon as a player's word appears, they have to react without making it too obvious.
+**Story Chaos** is a multiplayer party game for 2 to 8 players. One player guides the round, everyone else gets secret words and secret actions on their own device. Reactions happen during the story, while reveal and scoring happen afterwards in clearly separated steps.
 
 ## Live Demo
 
@@ -15,58 +15,80 @@
 On iPhone, the game can also be used like an app:
 `Safari -> Share -> Add to Home Screen`
 
-## Visual Preview
-
-![Story Chaos gameplay preview](public/readme-preview.svg)
-
-## At A Glance
+## At a Glance
 
 - 2 to 8 players
-- around 15 to 30 minutes per round
-- real-time multiplayer via QR code
-- phone-friendly, no installation required
-- AI-generated stories every round
+- browser-based, no installation required
+- mobile-first for iPhone, iPad, browser, and optional TV / projector use
+- secret private card flow on each player's device
+- Freestyle as the primary story mode
+- optional local ready-made story mode
+- German and English round support
 
-## How It Works
+## Current Round Flow
 
-1. The host creates a room and gets a QR code.
-2. The other players scan the code and join on their phones.
-3. The host chooses difficulty, game language, and word categories.
+1. The host creates a room.
+2. Players join by QR code or room code.
+3. The host prepares the round:
+   difficulty, word categories, and round language.
 4. Each player receives a secret word and a secret action.
-5. Everyone marks themselves as ready.
-6. The host picks a genre and generates a matching story.
-7. The story is read aloud.
-8. Whenever a player's word appears, they must perform their secret action.
-9. After that, the narrator guesses who had which word.
-10. Reveal, score points, next round.
+5. Everyone confirms the step on their own device.
+6. The host starts `Freestyle` or optionally a prepared story.
+7. While the story is read or narrated, players react to their word.
+8. Then the reveal phase begins.
+9. The narrator awards points to players.
+10. The players vote on whether the narrator earns a point.
+11. The narrator chooses the next narrator.
 
-## Feature Highlights
+## Current Feature Set
 
-- QR code join for a frictionless setup
-- Optional room password
-- German and English UI
-- German and English game content
-- More than 150 words across multiple categories per language
-- Action difficulty levels: `Easy`, `Medium`, `Chaos`, `Mix`
-- Ready check before story start
-- One reroll per player
-- AI story generation with fallback strategy
-- Reveal screen with all cards
-- Scores, ranking, and medals
-- Round overview with narrator rotation
-- Timer with visual cues, sound, and vibration
-- Dark/light mode
-- Offline indicator
-- Hidden debug panel
+- QR-code and room-code joining
+- optional room password
+- optional external `Party Screen` for shared display
+- separate `UI language` and `round language`
+- light and dark mode
+- one reroll per player
+- narrator can remove players from the room
+- room takeover if the active narrator disappears
+- reveal, voting, scoring, and narrator choice live in separate focus views
+- local story generator as the stable default base
+- optional AI retries on top of local generation
+- Freestyle with real prompts plus decoy prompts
+- debug panel for room, status, and API inspection
 
-## Bilingual Mode
+## Freestyle
 
-Since the bilingual update, Story Chaos separates two layers:
+Freestyle is the primary mode right now.
 
-- `UI language`: the language shown in the interface on a device
-- `Game language`: the language used for words, actions, and AI stories
+The narrator does not get a clean solution list. Instead, they see a mixed prompt pool:
 
-That means a host can run an English game while individual players still keep their interface in German.
+- real assigned words
+- matching decoy words from similar categories
+
+This makes live narration possible without instantly knowing which prompts are actually in play.
+
+## Party Screen
+
+The `Party Screen` is **optional**.
+
+Important:
+
+- a game always starts through `Start new game`
+- the Party Screen is connected only after the room already exists
+- it is read-only and shows shared information only
+- secret player cards stay private on player devices
+
+## Languages
+
+Story Chaos separates two layers:
+
+- `UI language`
+- `round language`
+
+That means:
+
+- one player can keep the interface in German
+- while the round itself runs in English
 
 More details: [docs/bilingual.md](docs/bilingual.md)
 
@@ -74,40 +96,41 @@ More details: [docs/bilingual.md](docs/bilingual.md)
 
 - `React 18`
 - `Vite`
-- `Supabase` for database and real-time sync
-- `Pollinations.ai` for story generation
-- `OpenRouter` as an AI fallback
-- `Vercel` for hosting
+- `Supabase`
+- local story generator
+- optional AI fallbacks / AI retries
+- `Vercel`
 
-## Local Setup
+## Code Status
+
+The current project is no longer the original single-file prototype.
+
+Already extracted:
+
+- `content/`
+- `i18n/`
+- `lib/supabase.js`
+- `constants/phases.js`
+- `game/`
+- major host / player / tv components
+
+The app is still actively being cleaned up and refined.
+
+## Run Locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-After that, the app runs locally in the browser through Vite.
+## Current Open Areas
 
-## Backend / Realtime
-
-The game uses Supabase for rooms, player management, real-time updates during a round, and state transitions between lobby, story, reveal, and scoreboard.
-
-## Project Status
-
-The project is playable and optimized for quick, mobile-first rounds with friends.
-
-## Next Ideas
-
-- more word packs and themed sets
-- additional story genres
-- finer balancing options for actions
-- better per-round evaluation
-- further PWA improvements
-
-## Demo Focus
-
-When presenting the project, the strongest moments to show are QR joining, the secret-card reveal, and the story/reveal flow.
+- more story-quality tuning
+- further orchestration cleanup
+- more code-splitting for smaller bundles
+- final light-mode QA across all key views
 
 ## License
 
 There is currently no license file in the repository.
+

@@ -4,9 +4,9 @@
   <img src="public/icon-192.png" alt="Story Chaos App-Icon" width="140" />
 </p>
 
-> Das Echtzeit-Partyspiel, bei dem niemand unauffaellig bleibt.
+> Das browserbasierte Partyspiel fuer geheime Worte, schlechte Pokerfaces und gemeinsame Aufloesungen.
 
-**Story Chaos** ist ein browserbasiertes Multiplayer-Partyspiel fuer 2 bis 8 Spieler. Eine Person liest eine KI-generierte Geschichte vor, waehrend die anderen geheime Woerter und geheime Aktionen auf ihren Smartphones haben. Sobald das eigene Wort faellt, muss reagiert werden, ohne sich zu offensichtlich zu verraten.
+**Story Chaos** ist ein Multiplayer-Partyspiel fuer 2 bis 8 Spieler. Eine Person fuehrt durch die Runde, die anderen haben geheime Worte und geheime Aktionen auf ihren eigenen Geraeten. Reagiert wird waehrend der Geschichte, aufgeloest und gepunktet wird danach in klar getrennten Schritten.
 
 ## Live Demo
 
@@ -15,58 +15,80 @@
 Auf dem iPhone laesst sich das Spiel auch wie eine App nutzen:
 `Safari -> Teilen -> Zum Home-Bildschirm`
 
-## Visual Preview
-
-![Story Chaos Gameplay-Vorschau](public/readme-preview.svg)
-
 ## Kurzueberblick
 
 - 2 bis 8 Spieler
-- ca. 15 bis 30 Minuten pro Runde
-- Echtzeit-Multiplayer via QR-Code
-- Handy-friendly, keine Installation notwendig
-- KI-generierte Geschichten fuer jede Runde
+- browserbasiert, ohne Installation spielbar
+- mobile-first fuer iPhone, iPad, Browser und optional TV / Beamer
+- geheimer Karten-Flow auf dem eigenen Geraet
+- Freestyle als primaerer Story-Modus
+- zusaetzliche lokale Geschichte als optionale Alternative
+- deutscher und englischer Spielmodus
 
-## So Funktioniert's
+## Aktueller Spielablauf
 
-1. Der Host erstellt einen Raum und bekommt einen QR-Code.
-2. Die Mitspieler scannen den Code und treten mit ihrem Handy bei.
-3. Der Host waehlt Schwierigkeit, Spielsprache und Wortkategorien.
-4. Jeder Spieler erhaelt ein geheimes Wort und eine geheime Aktion.
-5. Alle markieren sich als bereit.
-6. Der Host waehlt ein Genre, dann wird eine passende Geschichte erzeugt.
-7. Die Geschichte wird vorgelesen.
-8. Immer wenn das eigene Wort faellt, muss die geheime Aktion ausgefuehrt werden.
-9. Danach raet der Erzaehler, wer welches Wort hatte.
-10. Aufloesung, Punkte, naechste Runde.
+1. Der Host erstellt einen Raum.
+2. Mitspieler treten per QR-Code oder Raumcode bei.
+3. Der Host bereitet die Runde vor:
+   Schwierigkeit, Wort-Kategorien und Rundensprache.
+4. Jeder Mitspieler bekommt ein geheimes Wort und eine geheime Aktion.
+5. Alle bestaetigen den Schritt auf dem eigenen Geraet.
+6. Der Host startet `Freestyle` oder optional eine vorbereitete Geschichte.
+7. Waehrend des Vorlesens bzw. Erzaehlens reagieren die Mitspieler auf ihr Wort.
+8. Danach folgt die Aufloesung.
+9. Der Erzaehler vergibt Punkte an Mitspieler.
+10. Die Mitspieler stimmen darueber ab, ob der Erzaehler einen Punkt bekommt.
+11. Der Erzaehler bestimmt den naechsten Erzaehler.
 
-## Feature Highlights
+## Feature-Stand
 
-- QR-Code Join fuer schnellen Einstieg
-- Optionales Raum-Passwort
-- Deutsche und englische UI
-- Deutsche und englische Spielinhalte
-- Mehr als 150 Woerter in mehreren Kategorien pro Sprache
-- Schwierigkeitsstufen fuer Aktionen: `Leicht`, `Mittel`, `Chaos`, `Mix`
-- Bereit-System vor Story-Start
-- Einmaliges Neuziehen pro Spieler
-- KI-Story-Generierung mit Fallback-Strategie
-- Aufloesungsscreen mit allen Karten
-- Punkte, Rangliste und Medaillen
-- Rundenuebersicht mit bereits gewesenen Erzhaehlern
-- Timer mit visuellen Signalen, Sound und Vibration
-- Dark/Light Mode
-- Offline-Hinweis
-- Verstecktes Debug-Panel
+- QR-Code Join und Raumcode Join
+- optionales Raumpasswort
+- `Party Screen` als optionaler externer gemeinsamer Bildschirm
+- getrennte `UI-Sprache` und `Rundensprache`
+- Light und Dark Mode
+- ein Neuziehen pro Spieler
+- Erzaehler kann Mitspieler aus dem Raum entfernen
+- Raumuebernahme, wenn kein aktiver Erzaehler mehr da ist
+- Aufloesung, Voting, Punktevergabe und Erzaehlerwechsel in getrennten Fokus-Views
+- lokaler Story-Generator als stabile Standardbasis
+- optionale KI-Neuversuche zusaetzlich zur lokalen Generierung
+- Freestyle mit echten Werten plus Ablenkungswoertern
+- Debug-Panel fuer Status-, Raum- und API-Pruefung
 
-## Bilingual Mode
+## Freestyle
 
-Seit der bilingualen Erweiterung unterscheidet Story Chaos zwischen zwei Ebenen:
+Freestyle ist der aktuelle Hauptmodus.
 
-- `UI-Sprache`: Welche Sprache das Interface auf einem Geraet zeigt
-- `Spielsprache`: Welche Sprache fuer Woerter, Aktionen und KI-Geschichten verwendet wird
+Der Erzaehler bekommt keine fertige Loesungsliste, sondern einen gemischten Begriffspool:
 
-Das bedeutet: Ein Host kann ein englisches Spiel starten, waehrend einzelne Spieler ihr Interface weiterhin auf Deutsch sehen.
+- echte gezogene Begriffe
+- passende Ablenkungswoerter aus aehnlichen Kategorien
+
+Dadurch kann frei erzaehlt werden, ohne sofort zu wissen, welche Begriffe wirklich relevant sind.
+
+## Party Screen
+
+Der `Party Screen` ist **optional**.
+
+Wichtig:
+
+- Ein Spiel startet immer ueber `Neues Spiel starten`
+- der Party Screen wird erst im laufenden Raum verbunden
+- er ist read-only und zeigt nur gemeinsame Informationen
+- geheime Karten bleiben privat auf den Geraeten der Mitspieler
+
+## Sprachen
+
+Story Chaos trennt zwei Ebenen:
+
+- `UI-Sprache`
+- `Rundensprache`
+
+Das bedeutet:
+
+- ein Spieler kann das Interface auf Deutsch sehen
+- waehrend die laufende Runde auf Englisch gespielt wird
 
 Mehr dazu: [docs/bilingual.md](docs/bilingual.md)
 
@@ -74,40 +96,41 @@ Mehr dazu: [docs/bilingual.md](docs/bilingual.md)
 
 - `React 18`
 - `Vite`
-- `Supabase` fuer Datenbank und Realtime-Sync
-- `Pollinations.ai` fuer Story-Generierung
-- `OpenRouter` als Fallback fuer KI-Anfragen
-- `Vercel` fuer Hosting
+- `Supabase`
+- lokaler Story-Generator
+- optionale KI-Fallbacks / KI-Neuversuche
+- `Vercel`
 
-## Lokal Starten
+## Code-Stand
+
+Der aktuelle Stand ist nicht mehr der urspruengliche Ein-Datei-Prototyp.
+
+Bereits ausgelagert sind u. a.:
+
+- `content/`
+- `i18n/`
+- `lib/supabase.js`
+- `constants/phases.js`
+- `game/`
+- grosse Host-/Player-/TV-Komponenten
+
+Die App wird aber weiterhin aktiv weiter aufgeraeumt und verfeinert.
+
+## Lokal starten
 
 ```bash
 npm install
 npm run dev
 ```
 
-Danach laeuft die App lokal ueber Vite im Browser.
+## Aktuelle offene Themen
 
-## Backend / Realtime
-
-Das Spiel nutzt Supabase fuer Raeume, Spielerverwaltung, Realtime-Updates waehrend der Runde und Statuswechsel zwischen Lobby, Story, Aufloesung und Scoreboard.
-
-## Projektstatus
-
-Das Projekt ist spielbar und auf schnelle, mobile-first Runden mit Freunden ausgelegt.
-
-## Naechste Ideen
-
-- mehr Wortpakete und Themenwelten
-- weitere Story-Genres
-- feinere Balancing-Optionen fuer Aktionen
-- bessere Auswertung pro Runde
-- weiterer PWA-Ausbau
-
-## Demo-Fokus
-
-Wenn du das Projekt praesentierst, lohnt es sich besonders, den QR-Join, die geheimen Karten und den Story-/Aufloesungsfluss zu zeigen.
+- weiterer Feinschliff fuer Storyqualitaet
+- weitere Aufraeumarbeiten in der Orchestrierungslogik
+- weiteres Code-Splitting fuer kleinere Bundles
+- letzte Light-Mode-QA ueber alle Screens
 
 ## Lizenz
 
-Derzeit ist keine Lizenzdatei hinterlegt.
+Aktuell liegt keine Lizenzdatei im Repository.
+
