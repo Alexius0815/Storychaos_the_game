@@ -1508,6 +1508,11 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
                 {rerolled ? ui.player.rerolled : ui.player.reroll}
               </button>
             </div>
+            {bothRevealed && !isReady && (
+              <button onClick={markReady} disabled={markingReady} style={{ ...S.pbtn(ACC.green, "rgba(74,222,128,.1)"), marginBottom: 12, animation: "fadeIn .3s ease" }}>
+                {markingReady ? "…" : ui.player.readyButton}
+              </button>
+            )}
             <div style={{ display: "grid", gridTemplateColumns: viewport.isPhone ? "1fr" : "1fr 1fr", gap: 0 }}>
               {[
                 { key: "word", type: ui.player.secretWord, value: player.secret_word, blue: true },
@@ -1526,12 +1531,6 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
               })}
             </div>
           </div>
-
-          {bothRevealed && !isReady && (
-            <button onClick={markReady} disabled={markingReady} style={{ ...S.pbtn(ACC.green, "rgba(74,222,128,.1)"), marginBottom: 12, animation: "fadeIn .3s ease" }}>
-              {markingReady ? "…" : ui.player.readyButton}
-            </button>
-          )}
 
           {isReady && (
             <div style={{ ...S.card, borderColor: "rgba(74,222,128,.3)", background: "rgba(74,222,128,.06)", textAlign: "center", padding: "14px 18px", marginBottom: 12 }}>
@@ -1587,6 +1586,9 @@ function JoinScreen({ initialCode, onJoined, ui, C, S }) {
     <div style={{ animation: "fadeIn .3s ease" }}>
       <EntryHero C={C} S={S} title={ui.join.title} desc={ui.join.desc} accent={ACC.blue} appIcon={APP_ICON} />
       <div style={{ ...S.card, padding: "18px 16px", marginBottom: 12 }}>
+        <button onClick={join} disabled={loading} style={{ ...S.pbtn(ACC.green, "rgba(74,222,128,.1)"), marginBottom: 16 }}>
+          {loading ? ui.join.connecting : ui.join.button}
+        </button>
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.roomCode}</label>
         <input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder={ui.join.roomPlaceholder} maxLength={5} style={{ ...S.input, fontSize: 22, fontWeight: 800, letterSpacing: 6, textAlign: "center", marginBottom: 14 }} />
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.yourName}</label>
@@ -1596,9 +1598,6 @@ function JoinScreen({ initialCode, onJoined, ui, C, S }) {
           <input type="password" value={pw} onChange={(event) => setPw(event.target.value)} onKeyDown={(event) => event.key === "Enter" && join()} placeholder={ui.join.passwordPlaceholder} style={S.input} />
         </>}
         {error && <p style={{ fontSize: 13, color: ACC.redl, margin: "12px 0 0", padding: "11px 12px", borderRadius: 12, background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.18)" }}>{error}</p>}
-        <button onClick={join} disabled={loading} style={{ ...S.pbtn(ACC.green, "rgba(74,222,128,.1)"), marginTop: 16 }}>
-          {loading ? ui.join.connecting : ui.join.button}
-        </button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <EntryNoteCard label={ui.common.status} title={ui.join.cardHintTitle} text={ui.join.cardHintText} C={C} />
@@ -1634,6 +1633,9 @@ function CreateRoom({ onCreated, ui, C, S }) {
     <div style={{ animation: "fadeIn .3s ease" }}>
       <EntryHero C={C} S={S} title={ui.create.title} desc={ui.create.desc} accent={ACC.gold} appIcon={APP_ICON} />
       <div style={{ ...S.card, padding: "18px 16px", marginBottom: 12 }}>
+        <button onClick={create} disabled={loading} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginBottom: 16 }}>
+          {loading ? ui.create.creating : ui.create.button}
+        </button>
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.create.hostName}</label>
         <input value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && create()} placeholder={ui.create.namePlaceholder} maxLength={20} style={{ ...S.input, marginBottom: 14 }} />
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>
@@ -1641,9 +1643,6 @@ function CreateRoom({ onCreated, ui, C, S }) {
         </label>
         <input type="password" value={pw} onChange={(event) => setPw(event.target.value)} placeholder={ui.create.emptyPassword} maxLength={20} style={S.input} />
         {error && <p style={{ fontSize: 13, color: ACC.redl, margin: "12px 0 0", padding: "11px 12px", borderRadius: 12, background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.18)" }}>{error}</p>}
-        <button onClick={create} disabled={loading} style={{ ...S.pbtn(ACC.blue, "rgba(96,165,250,.1)"), marginTop: 16 }}>
-          {loading ? ui.create.creating : ui.create.button}
-        </button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <EntryNoteCard label={ui.common.host} title={ui.create.flowTitle} text={ui.create.flowText} C={C} />
@@ -2119,11 +2118,11 @@ export default function App() {
                   </div>
                 </div>
                 <div style={{ fontSize: 30, fontWeight: 800, color: C.txt, marginBottom: 8, letterSpacing: "-0.04em" }}>{ui.home.welcome}</div>
-                <p style={{ ...S.bt, fontSize: 15, lineHeight: 1.62, marginBottom: 18 }}>{ui.home.desc}</p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
                   <button onClick={() => setScreen("create")} style={{ ...S.pbtn(ACC.blue, dark ? "linear-gradient(180deg, rgba(96,165,250,.18), rgba(96,165,250,.08))" : "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))"), minHeight: 56, borderRadius: 13, boxShadow: "0 0 0 1px rgba(96,165,250,.18) inset" }}>{ui.home.newGame}</button>
                   <button onClick={() => setScreen("join")} style={{ ...S.pbtn(C.bdr, C.sur), minHeight: 52, borderRadius: 13, color: C.txt, background: dark ? "rgba(255,255,255,.02)" : "rgba(255,255,255,.7)" }}>{ui.home.joinRoom}</button>
                 </div>
+                <p style={{ ...S.bt, fontSize: 15, lineHeight: 1.62, marginTop: 18 }}>{ui.home.desc}</p>
               </div>
               <div style={{ ...S.card, padding: "16px", borderRadius: 16, background: dark ? "rgba(24,24,35,.92)" : "rgba(255,255,255,.92)", boxShadow: dark ? "0 10px 30px rgba(0,0,0,.18)" : "0 16px 40px rgba(15,23,42,.06)" }}>
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2.2, textTransform: "uppercase", color: C.muted, marginBottom: 12 }}>{ui.home.howItWorks}</div>

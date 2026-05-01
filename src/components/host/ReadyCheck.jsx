@@ -21,6 +21,11 @@ export default function ReadyCheck({ room, players, ui, C, S, acc, hubPlayerName
             <div>{ui.ready.desc}</div>
           </HelpPopover>
         </div>
+        {allReady && (
+          <button onClick={onAllReady} style={{ ...S.pbtn(acc.green, "rgba(74,222,128,.1)"), marginTop: 12, marginBottom: 0 }}>
+            {ui.ready.continue}
+          </button>
+        )}
       </div>
 
       <div style={S.card}>
@@ -46,7 +51,6 @@ export default function ReadyCheck({ room, players, ui, C, S, acc, hubPlayerName
             <div style={{ fontSize: 28, marginBottom: 8 }}>🎉</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: acc.greenl }}>{ui.ready.allReady}</div>
           </div>
-          <button onClick={onAllReady} style={S.pbtn(acc.green, "rgba(74,222,128,.1)")}>{ui.ready.continue}</button>
         </div>
       )}
     </div>

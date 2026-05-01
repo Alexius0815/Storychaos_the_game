@@ -48,6 +48,9 @@ export default function HostLobby({ room, players, gameLang, lang, ui, C, S, acc
             <div>{ui.hostLobby.start(Math.max(others.length, 1)).replace(" →", "")}</div>
           </HelpPopover>
         </div>
+        <button onClick={onStart} disabled={others.length === 0} style={{ ...S.pbtn(others.length > 0 ? acc.green : C.bdr, others.length > 0 ? "rgba(74,222,128,.1)" : C.sur), marginBottom: 12 }}>
+          {others.length === 0 ? ui.hostLobby.waiting : ui.hostLobby.start(others.length)}
+        </button>
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
           <button onClick={() => setView("invite")} style={{ ...S.sbtn(view === "invite" ? acc.blue : C.muted), background: view === "invite" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.inviteView}</button>
           <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? acc.blue : C.muted), background: view === "players" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.playersView}</button>
@@ -107,10 +110,6 @@ export default function HostLobby({ room, players, gameLang, lang, ui, C, S, acc
           </div>
         )}
       </div>
-
-      <button onClick={onStart} disabled={others.length === 0} style={S.pbtn(others.length > 0 ? acc.green : C.bdr, others.length > 0 ? "rgba(74,222,128,.1)" : C.sur)}>
-        {others.length === 0 ? ui.hostLobby.waiting : ui.hostLobby.start(others.length)}
-      </button>
     </div>
   );
 }

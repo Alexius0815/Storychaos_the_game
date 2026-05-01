@@ -64,6 +64,9 @@ export default function HostCards({ room, players, ui, lang, contentLang, setCon
             <div>{ui.cards.categoriesHelp}</div>
           </HelpPopover>
         </div>
+        <button onClick={deal} disabled={loading || others.length === 0 || cats.length === 0} style={{ ...S.pbtn(acc.blue, "rgba(96,165,250,.1)"), marginBottom: 12 }}>
+          {loading ? ui.cards.dealing : ui.cards.deal}
+        </button>
         <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
           <button onClick={() => setView("setup")} style={{ ...S.sbtn(view === "setup" ? acc.blue : C.muted), background: view === "setup" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.cards.setupView}</button>
           <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? acc.blue : C.muted), background: view === "players" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.cards.playersView}</button>
@@ -110,9 +113,6 @@ export default function HostCards({ room, players, ui, lang, contentLang, setCon
         </div>
       )}
 
-      <button onClick={deal} disabled={loading || others.length === 0 || cats.length === 0} style={S.pbtn(acc.blue, "rgba(96,165,250,.1)")}>
-        {loading ? ui.cards.dealing : ui.cards.deal}
-      </button>
     </div>
   );
 }
