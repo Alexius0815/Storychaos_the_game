@@ -6,7 +6,7 @@ import { ACTIVE_ROUND_PHASES, GAME_PHASES, PRE_STORY_PHASES, SCORE_PHASES } from
 import { buildCardLookups, detectLanguageFromSample, roomCode, shuffle } from "./game/cards";
 import { flattenPresence, getAudience, getNarratorId, getVisiblePlayers, inspectRoomPresence, timeAgo } from "./game/rooms";
 import { analyzeStory, buildStoryAttemptLine, generateLocalStory, generateStory, repairStoryToRules, stripStoryMarkup } from "./game/storyGeneration";
-import { EntryHero, ExitIconButton, HelpPopover, HelpScreen, OfflineBanner, QRCode } from "./components/common/SupportUI";
+import { EntryHero, EntryNoteCard, ExitIconButton, HelpPopover, HelpScreen, OfflineBanner, QRCode } from "./components/common/SupportUI";
 import HostLobby from "./components/host/HostLobby";
 import HostCards from "./components/host/HostCards";
 import ReadyCheck from "./components/host/ReadyCheck";
