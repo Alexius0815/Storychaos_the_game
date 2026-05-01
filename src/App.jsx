@@ -15,6 +15,7 @@ const APP_URL = "https://storychaos-the-game.vercel.app";
 const APP_ICON = "/icon-192.png";
 const APP_VERSION = __APP_VERSION__;
 const HUB_PLAYER_NAME = "__storychaos_hub__";
+const FREESTYLE_STORY_PREFIX = "[[freestyle]]";
 
 
 const FF = "system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
@@ -122,6 +123,32 @@ function getHostPhase(tab, ui) {
     next: ui.hostTabs.next,
   };
   return phases[tab] || ui.hostTabs.lobby;
+}
+
+function isFreestyleStory(value) {
+  return typeof value === "string" && value.startsWith(FREESTYLE_STORY_PREFIX);
+}
+
+function parseFreestyleWords(value) {
+  if (!isFreestyleStory(value)) return [];
+  try {
+    const parsed = JSON.parse(value.slice(FREESTYLE_STORY_PREFIX.length));
+    return Array.isArray(parsed?.words) ? parsed.words.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function buildFreestyleStory(words) {
+  return `${FREESTYLE_STORY_PREFIX}${JSON.stringify({ words })}`;
+}
+
+function buildFreestylePromptWords(realWords, contentLang) {
+  const sourceWords = ALL_WORDS_BY_LANG[contentLang] || [];
+  const realSet = new Set(realWords.map((word) => word.toLowerCase()));
+  const decoyPool = shuffle(sourceWords.filter((word) => !realSet.has(word.toLowerCase())));
+  const decoyCount = Math.min(decoyPool.length, Math.max(realWords.length * 2, 4));
+  return shuffle([...realWords, ...decoyPool.slice(0, decoyCount)]);
 }
 
 function renderHighlightedStory(text, highlightWords, C) {
@@ -457,6 +484,8 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
   const compactStageHeight = viewport.isDesktop ? "min(62vh, 620px)" : "auto";
   const storyDifficulty = room?.difficulty || "mix";
   const hasStoryStage = !!story && !loading;
+  const freestyleMode = isFreestyleStory(story);
+  const freestyleWords = parseFreestyleWords(story);
 
   async function buildStory(mode = "local") {
     if (!genre || words.length === 0) return;
@@ -477,6 +506,8 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
     if (mode === "local") {
       const text = await generateLocalStory({ contentLang, genreId: selectedGenreId, words, minChars: storyMinChars, difficulty: storyDifficulty }, pushAttemptLine);
       validStory = stripStoryMarkup(text);
+    } else if (mode === "freestyle") {
+      validStory = buildFreestyleStory(buildFreestylePromptWords(words, contentLang));
     } else {
       for (let attempt = 0; attempt < 4; attempt += 1) {
         const strictness = attempt === 0 ? "" : contentLang === "de"
@@ -525,6 +556,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
               <div>{ui.storyGen.desc}</div>
               {ui.storyGen.flowSteps.map((step, index) => <div key={step}>{index + 1}. {step}</div>)}
               <div>{ui.storyGen.hiddenHint}</div>
+              <div>{ui.storyGen.freestyleHelp}</div>
             </HelpPopover>
           </div>
         </div>
@@ -538,9 +570,14 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 4 }}>{ui.storyGen.title}</div>
               <div style={{ fontSize: 13, color: C.txt, fontWeight: 700 }}>{genre ? content.genres.find((entry) => entry.id === genre)?.label || ui.storyGen.theme : ui.storyGen.theme}</div>
             </div>
-            <button onClick={() => buildStory("local")} disabled={!genre || loading || words.length === 0} style={{ ...S.sbtn(genre ? ACC.gold : C.muted), minHeight: 40, padding: "8px 12px", fontSize: 12, whiteSpace: "nowrap", background: genre ? "rgba(251,191,36,.10)" : "transparent" }}>
-              {loading && loadingMode === "local" ? ui.storyGen.generating : ui.storyGen.generate}
-            </button>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              <button onClick={() => buildStory("freestyle")} disabled={!genre || loading || words.length === 0} style={{ ...S.sbtn(genre ? ACC.blue : C.muted), minHeight: 40, padding: "8px 12px", fontSize: 12, whiteSpace: "nowrap", background: genre ? "rgba(96,165,250,.10)" : "transparent" }}>
+                {ui.storyGen.freestyle}
+              </button>
+              <button onClick={() => buildStory("local")} disabled={!genre || loading || words.length === 0} style={{ ...S.sbtn(genre ? ACC.gold : C.muted), minHeight: 40, padding: "8px 12px", fontSize: 12, whiteSpace: "nowrap", background: genre ? "rgba(251,191,36,.10)" : "transparent" }}>
+                {loading && loadingMode === "local" ? ui.storyGen.generating : ui.storyGen.generate}
+              </button>
+            </div>
           </div>
 
           <fieldset style={{ border: "none", margin: "0 0 14px", padding: 0 }}>
@@ -574,7 +611,9 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
           {loading && (
             <div style={{ ...S.card2, marginTop: 12, padding: 16, textAlign: "center" }}>
               <div style={{ fontSize: 28, display: "inline-block", animation: "spin 1.5s linear infinite" }}>✍️</div>
-              <div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>{loadingMode === "ai" ? ui.storyGen.writingAi : ui.storyGen.writing}</div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>
+                {loadingMode === "ai" ? ui.storyGen.writingAi : loadingMode === "freestyle" ? ui.storyGen.writingFreestyle : ui.storyGen.writing}
+              </div>
               {attemptStatus && <div style={{ fontSize: 13, lineHeight: 1.45, color: C.txt, marginTop: 12 }}>{attemptStatus}</div>}
             </div>
           )}
@@ -586,21 +625,37 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
             <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto", minHeight: compactStageHeight }}>
               <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))", minHeight: viewport.isDesktop ? "100%" : "auto", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold }}>{ui.storyGen.readNow}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.gold }}>
+                    {freestyleMode ? ui.storyGen.freestyleNow : ui.storyGen.readNow}
+                  </span>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    {freestyleMode && <button onClick={() => buildStory("freestyle")} style={S.sbtn(ACC.blue)}>{ui.storyGen.regenerateFreestyle}</button>}
                     <button onClick={() => buildStory("local")} style={S.sbtn(C.muted)}>{ui.storyGen.regenerate}</button>
                     <button onClick={() => buildStory("ai")} style={S.sbtn(ACC.blue)}>{ui.storyGen.regenerateAi}</button>
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateRows: "auto 1fr auto", gap: 14, minHeight: viewport.isDesktop ? compactStageHeight : "auto" }}>
-                  <p style={{ ...S.bt, marginBottom: 0, fontStyle: "italic" }}>{ui.storyGen.hiddenHint}</p>
-                  <div style={{ fontSize: viewport.isDesktop ? 16 : 16, lineHeight: viewport.isDesktop ? 1.85 : 1.95, color: C.txt, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: viewport.isDesktop ? 10 : "unset", WebkitBoxOrient: "vertical" }}>
-                    {story.replace(/\*\*(.*?)\*\*/g, "$1")}
-                  </div>
+                  <p style={{ ...S.bt, marginBottom: 0, fontStyle: "italic" }}>{freestyleMode ? ui.storyGen.freestyleHint : ui.storyGen.hiddenHint}</p>
+                  {freestyleMode ? (
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 10 }}>{ui.storyGen.freestyleWordPool}</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignContent: "flex-start" }}>
+                        {freestyleWords.map((word) => (
+                          <span key={word} style={{ fontSize: 14, fontWeight: 700, color: C.txt, background: "rgba(96,165,250,.10)", border: "1px solid rgba(96,165,250,.26)", padding: "7px 12px", borderRadius: 999 }}>
+                            {word}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: viewport.isDesktop ? 16 : 16, lineHeight: viewport.isDesktop ? 1.85 : 1.95, color: C.txt, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: viewport.isDesktop ? 10 : "unset", WebkitBoxOrient: "vertical" }}>
+                      {story.replace(/\*\*(.*?)\*\*/g, "$1")}
+                    </div>
+                  )}
                   <div style={{ borderTop: `1px solid ${C.bdr}`, paddingTop: 14, display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr auto" : "1fr", gap: 12, alignItems: "center" }}>
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 8 }}>{ui.storyGen.revealTitle}</div>
-                      <p style={{ ...S.bt, margin: 0 }}>{ui.storyGen.revealDesc}</p>
+                      <p style={{ ...S.bt, margin: 0 }}>{freestyleMode ? ui.storyGen.freestyleRevealDesc : ui.storyGen.revealDesc}</p>
                     </div>
                     <button onClick={onOpenResolution} style={{ ...S.pbtn(ACC.red, "rgba(248,113,113,.08)"), width: viewport.isDesktop ? 220 : "100%" }}>
                       {ui.storyGen.resolveCta}
@@ -621,6 +676,8 @@ function Resolution({ room, players, storyWords, ui, C, S, onOpenScores }) {
   const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
   const words = storyWords || [];
   const compactCardHeight = viewport.isDesktop ? "min(58vh, 560px)" : "auto";
+  const freestyleWords = parseFreestyleWords(room.story);
+  const freestyleMode = freestyleWords.length > 0;
 
   function renderStory(text, highlightWords) {
     const clean = (text || "").replace(/\*\*(.*?)\*\*/g, "$1");
@@ -660,10 +717,23 @@ function Resolution({ room, players, storyWords, ui, C, S, onOpenScores }) {
         <div>
           <div style={{ ...S.card, borderColor: "rgba(248,113,113,.3)", background: "rgba(248,113,113,.05)", minHeight: compactCardHeight }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.red, marginBottom: 10 }}>{ui.resolution.revealStoryTitle}</div>
-            <p style={{ ...S.bt, marginBottom: 14 }}>{ui.resolution.revealStoryDesc}</p>
-            <div style={{ fontSize: viewport.isDesktop ? 16 : 15, lineHeight: viewport.isDesktop ? 1.8 : 1.95, color: C.txt, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: viewport.isDesktop ? 13 : "unset", WebkitBoxOrient: "vertical" }}>
-              {renderStory(room.story || "", words)}
-            </div>
+            <p style={{ ...S.bt, marginBottom: 14 }}>{freestyleMode ? ui.resolution.freestyleDesc : ui.resolution.revealStoryDesc}</p>
+            {freestyleMode ? (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 10 }}>{ui.resolution.freestylePoolTitle}</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {freestyleWords.map((word) => (
+                    <span key={word} style={{ fontSize: 13, fontWeight: 700, color: C.txt, background: "rgba(96,165,250,.10)", border: "1px solid rgba(96,165,250,.26)", padding: "7px 12px", borderRadius: 999 }}>
+                      {word}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div style={{ fontSize: viewport.isDesktop ? 16 : 15, lineHeight: viewport.isDesktop ? 1.8 : 1.95, color: C.txt, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: viewport.isDesktop ? 13 : "unset", WebkitBoxOrient: "vertical" }}>
+                {renderStory(room.story || "", words)}
+              </div>
+            )}
             {words.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 14, marginTop: 14, borderTop: `1px solid ${C.bdr}` }}>
                 {words.map((word) => (
@@ -1821,6 +1891,8 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
   const noVotes = allVotes.filter((vote) => vote.value === "no").length;
   const revealWords = audience.map((player) => player.secret_word).filter(Boolean);
   const tvJoinUrl = `${APP_URL}?room=${room.id}&lang=${lang}`;
+  const tvFreestyleWords = parseFreestyleWords(room.story);
+  const tvFreestyleMode = tvFreestyleWords.length > 0;
 
   return (
     <div style={{ animation: "fadeIn .3s ease", minHeight: "100vh", padding: tvTwoPane ? "16px 20px 20px" : viewport.isDesktop ? "14px 16px 18px" : "10px 10px 14px" }}>
@@ -1851,11 +1923,24 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
                 {room.status === GAME_PHASES.VOTED && ui.hostTabs.scores}
               </div>
               {room.story && (
-                <div style={{ fontSize: tvLarge ? 19 : viewport.isDesktop ? 17 : 15, lineHeight: 1.72, color: tvBody.color, overflowWrap: "anywhere" }}>
-                  {room.status === GAME_PHASES.REVEALED || SCORE_PHASES.includes(room.status)
-                    ? renderHighlightedStory(room.story, revealWords, C)
-                    : room.story.replace(/\*\*(.*?)\*\*/g, "$1")}
-                </div>
+                tvFreestyleMode ? (
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: "#95b8ff", marginBottom: 10 }}>{ui.storyGen.freestyleWordPool}</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {tvFreestyleWords.map((word) => (
+                        <span key={word} style={{ fontSize: tvLarge ? 17 : 14, fontWeight: 700, color: tvBody.color, background: "rgba(96,165,250,.10)", border: "1px solid rgba(149,184,255,.24)", padding: "7px 12px", borderRadius: 999 }}>
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: tvLarge ? 19 : viewport.isDesktop ? 17 : 15, lineHeight: 1.72, color: tvBody.color, overflowWrap: "anywhere" }}>
+                    {room.status === GAME_PHASES.REVEALED || SCORE_PHASES.includes(room.status)
+                      ? renderHighlightedStory(room.story, revealWords, C)
+                      : room.story.replace(/\*\*(.*?)\*\*/g, "$1")}
+                  </div>
+                )
               )}
               {!room.story && (
                 <div style={{ fontSize: tvLarge ? 17 : 15, color: tvMuted.color, lineHeight: 1.55 }}>
