@@ -110,7 +110,7 @@ export default {
     },
     cards: {
       title: "🎴 Prepare round",
-      desc: 'Each player gets a secret word and a secret action right on their phone. After that, everyone must tap "I\'m ready" before you can generate the story.',
+      desc: "Each player gets a secret word and a secret action right on their phone. After that, everyone confirms the step on their own device before you can generate the story.",
       explainTitle: "What are you setting here?",
       explainDesc: "These are not different game modes. You are just preparing the next round: language, action style, and word themes.",
       gameLanguage: "Game language",
@@ -134,7 +134,7 @@ export default {
     },
     ready: {
       title: "⏳ Waiting for readiness",
-      desc: 'Every player needs to inspect their card and tap "I\'m ready".',
+      desc: "Every player needs to inspect their card and confirm the step on their own device.",
       status: "Status",
       readyCount: (a, b) => `${a} / ${b} ready`,
       rerolled: "rerolled",
@@ -245,10 +245,10 @@ export default {
       gameFinished: "Game finished – final scores are in the score tab",
     },
     tv: {
-      label: "Party Screen",
-      meta: "Shared read-only screen",
-      blockedTitle: "Party Screen protected",
-      blockedDesc: "This Party Screen link is protected. Please open it directly from the live room lobby.",
+      label: "Shared screen",
+      meta: "Read-only • shared information only",
+      blockedTitle: "Party Screen locked",
+      blockedDesc: "This Party Screen needs the protected link from the live room. Please open it there.",
       playersLabel: "Players",
       playersCount: (n) => `${n} players`,
       ready: "ready",
@@ -295,12 +295,6 @@ export default {
       takeOverTitle: "No active narrator",
       takeOverDesc: "The previous narrator seems to be offline. You can take over the room and continue the game.",
       kicked: "The narrator removed you from the room.",
-    },
-    tv: {
-      blockedTitle: "Party Screen locked",
-      blockedDesc: "This Party Screen needs the protected link from the live room. Please open it there.",
-      label: "Shared screen",
-      meta: "Read-only • shared information only",
     },
     debug: {
       title: "🛠 Debug Panel",

@@ -110,7 +110,7 @@ export default {
     },
     cards: {
       title: "🎴 Runde vorbereiten",
-      desc: 'Jeder bekommt ein geheimes Wort und eine Aktion direkt aufs Handy. Danach muss jeder auf "Ich bin bereit" drücken bevor du die Geschichte generieren kannst.',
+      desc: 'Jeder bekommt ein geheimes Wort und eine Aktion direkt aufs Handy. Danach bestätigt jeder den Schritt auf dem eigenen Gerät, bevor du die Geschichte generieren kannst.',
       explainTitle: "Was stellst du hier ein?",
       explainDesc: "Das sind keine verschiedenen Spielmodi. Du baust nur die nächste Runde zusammen: Sprache, Aktionsstil und Wortwelten.",
       gameLanguage: "Spielsprache",
@@ -134,7 +134,7 @@ export default {
     },
     ready: {
       title: "⏳ Warte auf Bereitschaft",
-      desc: 'Jeder Mitspieler muss seine Karte angeschaut und auf "Ich bin bereit" getippt haben.',
+      desc: "Jeder Mitspieler muss seine Karte angeschaut und den Schritt auf dem eigenen Gerät bestätigt haben.",
       status: "Status",
       readyCount: (a, b) => `${a} / ${b} bereit`,
       rerolled: "neu gezogen",
@@ -245,10 +245,10 @@ export default {
       gameFinished: "Spiel beendet – Endstand im Punkte-Tab",
     },
     tv: {
-      label: "Party Screen",
-      meta: "Gemeinsamer Read-only-Bildschirm",
-      blockedTitle: "Party Screen geschützt",
-      blockedDesc: "Dieser Party-Screen-Link ist geschützt. Bitte öffne ihn direkt aus der Lobby des laufenden Raums.",
+      label: "Gemeinsamer Screen",
+      meta: "Read-only • zeigt nur gemeinsame Infos",
+      blockedTitle: "Party Screen gesperrt",
+      blockedDesc: "Dieser Party Screen braucht den geschützten Link aus dem laufenden Raum. Bitte direkt dort öffnen.",
       playersLabel: "Spieler",
       playersCount: (n) => `${n} Mitspieler`,
       ready: "bereit",
@@ -295,12 +295,6 @@ export default {
       takeOverTitle: "Kein aktiver Erzähler",
       takeOverDesc: "Der bisherige Erzähler scheint nicht mehr verbunden zu sein. Du kannst den Raum übernehmen und weiterspielen.",
       kicked: "Du wurdest vom Erzähler aus dem Raum entfernt.",
-    },
-    tv: {
-      blockedTitle: "Party Screen gesperrt",
-      blockedDesc: "Dieser Party Screen braucht den geschützten Link aus dem laufenden Raum. Bitte direkt dort öffnen.",
-      label: "Gemeinsamer Screen",
-      meta: "Read-only • zeigt nur gemeinsame Infos",
     },
     debug: {
       title: "🛠 Debug Panel",
