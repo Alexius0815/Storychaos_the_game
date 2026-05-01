@@ -230,9 +230,12 @@ export default function PlayerView({
         <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14, alignItems: "start" }}>
           <div>
             <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: C.txt }}>{ui.player.secretCards}</div>
-                <button onClick={doReroll} disabled={rerolled || storyStarted} style={{ fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 10, cursor: rerolled || storyStarted ? "not-allowed" : "pointer", border: `1px solid ${rerolled || storyStarted ? C.bdr : "rgba(251,191,36,.4)"}`, background: rerolled || storyStarted ? "rgba(90,90,110,.2)" : "rgba(251,191,36,.12)", color: rerolled || storyStarted ? C.muted : acc.gold }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: acc.gold, marginBottom: 6 }}>{ui.player.phaseCards}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: C.txt }}>{ui.player.secretCards}</div>
+                </div>
+                <button onClick={doReroll} disabled={rerolled || storyStarted} style={{ fontSize: 11, fontWeight: 700, padding: "6px 11px", borderRadius: 999, cursor: rerolled || storyStarted ? "not-allowed" : "pointer", border: `1px solid ${rerolled || storyStarted ? C.bdr : "rgba(251,191,36,.4)"}`, background: rerolled || storyStarted ? C.sur2 : "rgba(251,191,36,.12)", color: rerolled || storyStarted ? C.muted : acc.gold }}>
                   {rerolled ? ui.player.rerolled : ui.player.reroll}
                 </button>
               </div>
@@ -267,7 +270,7 @@ export default function PlayerView({
             )}
 
             {!bothRevealed && (
-              <div style={{ ...S.card2, textAlign: "center", padding: "12px 16px", marginBottom: 12 }}>
+              <div style={{ ...S.card2, textAlign: "center", padding: "12px 16px", marginBottom: 12, borderStyle: "dashed" }}>
                 <p style={{ ...S.bt, fontSize: 13 }}>{ui.player.revealBoth}</p>
               </div>
             )}
@@ -276,7 +279,10 @@ export default function PlayerView({
               <div style={{ ...S.card, borderColor: "rgba(96,165,250,.2)", background: "rgba(96,165,250,.04)" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: acc.blue, marginBottom: 8 }}>{ui.player.storyRunning}</div>
                 <p style={{ ...S.bt, fontStyle: "italic" }}>{ui.player.reactHint}</p>
-                <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: acc.bluel }}>{ui.player.yourWord} <span style={{ background: "rgba(96,165,250,.15)", padding: "2px 10px", borderRadius: 20 }}>{player.secret_word}</span></div>
+                <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: acc.bluel }}>{ui.player.yourWord}</span>
+                  <span style={{ background: "rgba(96,165,250,.15)", padding: "4px 10px", borderRadius: 20, color: acc.bluel, fontSize: 13, fontWeight: 800 }}>{player.secret_word}</span>
+                </div>
               </div>
             )}
           </div>

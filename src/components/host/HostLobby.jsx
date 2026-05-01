@@ -2,8 +2,10 @@ import { useState } from "react";
 import { PRE_STORY_PHASES } from "../../constants/phases";
 import { getAudience, getNarratorId } from "../../game/rooms";
 import { HelpPopover, QRCode, RemovePlayerIconButton } from "../common/SupportUI";
+import useViewport from "../../hooks/useViewport";
 
 export default function HostLobby({ room, players, gameLang, lang, ui, C, S, acc, appUrl, hubPlayerName, onStart, onOpenTv, onRemovePlayer }) {
+  const viewport = useViewport();
   const narratorId = getNarratorId(room, players, hubPlayerName);
   const others = getAudience(players, narratorId, hubPlayerName);
   const joinUrl = `${appUrl}?room=${room.id}&lang=${gameLang}`;
@@ -56,12 +58,15 @@ export default function HostLobby({ room, players, gameLang, lang, ui, C, S, acc
           <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? acc.blue : C.muted), background: view === "players" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.playersView}</button>
         </div>
         {view === "invite" ? (
-          <div style={{ textAlign: "center" }}>
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}><div style={{ padding: 12, borderRadius: 18, background: C.sur, border: `1px solid ${C.bdr}` }}><QRCode url={joinUrl} size={176} C={C} lang={lang} /></div></div>
-            <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px" }}>{joinUrl}</div>
-            {!!room?.password && <div style={{ fontSize: 11, color: C.muted, marginTop: 10 }}>{ui.hostLobby.tvProtectedHint}</div>}
-            {onOpenTv && (
-              <div style={{ ...S.card2, marginTop: 12, marginBottom: 0, textAlign: "left", borderColor: "rgba(251,191,36,.26)", background: "linear-gradient(180deg, rgba(251,191,36,.10), rgba(251,191,36,.03))" }}>
+          <div style={{ display: "grid", gridTemplateColumns: viewport.width >= 980 ? "minmax(0, 1fr) minmax(300px, .92fr)" : "1fr", gap: 12, alignItems: "start" }}>
+            <div style={{ textAlign: "center", background: C.sur2, border: `1px solid ${C.bdr}`, borderRadius: 16, padding: 14 }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}><div style={{ padding: 12, borderRadius: 18, background: C.sur, border: `1px solid ${C.bdr}` }}><QRCode url={joinUrl} size={176} C={C} lang={lang} /></div></div>
+              <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px" }}>{joinUrl}</div>
+            </div>
+            <div style={{ display: "grid", gap: 12 }}>
+              {!!room?.password && <div style={{ fontSize: 11, color: C.muted, padding: "0 2px" }}>{ui.hostLobby.tvProtectedHint}</div>}
+              {onOpenTv && (
+              <div style={{ ...S.card2, marginTop: 0, marginBottom: 0, textAlign: "left", borderColor: "rgba(251,191,36,.26)", background: "linear-gradient(180deg, rgba(251,191,36,.10), rgba(251,191,36,.03))" }}>
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.9, textTransform: "uppercase", color: acc.gold, marginBottom: 8 }}>{ui.hostLobby.tvHub}</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: C.txt, letterSpacing: "-0.03em", marginBottom: 6 }}>{ui.hostLobby.tvTitle}</div>
                 <div style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.55, marginBottom: 12 }}>{ui.hostLobby.tvDesc}</div>
@@ -72,6 +77,7 @@ export default function HostLobby({ room, players, gameLang, lang, ui, C, S, acc
                 </div>
               </div>
             )}
+            </div>
           </div>
         ) : (
           <div>
@@ -85,7 +91,7 @@ export default function HostLobby({ room, players, gameLang, lang, ui, C, S, acc
             {others.length === 0 ? (
               <p style={{ ...S.bt, textAlign: "center", padding: "12px 0", fontStyle: "italic" }}>{ui.hostLobby.empty}</p>
             ) : (
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: viewport.width >= 980 ? "1fr 1fr" : "1fr", gap: 10 }}>
                 {others.map((player) => (
                   <li
                     key={player.id}
@@ -93,8 +99,10 @@ export default function HostLobby({ room, players, gameLang, lang, ui, C, S, acc
                       display: "flex",
                       alignItems: "center",
                       gap: 10,
-                      padding: "10px 0",
-                      borderBottom: `1px solid ${C.bdr}`,
+                      padding: "12px 12px",
+                      border: `1px solid ${C.bdr}`,
+                      borderRadius: 14,
+                      background: C.sur2,
                       opacity: removingPlayerId === player.id ? 0.45 : 1,
                       transform: removingPlayerId === player.id ? "scale(.985)" : "scale(1)",
                       transition: "opacity .18s ease, transform .18s ease",
