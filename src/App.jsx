@@ -1190,9 +1190,6 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
 
   const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
   const currentWords = getAudience(players, narratorId, HUB_PLAYER_NAME).map((player) => player.secret_word).filter(Boolean);
-  useEffect(() => {
-    if (currentWords.length > 0) setContentLang((current) => detectLanguageFromSample(currentWords[0], null, current, WORD_LOOKUPS, ACTION_LOOKUPS));
-  }, [currentWords.join("|"), setContentLang]);
 
   async function chooseNextNarrator(nextPlayer) {
     const currentPast = room?.past_narrators || [];
