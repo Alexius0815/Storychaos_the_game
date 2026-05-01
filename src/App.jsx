@@ -1209,6 +1209,14 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
   const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
   const currentWords = getAudience(players, narratorId, HUB_PLAYER_NAME).map((player) => player.secret_word).filter(Boolean);
 
+  useEffect(() => {
+    if (!room) return;
+    const preDealRound = room.status === GAME_PHASES.WAITING && (!room.story_words || room.story_words.length === 0);
+    if (preDealRound && (lang === "de" || lang === "en")) {
+      setContentLang(lang);
+    }
+  }, [room?.status, room?.story_words?.length, lang, setContentLang]);
+
   async function chooseNextNarrator(nextPlayer) {
     const currentPast = room?.past_narrators || [];
     const nextPast = Array.from(new Set([...currentPast, nextPlayer.id]));
