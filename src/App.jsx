@@ -6,6 +6,10 @@ import { ACTIVE_ROUND_PHASES, GAME_PHASES, PRE_STORY_PHASES, SCORE_PHASES } from
 import { buildCardLookups, detectLanguageFromSample, roomCode, shuffle } from "./game/cards";
 import { flattenPresence, getAudience, getNarratorId, getVisiblePlayers, inspectRoomPresence, timeAgo } from "./game/rooms";
 import { analyzeStory, buildStoryAttemptLine, generateLocalStory, generateStory, repairStoryToRules, stripStoryMarkup } from "./game/storyGeneration";
+import { EntryHero, ExitIconButton, HelpPopover, HelpScreen, OfflineBanner, QRCode } from "./components/common/SupportUI";
+import HostLobby from "./components/host/HostLobby";
+import HostCards from "./components/host/HostCards";
+import ReadyCheck from "./components/host/ReadyCheck";
 
 const APP_URL = "https://storychaos-the-game.vercel.app";
 const APP_ICON = "/icon-192.png";
@@ -136,85 +140,6 @@ const debugLog = [];
 function addLog(level, msg, detail = "") {
   debugLog.unshift({ time: new Date().toLocaleTimeString(), level, msg, detail: String(detail).slice(0, 200) });
   if (debugLog.length > 50) debugLog.pop();
-}
-
-function QRCode({ url, size = 180, C, lang }) {
-  const enc = encodeURIComponent(url);
-  const bg = C.sur.replace("#", "");
-  const fg = C.txt.replace("#", "");
-  return (
-    <img
-      src={`https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${enc}&bgcolor=${bg}&color=${fg}&qzone=2`}
-      alt={lang === "de" ? `QR-Code für ${url}` : `QR code for ${url}`}
-      width={size}
-      height={size}
-      style={{ borderRadius: 8, display: "block" }}
-    />
-  );
-}
-
-function OfflineBanner({ C, ui }) {
-  const [offline, setOffline] = useState(!navigator.onLine);
-  useEffect(() => {
-    const on = () => setOffline(false);
-    const off = () => setOffline(true);
-    window.addEventListener("online", on);
-    window.addEventListener("offline", off);
-    return () => {
-      window.removeEventListener("online", on);
-      window.removeEventListener("offline", off);
-    };
-  }, []);
-  if (!offline) return null;
-  return (
-    <div style={{ background: "rgba(248,113,113,.15)", border: `1px solid ${ACC.red}`, borderRadius: 8, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-      <span>📡</span>
-      <span style={{ fontSize: 13, color: ACC.redl, fontWeight: 600 }}>{ui.offline}</span>
-    </div>
-  );
-}
-
-function HelpPopover({ title, children, ui, C, S, align = "right" }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div style={{ position: "relative" }}>
-      <button
-        onClick={() => setOpen((current) => !current)}
-        aria-label={ui.common.help}
-        style={{
-          width: 30,
-          height: 30,
-          borderRadius: 999,
-          border: "1px solid rgba(251,191,36,.36)",
-          background: "rgba(251,191,36,.12)",
-          color: ACC.gold,
-          fontSize: 16,
-          fontWeight: 900,
-          cursor: "pointer",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 0 0 1px rgba(251,191,36,.12) inset",
-        }}
-      >
-        ?
-      </button>
-      {open && (
-        <div style={{ position: "absolute", top: "calc(100% + 10px)", [align]: 0, zIndex: 40, width: "min(320px, calc(100vw - 48px))" }}>
-          <div style={{ ...S.card, marginBottom: 0, padding: 14, background: C.bg === "#0d0d14" ? "rgba(22,22,31,.96)" : "rgba(255,255,255,.98)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 18px 40px rgba(0,0,0,.2)" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.3, textTransform: "uppercase", color: ACC.gold }}>{title}</div>
-              <button onClick={() => setOpen(false)} style={S.sbtn(C.muted)}>{ui.common.close}</button>
-            </div>
-            <div style={{ display: "grid", gap: 8, fontSize: 13, color: C.txt, lineHeight: 1.6 }}>
-              {children}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
 
 function vibrate(pattern) {
@@ -518,384 +443,6 @@ function DebugPanel({ onClose, C, S, ui }) {
   );
 }
 
-function ExitIconButton({ onClick, label, C, S }) {
-  return (
-    <button
-      onClick={onClick}
-      title={label}
-      aria-label={label}
-      style={{
-        ...S.sbtn(C.muted),
-        width: 34,
-        height: 34,
-        minWidth: 34,
-        padding: 0,
-        borderRadius: 999,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 16,
-        fontWeight: 800,
-        lineHeight: 1,
-      }}
-    >
-      ⎋
-    </button>
-  );
-}
-
-function RemovePlayerIconButton({ onClick, label, busy, C, S }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={busy}
-      title={busy ? `${label}…` : label}
-      aria-label={busy ? `${label}…` : label}
-      style={{
-        ...S.sbtn(ACC.red),
-        width: 30,
-        height: 30,
-        minWidth: 30,
-        padding: 0,
-        borderRadius: 999,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 14,
-        fontWeight: 800,
-        lineHeight: 1,
-        background: busy ? "rgba(248,113,113,.14)" : "rgba(248,113,113,.06)",
-        borderColor: "rgba(248,113,113,.22)",
-        opacity: busy ? 0.7 : 0.9,
-        cursor: busy ? "wait" : "pointer",
-      }}
-    >
-      {busy ? "…" : "✕"}
-    </button>
-  );
-}
-
-function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv, onRemovePlayer }) {
-  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
-  const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
-  const joinUrl = `${APP_URL}?room=${room.id}&lang=${gameLang}`;
-  const tvUrl = `${APP_URL}?room=${room.id}&lang=${lang}&view=tv${room?.password ? `&tv=${encodeURIComponent(room.password)}` : ""}`;
-  const [view, setView] = useState("invite");
-  const [copied, setCopied] = useState(false);
-  const [removingPlayerId, setRemovingPlayerId] = useState(null);
-
-  async function copyTvLink() {
-    try {
-      await navigator.clipboard.writeText(tvUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {}
-  }
-
-  async function handleRemovePlayer(player) {
-    if (!onRemovePlayer || removingPlayerId) return;
-    const runningRound = room?.status && !PRE_STORY_PHASES.includes(room.status);
-    const confirmed = window.confirm(
-      runningRound
-        ? ui.hostLobby.confirmRemovePlayerRunning(player.name)
-        : ui.hostLobby.confirmRemovePlayer(player.name)
-    );
-    if (!confirmed) return;
-    setRemovingPlayerId(player.id);
-    const ok = await onRemovePlayer(player);
-    if (!ok) {
-      window.alert(ui.hostLobby.removePlayerError);
-    }
-    setRemovingPlayerId(null);
-  }
-
-  return (
-    <div>
-      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.3)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.02))" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: ACC.blue, marginBottom: 6 }}>{ui.common.roomCode}</div>
-            <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: 6, color: C.txt }}>{room.id}</div>
-          </div>
-          <HelpPopover title={ui.hostTabs.lobby} ui={ui} C={C} S={S}>
-            <div>{ui.hostLobby.joinHint}</div>
-            <div>{ui.hostLobby.start(Math.max(others.length, 1)).replace(" →", "")}</div>
-          </HelpPopover>
-        </div>
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-          <button onClick={() => setView("invite")} style={{ ...S.sbtn(view === "invite" ? ACC.blue : C.muted), background: view === "invite" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.inviteView}</button>
-          <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? ACC.blue : C.muted), background: view === "players" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.hostLobby.playersView}</button>
-        </div>
-        {view === "invite" ? (
-          <div style={{ textAlign: "center" }}>
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}><div style={{ padding: 12, borderRadius: 18, background: C.sur, border: `1px solid ${C.bdr}` }}><QRCode url={joinUrl} size={176} C={C} lang={lang} /></div></div>
-            <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px" }}>{joinUrl}</div>
-            {!!room?.password && <div style={{ fontSize: 11, color: C.muted, marginTop: 10 }}>{ui.hostLobby.tvProtectedHint}</div>}
-            {onOpenTv && (
-              <div style={{ ...S.card2, marginTop: 12, marginBottom: 0, textAlign: "left", borderColor: "rgba(251,191,36,.26)", background: "linear-gradient(180deg, rgba(251,191,36,.10), rgba(251,191,36,.03))" }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.9, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.hostLobby.tvHub}</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: C.txt, letterSpacing: "-0.03em", marginBottom: 6 }}>{ui.hostLobby.tvTitle}</div>
-                <div style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.55, marginBottom: 12 }}>{ui.hostLobby.tvDesc}</div>
-                <div style={{ fontSize: 11, color: C.muted, wordBreak: "break-all", background: C.sur, border: `1px solid ${C.bdr}`, borderRadius: 12, padding: "10px 12px", marginBottom: 10 }}>{tvUrl}</div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                  <button onClick={() => onOpenTv(room?.password || "", "open")} style={{ ...S.sbtn(ACC.gold), background: "rgba(251,191,36,.08)" }}>{ui.hostLobby.tvOpenExternal}</button>
-                  <button onClick={copyTvLink} style={S.sbtn(C.muted)}>{copied ? ui.common.copied : ui.hostLobby.tvCopyExternal}</button>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div>
-            {room?.round > 1 && room?.host_name && (
-              <div style={{ ...S.card2, borderColor: "rgba(251,191,36,.35)", background: "linear-gradient(180deg, rgba(251,191,36,.12), rgba(251,191,36,.04))", textAlign: "center", marginBottom: 12 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: ACC.gold, marginBottom: 8 }}>{ui.hostLobby.nextRoundTitle}</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{ui.scores.nextUp(room.host_name)}</div>
-              </div>
-            )}
-            <div style={{ fontSize: 13, fontWeight: 700, color: C.txt, marginBottom: 10 }}>{ui.hostLobby.joined(others.length)}</div>
-            {others.length === 0 ? (
-              <p style={{ ...S.bt, textAlign: "center", padding: "12px 0", fontStyle: "italic" }}>{ui.hostLobby.empty}</p>
-            ) : (
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {others.map((player) => (
-                  <li
-                    key={player.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      padding: "10px 0",
-                      borderBottom: `1px solid ${C.bdr}`,
-                      opacity: removingPlayerId === player.id ? 0.45 : 1,
-                      transform: removingPlayerId === player.id ? "scale(.985)" : "scale(1)",
-                      transition: "opacity .18s ease, transform .18s ease",
-                    }}
-                  >
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: ACC.green, flexShrink: 0 }} />
-                    <span style={{ fontSize: 15, fontWeight: 600, color: C.txt, flex: 1 }}>{player.name}</span>
-                    <RemovePlayerIconButton
-                      onClick={() => handleRemovePlayer(player)}
-                      busy={removingPlayerId === player.id}
-                      label={ui.hostLobby.removePlayer}
-                      C={C}
-                      S={S}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-      </div>
-
-      <button onClick={onStart} disabled={others.length === 0} style={S.pbtn(others.length > 0 ? ACC.green : C.bdr, others.length > 0 ? "rgba(74,222,128,.1)" : C.sur)}>
-        {others.length === 0 ? ui.hostLobby.waiting : ui.hostLobby.start(others.length)}
-      </button>
-    </div>
-  );
-}
-
-function EntryHero({ ui, C, S, title, desc, accent = ACC.blue }) {
-  return (
-    <div style={{ ...S.card, textAlign: "left", padding: "22px 18px 18px", background: `linear-gradient(180deg, ${accent}18, ${C.sur})`, borderColor: `${accent}44` }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-        <div style={{ width: 64, height: 64, display: "grid", placeItems: "center", filter: "drop-shadow(0 10px 24px rgba(0,0,0,.22))" }}>
-          <img src={APP_ICON} alt="Story Chaos icon" width="60" height="60" style={{ display: "block", objectFit: "contain" }} />
-        </div>
-      </div>
-      <div style={{ fontSize: 26, fontWeight: 800, color: C.txt, marginBottom: 8, letterSpacing: "-0.04em" }}>{title}</div>
-      <p style={{ ...S.bt, fontSize: 14.5, lineHeight: 1.6 }}>{desc}</p>
-    </div>
-  );
-}
-
-function EntryNoteCard({ label, title, text, C }) {
-  return (
-    <div style={{ borderRadius: 14, padding: 14, border: `1px solid ${C.bdr}`, background: C.sur2, minWidth: 0 }}>
-      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.9, textTransform: "uppercase", color: C.muted, marginBottom: 7 }}>{label}</div>
-      <div style={{ fontSize: 16, fontWeight: 800, color: C.txt, letterSpacing: "-0.03em", marginBottom: 5 }}>{title}</div>
-      <div style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.5 }}>{text}</div>
-    </div>
-  );
-}
-
-function HelpScreen({ ui, C, S }) {
-  return (
-    <div style={{ animation: "fadeIn .3s ease" }}>
-      <EntryHero ui={ui} C={C} S={S} title={ui.helpScreen.title} desc={ui.helpScreen.desc} accent={ACC.gold} />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        {ui.helpScreen.cards.map((card) => (
-          <EntryNoteCard key={card.title} label={card.label} title={card.title} text={card.text} C={C} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function HostCards({ room, players, ui, lang, contentLang, setContentLang, C, S, onCardsDealt }) {
-  const [diff, setDiff] = useState("mix");
-  const [cats, setCats] = useState(Object.keys(CONTENT[contentLang].words));
-  const [loading, setLoading] = useState(false);
-  const [view, setView] = useState("setup");
-  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
-  const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
-  const content = CONTENT[contentLang];
-  const allWords = ALL_WORDS_BY_LANG[contentLang];
-  const allActions = ALL_ACTIONS_BY_LANG[contentLang];
-
-  useEffect(() => {
-    setCats(Object.keys(CONTENT[contentLang].words));
-  }, [contentLang]);
-
-  useEffect(() => {
-    if (lang === "de" || lang === "en") {
-      setContentLang(lang);
-    }
-  }, [lang, setContentLang]);
-
-  function getActions(difficulty) {
-    if (difficulty === "mix") return shuffle([...content.actions.easy, ...content.actions.medium, ...content.actions.chaos]);
-    return shuffle(content.actions[difficulty] || allActions);
-  }
-
-  function getWords() {
-    const pool = cats.length > 0 ? cats.flatMap((category) => content.words[category] || []) : allWords;
-    return shuffle(pool);
-  }
-
-  async function deal() {
-    setLoading(true);
-    const ws = getWords().slice(0, others.length);
-    const actions = getActions(diff).slice(0, others.length);
-    for (let index = 0; index < others.length; index += 1) {
-      await sb.from("players").update({ secret_word: ws[index], secret_action: actions[index], ready: false, rerolled: false }).eq("id", others[index].id);
-    }
-    await sb.from("rooms").update({ status: GAME_PHASES.CARDS, story_words: ws, difficulty: diff }).eq("id", room.id);
-    onCardsDealt(ws);
-    vibrate([100, 50, 100]);
-    setLoading(false);
-  }
-
-  function toggleCat(category) {
-    setCats((selected) => (selected.includes(category) ? selected.filter((value) => value !== category) : [...selected, category]));
-  }
-
-  return (
-    <div>
-      <div style={{ ...S.card, background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))", borderColor: "rgba(251,191,36,.26)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-          <div style={S.st}>{ui.cards.title}</div>
-          <HelpPopover title={ui.cards.explainTitle} ui={ui} C={C} S={S}>
-            <div>{ui.cards.desc}</div>
-            <div>{ui.cards.explainDesc}</div>
-            <div>{ui.cards.gameLanguageHelp}</div>
-            <div>{ui.cards.categoriesHelp}</div>
-          </HelpPopover>
-        </div>
-        <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-          <button onClick={() => setView("setup")} style={{ ...S.sbtn(view === "setup" ? ACC.blue : C.muted), background: view === "setup" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.cards.setupView}</button>
-          <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? ACC.blue : C.muted), background: view === "players" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.cards.playersView}</button>
-        </div>
-      </div>
-
-      {view === "setup" ? (
-      <>
-      <div style={S.card}>
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.difficulty}</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {Object.entries(content.diffLabels).map(([key, label]) => (
-            <button key={key} onClick={() => setDiff(key)} aria-pressed={diff === key} style={{ minHeight: 48, padding: "10px 8px", borderRadius: 12, fontSize: 13, fontWeight: 700, border: `1.5px solid ${diff === key ? ACC.gold : C.bdr}`, background: diff === key ? "linear-gradient(180deg, rgba(251,191,36,.16), rgba(251,191,36,.08))" : C.sur2, color: diff === key ? ACC.gold : C.muted, cursor: "pointer" }}>
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={S.card}>
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.categories}</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {Object.entries(content.categoryLabels).map(([key, label]) => {
-            const active = cats.includes(key);
-            return (
-              <button key={key} onClick={() => toggleCat(key)} style={{ padding: "7px 12px", borderRadius: 999, fontSize: 12, fontWeight: 700, border: `1.5px solid ${active ? ACC.blue : C.bdr}`, background: active ? "linear-gradient(180deg, rgba(96,165,250,.14), rgba(96,165,250,.08))" : C.sur2, color: active ? ACC.bluel : C.muted, cursor: "pointer" }}>
-                {label}
-              </button>
-            );
-          })}
-        </div>
-        {cats.length === 0 && <p style={{ fontSize: 12, color: ACC.redl, marginTop: 8 }}>{ui.cards.minCategory}</p>}
-      </div>
-      </>
-      ) : (
-      <div style={{ ...S.card, marginBottom: 12 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.txt, marginBottom: 8 }}>{ui.cards.players(others.length)}</div>
-        {others.length === 0 ? <p style={S.bt}>{ui.cards.noPlayers}</p> : others.map((player) => (
-          <div key={player.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: `1px solid ${C.bdr}` }}>
-            <span style={{ width: 7, height: 7, borderRadius: "50%", background: ACC.green, flexShrink: 0 }} />
-            <span style={{ fontSize: 14, color: C.txt }}>{player.name}</span>
-          </div>
-        ))}
-      </div>
-      )}
-
-      <button onClick={deal} disabled={loading || others.length === 0 || cats.length === 0} style={S.pbtn(ACC.blue, "rgba(96,165,250,.1)")}>
-        {loading ? ui.cards.dealing : ui.cards.deal}
-      </button>
-    </div>
-  );
-}
-
-function ReadyCheck({ room, players, ui, C, S, onAllReady }) {
-  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
-  const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
-  const readyOnes = others.filter((player) => player.ready);
-  const allReady = others.length > 0 && readyOnes.length === others.length;
-
-  useEffect(() => {
-    if (allReady) vibrate([100, 50, 200]);
-  }, [allReady]);
-
-  return (
-    <div>
-      <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-          <div style={S.st}>{ui.ready.title}</div>
-          <HelpPopover title={ui.ready.title} ui={ui} C={C} S={S}>
-            <div>{ui.ready.desc}</div>
-          </HelpPopover>
-        </div>
-      </div>
-
-      <div style={S.card}>
-        <div style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.txt }}>{ui.ready.status}</div>
-          <div style={{ fontSize: 13, color: C.muted }}>{ui.ready.readyCount(readyOnes.length, others.length)}</div>
-        </div>
-        <div style={{ height: 6, borderRadius: 3, background: C.sur2, marginBottom: 14, overflow: "hidden" }}>
-          <div style={{ height: "100%", borderRadius: 3, background: allReady ? ACC.green : ACC.gold, width: `${others.length > 0 ? (readyOnes.length / others.length) * 100 : 0}%`, transition: "width .4s ease" }} />
-        </div>
-        {others.map((player) => (
-          <div key={player.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: `1px solid ${C.bdr}` }}>
-            <span style={{ fontSize: 16 }}>{player.ready ? "✅" : "⏳"}</span>
-            <span style={{ fontSize: 14, color: C.txt, flex: 1 }}>{player.name}</span>
-            {player.rerolled && <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 10, background: "rgba(251,191,36,.12)", color: ACC.gold, border: "1px solid rgba(251,191,36,.3)" }}>{ui.ready.rerolled}</span>}
-          </div>
-        ))}
-      </div>
-
-      {allReady && (
-        <div style={{ animation: "fadeIn .3s ease" }}>
-          <div style={{ ...S.card, borderColor: "rgba(74,222,128,.3)", background: "linear-gradient(180deg, rgba(74,222,128,.12), rgba(74,222,128,.05))", textAlign: "center", padding: "20px 18px", marginBottom: 12 }}>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>🎉</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: ACC.greenl }}>{ui.ready.allReady}</div>
-          </div>
-          <button onClick={onAllReady} style={S.pbtn(ACC.green, "rgba(74,222,128,.1)")}>{ui.ready.continue}</button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, stageMode = false, onExitStage }) {
   const viewport = useViewport();
   const [genre, setGenre] = useState(null);
@@ -974,7 +521,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {hasStoryStage && <button onClick={() => setStory("")} style={S.sbtn(C.muted)}>{ui.storyGen.regenerate}</button>}
             {stageMode && onExitStage && <button onClick={onExitStage} style={S.sbtn(C.muted)}>{ui.common.back}</button>}
-            <HelpPopover title={ui.storyGen.title} ui={ui} C={C} S={S}>
+            <HelpPopover title={ui.storyGen.title} ui={ui} C={C} S={S} acc={ACC}>
               <div>{ui.storyGen.desc}</div>
               {ui.storyGen.flowSteps.map((step, index) => <div key={step}>{index + 1}. {step}</div>)}
               <div>{ui.storyGen.hiddenHint}</div>
@@ -1099,7 +646,7 @@ function Resolution({ room, players, storyWords, ui, C, S, onOpenScores }) {
               <div style={{ ...S.st, marginBottom: 0 }}>{ui.resolution.title}</div>
             </div>
           </div>
-          <HelpPopover title={ui.resolution.title} ui={ui} C={C} S={S}>
+          <HelpPopover title={ui.resolution.title} ui={ui} C={C} S={S} acc={ACC}>
             <div>{ui.resolution.desc}</div>
             <div>{ui.resolution.revealStoryDesc}</div>
           </HelpPopover>
@@ -1202,7 +749,7 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
             <button onClick={() => setView("action")} style={{ ...S.sbtn(view === "action" ? ACC.blue : C.muted), background: view === "action" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.scores.actionView}</button>
             <button onClick={() => setView("vote")} style={{ ...S.sbtn(view === "vote" ? ACC.blue : C.muted), background: view === "vote" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.scores.voteView}</button>
             <button onClick={() => setView("board")} style={{ ...S.sbtn(view === "board" ? ACC.blue : C.muted), background: view === "board" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.scores.boardView}</button>
-            <HelpPopover title={ui.scores.title} ui={ui} C={C} S={S}>
+            <HelpPopover title={ui.scores.title} ui={ui} C={C} S={S} acc={ACC}>
               <div>{ui.scores.desc}</div>
               {ui.scores.rules.map((rule) => <div key={rule}>{rule}</div>)}
             </HelpPopover>
@@ -1736,9 +1283,9 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
           ))}
         </div>
       </nav>
-      {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} onStart={() => setTab("cards")} onOpenTv={onOpenTv} onRemovePlayer={removePlayer} />}
-      {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} lang={lang} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onCardsDealt={(words) => { setStoryWords(words); setAwardedPlayerIds([]); setTab("ready"); }} />}
-      {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} onAllReady={() => setTab("story")} />}
+      {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} acc={ACC} appUrl={APP_URL} hubPlayerName={HUB_PLAYER_NAME} onStart={() => setTab("cards")} onOpenTv={onOpenTv} onRemovePlayer={removePlayer} />}
+      {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} lang={lang} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} acc={ACC} hubPlayerName={HUB_PLAYER_NAME} allWordsByLang={ALL_WORDS_BY_LANG} allActionsByLang={ALL_ACTIONS_BY_LANG} onCardsDealt={(words) => { setStoryWords(words); setAwardedPlayerIds([]); setTab("ready"); }} onCelebrate={vibrate} />}
+      {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} acc={ACC} hubPlayerName={HUB_PLAYER_NAME} onAllReady={() => setTab("story")} onCelebrate={vibrate} />}
       {tab === "story" && <HostStory room={room || { id: roomId }} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} contentLang={contentLang} C={C} S={S} onOpenResolution={openResolution} />}
       {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} C={C} S={S} onOpenScores={openScores} />}
       {tab === "scores" && <Scores room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} votes={narratorVotes} narratorAwarded={narratorAwarded} finalizingNarratorVote={finalizingNarratorVote} onFinalizeNarratorVote={finalizeNarratorVote} onChooseNarrator={chooseNextNarrator} awardedPlayerIds={awardedPlayerIds} onAwardPlayer={awardPlayer} />}
@@ -1881,7 +1428,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: ACC.blue, marginBottom: 8 }}>{ui.common.phaseTitle}</div>
             <div style={{ fontSize: 18, fontWeight: 800, color: C.txt }}>{playerPhase}</div>
           </div>
-          <HelpPopover title={playerPhase} ui={ui} C={C} S={S} align="left">
+          <HelpPopover title={playerPhase} ui={ui} C={C} S={S} acc={ACC} align="left">
             <div>{inPointsView ? ui.player.pointsDesc : ui.player.reactHint}</div>
             <div>{inPointsView ? ui.player.narratorVoteDesc : ui.player.revealBoth}</div>
           </HelpPopover>
@@ -2038,7 +1585,7 @@ function JoinScreen({ initialCode, onJoined, ui, C, S }) {
 
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
-      <EntryHero ui={ui} C={C} S={S} title={ui.join.title} desc={ui.join.desc} accent={ACC.blue} />
+      <EntryHero C={C} S={S} title={ui.join.title} desc={ui.join.desc} accent={ACC.blue} appIcon={APP_ICON} />
       <div style={{ ...S.card, padding: "18px 16px", marginBottom: 12 }}>
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.common.roomCode}</label>
         <input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder={ui.join.roomPlaceholder} maxLength={5} style={{ ...S.input, fontSize: 22, fontWeight: 800, letterSpacing: 6, textAlign: "center", marginBottom: 14 }} />
@@ -2085,7 +1632,7 @@ function CreateRoom({ onCreated, ui, C, S }) {
 
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
-      <EntryHero ui={ui} C={C} S={S} title={ui.create.title} desc={ui.create.desc} accent={ACC.gold} />
+      <EntryHero C={C} S={S} title={ui.create.title} desc={ui.create.desc} accent={ACC.gold} appIcon={APP_ICON} />
       <div style={{ ...S.card, padding: "18px 16px", marginBottom: 12 }}>
         <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 8 }}>{ui.create.hostName}</label>
         <input value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && create()} placeholder={ui.create.namePlaceholder} maxLength={20} style={{ ...S.input, marginBottom: 14 }} />
@@ -2560,7 +2107,7 @@ export default function App() {
           )}
         </header>}
 
-        {!isTvScreen && <OfflineBanner C={C} ui={ui} />}
+        {!isTvScreen && <OfflineBanner C={C} ui={ui} acc={ACC} />}
 
         <main>
           {screen === "home" && (
@@ -2588,7 +2135,7 @@ export default function App() {
               </div>
             </div>
           )}
-          {screen === "help" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><HelpScreen ui={ui} C={C} S={S} /></div>}
+          {screen === "help" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><HelpScreen ui={ui} C={C} S={S} acc={ACC} appIcon={APP_ICON} /></div>}
           {screen === "create" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><CreateRoom onCreated={handleCreated} ui={ui} C={C} S={S} /></div>}
           {screen === "join" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><JoinScreen initialCode={urlRoom || ""} onJoined={handleJoined} ui={ui} C={C} S={S} /></div>}
           {screen === "host" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onOpenTv={handleOpenTv} />}
