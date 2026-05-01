@@ -28,9 +28,12 @@ const FREESTYLE_STORY_PREFIX = "[[freestyle]]";
 const FF = "system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
 const THEMES = {
   dark: { mode: "dark", bg: "#0d0d14", sur: "#16161f", sur2: "#1e1e2a", bdr: "#2a2a3a", txt: "#f0f0f5", muted: "#9090a8" },
-  light: { mode: "light", bg: "#eef1f7", sur: "#ffffff", sur2: "#e6ebf3", bdr: "#b8c2d6", txt: "#101521", muted: "#465268" },
+  light: { mode: "light", bg: "#edf2f8", sur: "#ffffff", sur2: "#dde6f1", bdr: "#94a3b8", txt: "#0f172a", muted: "#334155" },
 };
-const ACC = { blue: "#60a5fa", bluel: "#bfdbfe", red: "#f87171", redl: "#fecaca", gold: "#fbbf24", green: "#4ade80", greenl: "#bbf7d0" };
+const ACCENTS = {
+  dark: { blue: "#60a5fa", bluel: "#bfdbfe", red: "#f87171", redl: "#fecaca", gold: "#fbbf24", green: "#4ade80", greenl: "#bbf7d0" },
+  light: { blue: "#2563eb", bluel: "#1e3a8a", red: "#dc2626", redl: "#991b1b", gold: "#b45309", green: "#15803d", greenl: "#166534" },
+};
 
 const {
   allWordsByLang: ALL_WORDS_BY_LANG,
@@ -87,13 +90,13 @@ function useLanguage(initial) {
 function makeStyles(C) {
   const isLight = C.mode === "light";
   return {
-    card: { background: C.sur, border: `${isLight ? 1.5 : 1}px solid ${C.bdr}`, borderRadius: 16, padding: 18, marginBottom: 14, boxShadow: isLight ? "0 14px 36px rgba(15,23,42,.08)" : "0 12px 32px rgba(0,0,0,.18)" },
-    card2: { background: C.sur2, border: `${isLight ? 1.5 : 1}px solid ${C.bdr}`, borderRadius: 16, padding: 18, marginBottom: 14 },
+    card: { background: C.sur, border: `${isLight ? 1.5 : 1}px solid ${C.bdr}`, borderRadius: 16, padding: 18, marginBottom: 14, boxShadow: isLight ? "0 16px 36px rgba(15,23,42,.09)" : "0 12px 32px rgba(0,0,0,.18)" },
+    card2: { background: isLight ? "#f3f6fb" : C.sur2, border: `${isLight ? 1.5 : 1}px solid ${C.bdr}`, borderRadius: 16, padding: 18, marginBottom: 14, boxShadow: isLight ? "inset 0 1px 0 rgba(255,255,255,.75)" : "none" },
     st: { fontSize: 16, fontWeight: 800, color: C.txt, display: "flex", alignItems: "center", gap: 8, marginBottom: 12, letterSpacing: "-0.02em" },
     bt: { fontSize: 14, lineHeight: 1.7, color: C.muted },
     input: { width: "100%", background: isLight ? "#f8fafc" : C.sur2, border: `1.5px solid ${C.bdr}`, color: C.txt, fontFamily: FF, fontSize: 16, padding: "14px 15px", borderRadius: 13, outline: "none", boxShadow: isLight ? "inset 0 1px 0 rgba(255,255,255,.7)" : "inset 0 1px 0 rgba(255,255,255,.03)" },
-    pbtn: (col, bg) => ({ width: "100%", minHeight: 56, padding: "15px 16px", borderRadius: 13, fontSize: 17, fontWeight: 800, lineHeight: 1.2, border: `1.5px solid ${col}`, background: bg, color: col, cursor: "pointer", transition: "all .15s", display: "block", boxShadow: isLight ? `0 1px 0 rgba(255,255,255,.7) inset, 0 0 0 1px ${col}20 inset` : `0 0 0 1px ${col}18 inset` }),
-    sbtn: (col) => ({ fontSize: 13, fontWeight: 800, padding: "8px 12px", borderRadius: 10, border: `1px solid ${col}`, background: isLight ? "rgba(15,23,42,.03)" : "transparent", color: col, cursor: "pointer" }),
+    pbtn: (col, bg) => ({ width: "100%", minHeight: 56, padding: "15px 16px", borderRadius: 13, fontSize: 17, fontWeight: 800, lineHeight: 1.2, border: `1.5px solid ${col}`, background: bg, color: col, cursor: "pointer", transition: "all .15s", display: "block", boxShadow: isLight ? `0 1px 0 rgba(255,255,255,.8) inset, 0 0 0 1px ${col}24 inset` : `0 0 0 1px ${col}18 inset` }),
+    sbtn: (col) => ({ fontSize: 13, fontWeight: 800, padding: "8px 12px", borderRadius: 10, border: `1.2px solid ${col}`, background: isLight ? "rgba(15,23,42,.045)" : "transparent", color: col, cursor: "pointer" }),
   };
 }
 
@@ -194,7 +197,8 @@ function detectRoundLanguage(room, players, fallback = "de") {
   return enHits > deHits ? "en" : "de";
 }
 
-function renderHighlightedStory(text, highlightWords, C) {
+function renderHighlightedStory(text, highlightWords, C, acc) {
+  const palette = acc || (C.mode === "light" ? ACCENTS.light : ACCENTS.dark);
   const clean = (text || "").replace(/\*\*(.*?)\*\*/g, "$1");
   if (!highlightWords?.length) return clean;
   const escaped = highlightWords.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
@@ -202,7 +206,7 @@ function renderHighlightedStory(text, highlightWords, C) {
   return clean.split(pattern).map((part, index) => {
     const match = highlightWords.some((word) => word.toLowerCase() === part.toLowerCase());
     if (!match) return <span key={`${part}-${index}`}>{part}</span>;
-    return <span key={`${part}-${index}`} style={{ color: ACC.gold, fontWeight: 800, background: "rgba(251,191,36,.12)", padding: "0 2px", borderRadius: 4 }}>{part}</span>;
+    return <span key={`${part}-${index}`} style={{ color: palette.gold, fontWeight: 800, background: C.mode === "light" ? "rgba(180,83,9,.14)" : "rgba(251,191,36,.12)", padding: "0 2px", borderRadius: 4 }}>{part}</span>;
   });
 }
 
@@ -231,7 +235,7 @@ function playBeep(freq = 440, dur = 0.15) {
   } catch {}
 }
 
-function DebugPanel({ onClose, C, S, ui }) {
+function DebugPanel({ onClose, C, S, ui, acc }) {
   const [logs, setLogs] = useState([...debugLog]);
   const [apiStatus, setApiStatus] = useState({});
   const [sbStatus, setSbStatus] = useState(null);
@@ -401,7 +405,7 @@ function DebugPanel({ onClose, C, S, ui }) {
   }
 
   const badge = (ok) => (
-    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10, background: ok === undefined ? "transparent" : ok ? "rgba(74,222,128,.15)" : "rgba(248,113,113,.15)", color: ok === undefined ? C.muted : ok ? ACC.greenl : ACC.redl, border: `1px solid ${ok === undefined ? C.bdr : ok ? "rgba(74,222,128,.3)" : "rgba(248,113,113,.3)"}` }}>
+    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10, background: ok === undefined ? "transparent" : ok ? "rgba(74,222,128,.15)" : "rgba(248,113,113,.15)", color: ok === undefined ? C.muted : ok ? acc.greenl : acc.redl, border: `1px solid ${ok === undefined ? C.bdr : ok ? "rgba(74,222,128,.3)" : "rgba(248,113,113,.3)"}` }}>
       {ok === undefined ? "–" : ok ? ui.debug.ok : ui.debug.fail}
     </span>
   );
@@ -420,14 +424,14 @@ function DebugPanel({ onClose, C, S, ui }) {
             <span style={{ fontSize: 13, color: C.txt }}>{ui.debug.connection} {sbStatus?.ms ? `(${sbStatus.ms}ms)` : ""}</span>
             {sbStatus ? badge(sbStatus.ok) : <span style={{ fontSize: 11, color: C.muted }}>{ui.debug.checking}</span>}
           </div>
-          {sbStatus?.err && <div style={{ fontSize: 11, color: ACC.redl, marginTop: 4 }}>{sbStatus.err}</div>}
+          {sbStatus?.err && <div style={{ fontSize: 11, color: acc.redl, marginTop: 4 }}>{sbStatus.err}</div>}
           <button onClick={checkSb} style={{ ...S.sbtn(C.muted), marginTop: 10 }}>{ui.common.refresh}</button>
         </div>
 
         <div style={S.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted }}>{ui.debug.aiApis}</div>
-            <button onClick={testApis} disabled={testing} style={S.sbtn(ACC.blue)}>{testing ? ui.debug.testing : ui.debug.testAll}</button>
+            <button onClick={testApis} disabled={testing} style={S.sbtn(acc.blue)}>{testing ? ui.debug.testing : ui.debug.testAll}</button>
           </div>
           <div style={{ fontSize: 12, color: C.muted, marginBottom: 10 }}>{ui.debug.aiApisHint}</div>
           {Object.values(apiStatus).length === 0 && !testing && <p style={{ fontSize: 13, color: C.muted }}>{ui.debug.notTested}</p>}
@@ -438,7 +442,7 @@ function DebugPanel({ onClose, C, S, ui }) {
                 {badge(status.ok)}
               </div>
               {status.ms && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{status.ms}ms</div>}
-              {status.note && <div style={{ fontSize: 11, color: status.ok === false ? ACC.redl : C.muted, marginTop: 2 }}>{status.note}</div>}
+              {status.note && <div style={{ fontSize: 11, color: status.ok === false ? acc.redl : C.muted, marginTop: 2 }}>{status.note}</div>}
               {status.preview && <div style={{ fontSize: 11, color: C.muted, marginTop: 2, fontStyle: "italic" }}>{ui.debug.servicePreview}: &quot;{status.preview}&quot;</div>}
               {status.err && status.err !== status.note && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{status.err}</div>}
             </div>
@@ -449,8 +453,8 @@ function DebugPanel({ onClose, C, S, ui }) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted }}>{ui.debug.sessions}</div>
             <div style={{ display: "flex", gap: 6 }}>
-              <button onClick={checkSessions} disabled={checkingSessions} style={S.sbtn(ACC.blue)}>{checkingSessions ? ui.debug.checkingSessions : ui.debug.checkSessions}</button>
-              <button onClick={deleteInactiveRooms} style={S.sbtn(ACC.red)}>{ui.debug.deleteInactive}</button>
+              <button onClick={checkSessions} disabled={checkingSessions} style={S.sbtn(acc.blue)}>{checkingSessions ? ui.debug.checkingSessions : ui.debug.checkSessions}</button>
+              <button onClick={deleteInactiveRooms} style={S.sbtn(acc.red)}>{ui.debug.deleteInactive}</button>
             </div>
           </div>
           {Object.keys(roomSessions).length === 0 ? <p style={{ fontSize: 13, color: C.muted }}>{ui.debug.notTested}</p> : rooms.map((room) => {
@@ -460,11 +464,11 @@ function DebugPanel({ onClose, C, S, ui }) {
               <div key={`${room.id}-session`} style={{ padding: "8px 0", borderBottom: `1px solid ${C.bdr}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 13, color: C.txt, fontWeight: 700 }}>{room.id}</span>
-                  <span style={{ fontSize: 11, color: session.count > 0 ? ACC.greenl : C.muted }}>
+                  <span style={{ fontSize: 11, color: session.count > 0 ? acc.greenl : C.muted }}>
                     {session.count > 0 ? ui.debug.activeSessions(session.count) : ui.debug.noActiveSessions}
                   </span>
                 </div>
-                {!session.narratorOnline && <div style={{ fontSize: 11, color: ACC.gold, marginTop: 4 }}>{ui.debug.narratorMissing}</div>}
+                {!session.narratorOnline && <div style={{ fontSize: 11, color: acc.gold, marginTop: 4 }}>{ui.debug.narratorMissing}</div>}
               </div>
             );
           })}
@@ -475,7 +479,7 @@ function DebugPanel({ onClose, C, S, ui }) {
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted }}>{ui.debug.rooms(rooms.length)}</div>
             <div style={{ display: "flex", gap: 6 }}>
               <button onClick={loadRooms} style={S.sbtn(C.muted)}>↻</button>
-              <button onClick={deleteOldRooms} style={S.sbtn(ACC.red)}>{ui.debug.deleteOld}</button>
+              <button onClick={deleteOldRooms} style={S.sbtn(acc.red)}>{ui.debug.deleteOld}</button>
             </div>
           </div>
           {rooms.length === 0 ? <p style={{ fontSize: 13, color: C.muted }}>{ui.debug.noRooms}</p> : rooms.map((room) => (
@@ -487,7 +491,7 @@ function DebugPanel({ onClose, C, S, ui }) {
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 10, background: C.sur2, color: C.muted }}>{room.status}</span>
                 <span style={{ fontSize: 10, color: C.muted }}>{timeAgo(room.created_at)}</span>
-                <button onClick={() => deleteRoomById(room.id)} style={S.sbtn(ACC.red)}>✕</button>
+                <button onClick={() => deleteRoomById(room.id)} style={S.sbtn(acc.red)}>✕</button>
               </div>
             </div>
           ))}
@@ -502,7 +506,7 @@ function DebugPanel({ onClose, C, S, ui }) {
             {logs.length === 0 ? <p style={{ fontSize: 13, color: C.muted }}>{ui.debug.noLogs}</p> : logs.map((log, index) => (
               <div key={index} style={{ padding: "4px 0", borderBottom: `1px solid ${C.bdr}`, display: "flex", gap: 8, fontSize: 12 }}>
                 <span style={{ color: C.muted, whiteSpace: "nowrap" }}>{log.time}</span>
-                <span style={{ fontWeight: 700, color: log.level === "error" ? ACC.red : log.level === "warn" ? ACC.gold : ACC.blue, minWidth: 34 }}>{log.level.toUpperCase()}</span>
+                <span style={{ fontWeight: 700, color: log.level === "error" ? acc.red : log.level === "warn" ? acc.gold : acc.blue, minWidth: 34 }}>{log.level.toUpperCase()}</span>
                 <span style={{ color: C.txt, wordBreak: "break-all" }}>{log.msg} <span style={{ color: C.muted }}>{log.detail}</span></span>
               </div>
             ))}
@@ -513,7 +517,7 @@ function DebugPanel({ onClose, C, S, ui }) {
   );
 }
 
-function Timer({ ui, C, S }) {
+function Timer({ ui, C, S, acc }) {
   const [dur, setDur] = useState(60);
   const [rem, setRem] = useState(60);
   const [run, setRun] = useState(false);
@@ -541,8 +545,8 @@ function Timer({ ui, C, S }) {
 
   const ratio = rem / dur;
   const offset = 565 * (1 - ratio);
-  const strokeColor = ratio > 0.5 ? ACC.blue : ratio > 0.25 ? ACC.gold : ACC.red;
-  const numberColor = rem <= 10 ? ACC.red : rem <= 20 ? ACC.gold : C.txt;
+  const strokeColor = ratio > 0.5 ? acc.blue : ratio > 0.25 ? acc.gold : acc.red;
+  const numberColor = rem <= 10 ? acc.red : rem <= 20 ? acc.gold : C.txt;
   const minutes = Math.floor(rem / 60);
   const seconds = rem % 60;
   const display = minutes > 0 ? `${minutes}:${String(seconds).padStart(2, "0")}` : String(rem);
@@ -553,7 +557,7 @@ function Timer({ ui, C, S }) {
         <legend style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 8, display: "block" }}>{ui.timer.duration}</legend>
         <div style={{ display: "flex", gap: 8 }}>
           {[60, 90, 120, 180].map((value) => (
-            <button key={value} onClick={() => { setDur(value); if (!run) { setRem(value); setDone(false); } }} aria-pressed={dur === value} style={{ flex: 1, background: dur === value ? "rgba(248,113,113,.1)" : C.sur, border: `2px solid ${dur === value ? ACC.red : C.bdr}`, color: dur === value ? ACC.redl : C.muted, fontSize: 13, fontWeight: 600, padding: "10px 0", borderRadius: 6, cursor: "pointer" }}>
+            <button key={value} onClick={() => { setDur(value); if (!run) { setRem(value); setDone(false); } }} aria-pressed={dur === value} style={{ flex: 1, background: dur === value ? "rgba(248,113,113,.1)" : C.sur, border: `2px solid ${dur === value ? acc.red : C.bdr}`, color: dur === value ? acc.redl : C.muted, fontSize: 13, fontWeight: 600, padding: "10px 0", borderRadius: 6, cursor: "pointer" }}>
               {value >= 60 ? `${value / 60} ${ui.timer.minutes}` : `${value}s`}
             </button>
           ))}
@@ -571,19 +575,19 @@ function Timer({ ui, C, S }) {
       </div>
       {done && (
         <div role="alert" style={{ width: "100%", background: "linear-gradient(135deg,rgba(248,113,113,.12),rgba(251,191,36,.12))", border: "1.5px solid rgba(248,113,113,.4)", borderRadius: 10, padding: 18, textAlign: "center" }}>
-          <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: 2, color: ACC.redl, textTransform: "uppercase" }}>{ui.timer.done}</div>
+          <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: 2, color: acc.redl, textTransform: "uppercase" }}>{ui.timer.done}</div>
           <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{ui.timer.guessPhase}</div>
         </div>
       )}
       <div style={{ display: "flex", gap: 10, width: "100%" }}>
-        <button onClick={() => { if (done) return; setRun((current) => !current); }} disabled={done} style={S.pbtn(ACC.red, "rgba(248,113,113,.1)")}>{run ? ui.timer.pause : ui.timer.start}</button>
+        <button onClick={() => { if (done) return; setRun((current) => !current); }} disabled={done} style={S.pbtn(acc.red, "rgba(248,113,113,.1)")}>{run ? ui.timer.pause : ui.timer.start}</button>
         <button onClick={() => { clearInterval(ref.current); setRun(false); setRem(dur); setDone(false); }} style={{ ...S.pbtn(C.bdr, C.sur), color: C.muted }}>{ui.timer.reset}</button>
       </div>
     </div>
   );
 }
 
-function RoundOverview({ room, players, ui, C, S }) {
+function RoundOverview({ room, players, ui, C, S, acc }) {
   const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
   const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
   const narrator = getVisiblePlayers(players, HUB_PLAYER_NAME).find((player) => player.id === narratorId);
@@ -596,7 +600,7 @@ function RoundOverview({ room, players, ui, C, S }) {
         <div style={S.st}>{ui.rounds.title}</div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <div style={{ fontSize: 14, color: C.muted }}>{ui.rounds.round}</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: ACC.gold }}>{room.round || 1}</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: acc.gold }}>{room.round || 1}</div>
         </div>
         {narrator && (
           <div style={{ background: C.sur2, borderRadius: 8, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
@@ -624,7 +628,7 @@ function RoundOverview({ room, players, ui, C, S }) {
         </ul>
         {doneAll && (
           <div style={{ marginTop: 14, padding: "12px 14px", background: "rgba(74,222,128,.08)", border: "1px solid rgba(74,222,128,.3)", borderRadius: 8, textAlign: "center" }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: ACC.greenl }}>{ui.rounds.allNarrators}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: acc.greenl }}>{ui.rounds.allNarrators}</div>
             <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{ui.rounds.gameFinished}</div>
           </div>
         )}
@@ -633,7 +637,7 @@ function RoundOverview({ room, players, ui, C, S }) {
   );
 }
 
-function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, setContentLang, C, S }) {
+function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, setContentLang, C, S, acc }) {
   const viewport = useViewport();
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -823,7 +827,7 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
           contentLang={contentLang}
           C={C}
           S={S}
-          acc={ACC}
+          acc={acc}
           appIcon={APP_ICON}
           appUrl={APP_URL}
           addLog={addLog}
@@ -848,7 +852,7 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
           <span style={{ fontSize: 11, color: C.muted }}> · {hostName}</span>
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-          <button onClick={deleteRoom} disabled={deletingRoom} style={{ ...S.sbtn(C.muted), borderColor: "rgba(248,113,113,.3)", color: ACC.redl, background: "transparent", opacity: deletingRoom ? 0.7 : 0.9, fontSize: 11, padding: "8px 10px" }}>
+          <button onClick={deleteRoom} disabled={deletingRoom} style={{ ...S.sbtn(C.muted), borderColor: "rgba(248,113,113,.3)", color: acc.redl, background: "transparent", opacity: deletingRoom ? 0.7 : 0.9, fontSize: 11, padding: "8px 10px" }}>
             {deletingRoom ? ui.common.deleting : ui.common.deleteRoom}
           </button>
           <ExitIconButton onClick={onLeave} label={ui.common.leave} C={C} S={S} />
@@ -857,23 +861,23 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
       <nav>
         <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "repeat(6,1fr)" : viewport.isTablet ? "repeat(3,1fr)" : "repeat(4,1fr)", gap: 6, marginBottom: 12 }}>
           {tabs.map((tabEntry) => (
-            <button key={tabEntry.id} onClick={() => handleTabChange(tabEntry.id)} aria-selected={tab === tabEntry.id} style={{ background: tab === tabEntry.id ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur, border: `1.5px solid ${tab === tabEntry.id ? ACC.blue : C.bdr}`, color: tab === tabEntry.id ? ACC.bluel : C.muted, fontSize: viewport.isDesktop ? 11 : 9, fontWeight: 700, padding: viewport.isDesktop ? "12px 8px 10px" : "10px 4px 8px", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer", minHeight: viewport.isDesktop ? 72 : 62 }}>
+            <button key={tabEntry.id} onClick={() => handleTabChange(tabEntry.id)} aria-selected={tab === tabEntry.id} style={{ background: tab === tabEntry.id ? "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))" : C.sur, border: `1.5px solid ${tab === tabEntry.id ? acc.blue : C.bdr}`, color: tab === tabEntry.id ? acc.bluel : C.muted, fontSize: viewport.isDesktop ? 11 : 9, fontWeight: 700, padding: viewport.isDesktop ? "12px 8px 10px" : "10px 4px 8px", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer", minHeight: viewport.isDesktop ? 72 : 62 }}>
               <span style={{ fontSize: viewport.isDesktop ? 17 : 15 }}>{tabEntry.icon}</span><span>{tabEntry.label}</span>
             </button>
           ))}
         </div>
       </nav>
-      {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} acc={ACC} appUrl={APP_URL} hubPlayerName={HUB_PLAYER_NAME} onStart={() => setTab("cards")} onOpenTv={onOpenTv} onRemovePlayer={removePlayer} />}
-      {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} lang={lang} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} acc={ACC} hubPlayerName={HUB_PLAYER_NAME} allWordsByLang={ALL_WORDS_BY_LANG} allActionsByLang={ALL_ACTIONS_BY_LANG} onCardsDealt={(words) => { setStoryWords(words); setAwardedPlayerIds([]); setTab("ready"); }} onCelebrate={vibrate} />}
-      {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} acc={ACC} hubPlayerName={HUB_PLAYER_NAME} onAllReady={() => setTab("story")} onCelebrate={vibrate} />}
-      {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} C={C} S={S} acc={ACC} appIcon={APP_ICON} hubPlayerName={HUB_PLAYER_NAME} parseFreestyleWords={parseFreestyleWords} onOpenScores={openScores} />}
-      {tab === "scores" && <Scores room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} acc={ACC} appIcon={APP_ICON} hubPlayerName={HUB_PLAYER_NAME} votes={narratorVotes} narratorAwarded={narratorAwarded} finalizingNarratorVote={finalizingNarratorVote} onFinalizeNarratorVote={finalizeNarratorVote} onChooseNarrator={chooseNextNarrator} awardedPlayerIds={awardedPlayerIds} onAwardPlayer={awardPlayer} />}
+      {tab === "lobby" && <HostLobby room={room || { id: roomId }} players={players} gameLang={contentLang} lang={lang} ui={ui} C={C} S={S} acc={acc} appUrl={APP_URL} hubPlayerName={HUB_PLAYER_NAME} onStart={() => setTab("cards")} onOpenTv={onOpenTv} onRemovePlayer={removePlayer} />}
+      {tab === "cards" && <HostCards room={room || { id: roomId }} players={players} ui={ui} lang={lang} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} acc={acc} hubPlayerName={HUB_PLAYER_NAME} allWordsByLang={ALL_WORDS_BY_LANG} allActionsByLang={ALL_ACTIONS_BY_LANG} onCardsDealt={(words) => { setStoryWords(words); setAwardedPlayerIds([]); setTab("ready"); }} onCelebrate={vibrate} />}
+      {tab === "ready" && <ReadyCheck room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} acc={acc} hubPlayerName={HUB_PLAYER_NAME} onAllReady={() => setTab("story")} onCelebrate={vibrate} />}
+      {tab === "resolve" && <Resolution room={room || { id: roomId }} players={players} storyWords={currentWords.length > 0 ? currentWords : storyWords} ui={ui} C={C} S={S} acc={acc} appIcon={APP_ICON} hubPlayerName={HUB_PLAYER_NAME} parseFreestyleWords={parseFreestyleWords} onOpenScores={openScores} />}
+      {tab === "scores" && <Scores room={room || { id: roomId }} players={players} ui={ui} C={C} S={S} acc={acc} appIcon={APP_ICON} hubPlayerName={HUB_PLAYER_NAME} votes={narratorVotes} narratorAwarded={narratorAwarded} finalizingNarratorVote={finalizingNarratorVote} onFinalizeNarratorVote={finalizeNarratorVote} onChooseNarrator={chooseNextNarrator} awardedPlayerIds={awardedPlayerIds} onAwardPlayer={awardPlayer} />}
     </div>
   );
 }
 
 
-function RoomShell({ roomId, playerName, onLeave, onOpenTv, lang, ui, contentLang, setContentLang, C, S }) {
+function RoomShell({ roomId, playerName, onLeave, onOpenTv, lang, ui, contentLang, setContentLang, C, S, acc }) {
   const [player, setPlayer] = useState(null);
   const [room, setRoom] = useState(null);
   const [activeSessions, setActiveSessions] = useState([]);
@@ -933,7 +937,7 @@ function RoomShell({ roomId, playerName, onLeave, onOpenTv, lang, ui, contentLan
   }
 
   if (isNarrator) {
-    return <HostApp roomId={roomId} hostName={playerName} onLeave={onLeave} onOpenTv={onOpenTv} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} />;
+    return <HostApp roomId={roomId} hostName={playerName} onLeave={onLeave} onOpenTv={onOpenTv} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} acc={acc} />;
   }
 
   return (
@@ -942,12 +946,12 @@ function RoomShell({ roomId, playerName, onLeave, onOpenTv, lang, ui, contentLan
         <div style={{ ...S.card, borderColor: "rgba(251,191,36,.35)", background: "linear-gradient(180deg, rgba(251,191,36,.12), rgba(251,191,36,.04))" }}>
           <div style={{ ...S.st, marginBottom: 8 }}>{ui.player.takeOverTitle}</div>
           <p style={{ ...S.bt, marginBottom: 14 }}>{ui.player.takeOverDesc}</p>
-          <button onClick={takeOverRoom} disabled={takingOver} style={S.pbtn(ACC.gold, "rgba(251,191,36,.10)")}>
+          <button onClick={takeOverRoom} disabled={takingOver} style={S.pbtn(acc.gold, "rgba(251,191,36,.10)")}>
             {takingOver ? ui.common.takingOver : ui.common.takeOverRoom}
           </button>
         </div>
       )}
-      <PlayerView roomId={roomId} playerName={playerName} onLeave={onLeave} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} acc={ACC} wordLookups={WORD_LOOKUPS} actionLookups={ACTION_LOOKUPS} allWordsByLang={ALL_WORDS_BY_LANG} allActionsByLang={ALL_ACTIONS_BY_LANG} getPlayerPhase={getPlayerPhase} vibrate={vibrate} />
+      <PlayerView roomId={roomId} playerName={playerName} onLeave={onLeave} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} acc={acc} wordLookups={WORD_LOOKUPS} actionLookups={ACTION_LOOKUPS} allWordsByLang={ALL_WORDS_BY_LANG} allActionsByLang={ALL_ACTIONS_BY_LANG} getPlayerPhase={getPlayerPhase} vibrate={vibrate} />
     </div>
   );
 }
@@ -965,6 +969,7 @@ export default function App() {
   const [contentLang, setContentLang] = useState(() => urlLang || lang);
   const viewport = useViewport();
   const [C, dark, toggleTheme] = useTheme();
+  const acc = dark ? ACCENTS.dark : ACCENTS.light;
   const S = makeStyles(C);
   const ui = UI[lang];
 
@@ -1086,7 +1091,7 @@ export default function App() {
           )}
         </header>}
 
-        {!isTvScreen && <OfflineBanner C={C} ui={ui} acc={ACC} />}
+        {!isTvScreen && <OfflineBanner C={C} ui={ui} acc={acc} />}
 
         <main>
           {screen === "home" && (
@@ -1099,7 +1104,7 @@ export default function App() {
                 </div>
                 <div style={{ fontSize: 30, fontWeight: 800, color: C.txt, marginBottom: 8, letterSpacing: "-0.04em" }}>{ui.home.welcome}</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
-                  <button onClick={() => setScreen("create")} style={{ ...S.pbtn(ACC.blue, dark ? "linear-gradient(180deg, rgba(96,165,250,.18), rgba(96,165,250,.08))" : "linear-gradient(180deg, rgba(96,165,250,.16), rgba(96,165,250,.08))"), minHeight: 56, borderRadius: 13, boxShadow: "0 0 0 1px rgba(96,165,250,.18) inset" }}>{ui.home.newGame}</button>
+                  <button onClick={() => setScreen("create")} style={{ ...S.pbtn(acc.blue, dark ? "linear-gradient(180deg, rgba(96,165,250,.18), rgba(96,165,250,.08))" : "linear-gradient(180deg, rgba(37,99,235,.14), rgba(37,99,235,.06))"), minHeight: 56, borderRadius: 13, boxShadow: dark ? "0 0 0 1px rgba(96,165,250,.18) inset" : "0 0 0 1px rgba(37,99,235,.18) inset" }}>{ui.home.newGame}</button>
                   <button onClick={() => setScreen("join")} style={{ ...S.pbtn(C.bdr, C.sur), minHeight: 52, borderRadius: 13, color: C.txt, background: dark ? "rgba(255,255,255,.02)" : "rgba(255,255,255,.7)" }}>{ui.home.joinRoom}</button>
                 </div>
                 <p style={{ ...S.bt, fontSize: 15, lineHeight: 1.62, marginTop: 18 }}>{ui.home.desc}</p>
@@ -1114,15 +1119,15 @@ export default function App() {
               </div>
             </div>
           )}
-          {screen === "help" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><HelpScreen ui={ui} C={C} S={S} acc={ACC} appIcon={APP_ICON} /></div>}
-          {screen === "create" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><CreateRoom onCreated={handleCreated} ui={ui} C={C} S={S} acc={ACC} appIcon={APP_ICON} /></div>}
-          {screen === "join" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><JoinScreen initialCode={urlRoom || ""} onJoined={handleJoined} ui={ui} C={C} S={S} acc={ACC} hubPlayerName={HUB_PLAYER_NAME} appIcon={APP_ICON} /></div>}
-          {screen === "host" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} onOpenTv={handleOpenTv} />}
-          {screen === "player" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} />}
-          {screen === "tv" && <TVScreen roomId={roomId} lang={lang} ui={ui} C={C} S={S} tvKey={urlTvKey} appUrl={APP_URL} hubPlayerName={HUB_PLAYER_NAME} acc={ACC} detectRoundLanguage={detectRoundLanguage} parseFreestyleWords={parseFreestyleWords} renderHighlightedStory={renderHighlightedStory} />}
+          {screen === "help" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><HelpScreen ui={ui} C={C} S={S} acc={acc} appIcon={APP_ICON} /></div>}
+          {screen === "create" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><CreateRoom onCreated={handleCreated} ui={ui} C={C} S={S} acc={acc} appIcon={APP_ICON} /></div>}
+          {screen === "join" && <div style={{ animation: "fadeIn .3s ease" }}><button onClick={() => setScreen("home")} style={{ background: "transparent", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>{ui.common.back}</button><JoinScreen initialCode={urlRoom || ""} onJoined={handleJoined} ui={ui} C={C} S={S} acc={acc} hubPlayerName={HUB_PLAYER_NAME} appIcon={APP_ICON} /></div>}
+          {screen === "host" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} acc={acc} onOpenTv={handleOpenTv} />}
+          {screen === "player" && <RoomShell roomId={roomId} playerName={myName} onLeave={handleLeave} lang={lang} ui={ui} contentLang={contentLang} setContentLang={setContentLang} C={C} S={S} acc={acc} />}
+          {screen === "tv" && <TVScreen roomId={roomId} lang={lang} ui={ui} C={C} S={S} tvKey={urlTvKey} appUrl={APP_URL} hubPlayerName={HUB_PLAYER_NAME} acc={acc} detectRoundLanguage={detectRoundLanguage} parseFreestyleWords={parseFreestyleWords} renderHighlightedStory={renderHighlightedStory} />}
         </main>
       </div>
-      {showDebug && <DebugPanel onClose={() => setShowDebug(false)} C={C} S={S} ui={ui} />}
+      {showDebug && <DebugPanel onClose={() => setShowDebug(false)} C={C} S={S} ui={ui} acc={acc} />}
     </div>
   );
 }
