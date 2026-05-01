@@ -150,7 +150,7 @@ export default function TVScreen({ roomId, lang, ui, C, S, tvKey, appUrl, hubPla
                 )
               ) : (
                 <div style={{ fontSize: tvLarge ? 17 : 15, color: tvMuted.color, lineHeight: 1.55 }}>
-                  {room.status === GAME_PHASES.CARDS && `${readyCount} / ${audience.length} bereit`}
+                  {room.status === GAME_PHASES.CARDS && ui.tv.readyCount(readyCount, audience.length)}
                   {room.status === GAME_PHASES.WAITING && ui.hostLobby.waiting}
                   {!PRE_STORY_PHASES.includes(room.status) && ui.common.loading}
                 </div>
@@ -164,7 +164,7 @@ export default function TVScreen({ roomId, lang, ui, C, S, tvKey, appUrl, hubPla
             <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.hostTabs.lobby}</div>
             <div style={{ display: "grid", gap: 10 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: tvBody.color }}>{narrator ? `${ui.common.host}: ${narrator.name}` : ui.common.host}</div>
-              <div style={{ fontSize: 12, color: tvMuted.color }}>{audience.length} Mitspieler</div>
+              <div style={{ fontSize: 12, color: tvMuted.color }}>{ui.tv.playersCount(audience.length)}</div>
               {PRE_STORY_PHASES.includes(room.status) && (
                 <>
                   <div style={{ display: "flex", justifyContent: "center", marginTop: 6 }}>
@@ -180,13 +180,13 @@ export default function TVScreen({ roomId, lang, ui, C, S, tvKey, appUrl, hubPla
 
           {!compactLobbyLayout && (
             <div style={{ ...S.card, ...tvCard, marginBottom: 0, padding: tvPad }}>
-              <div style={{ ...tvLabel, marginBottom: 8 }}>Spieler</div>
+              <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.tv.playersLabel}</div>
               <div style={{ display: "grid", gridTemplateColumns: tvLarge && audience.length > 6 ? "1fr 1fr" : "1fr", gap: 8 }}>
                 {audience.map((player) => (
                   <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 12, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: tvBody.color }}>{player.name}</span>
                     <span style={{ fontSize: 11, color: player.ready ? acc.greenl : tvMuted.color }}>
-                      {player.ready ? "bereit" : "wartet"}
+                      {player.ready ? ui.tv.ready : ui.tv.waiting}
                     </span>
                   </div>
                 ))}
@@ -200,11 +200,11 @@ export default function TVScreen({ roomId, lang, ui, C, S, tvKey, appUrl, hubPla
               <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.player.narratorVoteTitle}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <div style={{ padding: 12, borderRadius: 14, background: "rgba(12,48,24,.92)", border: "1px solid rgba(74,222,128,.36)" }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: acc.greenl, marginBottom: 6 }}>Ja</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: acc.greenl, marginBottom: 6 }}>{ui.scores.narratorVoteYes}</div>
                   <div style={{ fontSize: 22, fontWeight: 900, color: acc.greenl }}>{yesVotes}</div>
                 </div>
                 <div style={{ padding: 12, borderRadius: 14, background: "rgba(28,32,42,.96)", border: "1px solid rgba(255,255,255,.12)" }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: tvMuted.color, marginBottom: 6 }}>Nein</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: tvMuted.color, marginBottom: 6 }}>{ui.scores.narratorVoteNo}</div>
                   <div style={{ fontSize: 22, fontWeight: 900, color: tvBody.color }}>{noVotes}</div>
                 </div>
               </div>
@@ -234,14 +234,14 @@ export default function TVScreen({ roomId, lang, ui, C, S, tvKey, appUrl, hubPla
         {compactLobbyLayout && (
           <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
             <div style={{ ...S.card, ...tvCard, marginBottom: 0, padding: tvPad }}>
-              <div style={{ ...tvLabel, marginBottom: 8 }}>Spieler</div>
+              <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.tv.playersLabel}</div>
               {audience.length > 0 ? (
                 <div style={{ display: "grid", gap: 8 }}>
                   {audience.slice(0, 8).map((player) => (
                     <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 12, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}>
                       <span style={{ fontSize: 13, fontWeight: 700, color: tvBody.color }}>{player.name}</span>
                       <span style={{ fontSize: 11, color: player.ready ? acc.greenl : tvMuted.color }}>
-                        {player.ready ? "bereit" : "wartet"}
+                        {player.ready ? ui.tv.ready : ui.tv.waiting}
                       </span>
                     </div>
                   ))}

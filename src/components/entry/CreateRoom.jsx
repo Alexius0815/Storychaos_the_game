@@ -52,7 +52,7 @@ export default function CreateRoom({ onCreated, ui, C, S, acc, appIcon }) {
         <input type="password" value={pw} onChange={(event) => setPw(event.target.value)} placeholder={ui.create.emptyPassword} maxLength={20} style={S.input} />
         {error && <p style={{ fontSize: 13, color: acc.redl, margin: "12px 0 0", padding: "11px 12px", borderRadius: 12, background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.18)" }}>{error}</p>}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
         <EntryNoteCard label={ui.common.host} title={ui.create.flowTitle} text={ui.create.flowText} C={C} />
         <EntryNoteCard label={ui.hostLobby.tvHub} title={ui.create.partyTitle} text={ui.create.partyText} C={C} />
       </div>

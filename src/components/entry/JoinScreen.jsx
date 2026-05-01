@@ -68,7 +68,7 @@ export default function JoinScreen({ initialCode, onJoined, ui, C, S, acc, hubPl
         )}
         {error && <p style={{ fontSize: 13, color: acc.redl, margin: "12px 0 0", padding: "11px 12px", borderRadius: 12, background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.18)" }}>{error}</p>}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
         <EntryNoteCard label={ui.common.status} title={ui.join.cardHintTitle} text={ui.join.cardHintText} C={C} />
         <EntryNoteCard label={ui.hostTabs.lobby} title={ui.join.qrHintTitle} text={ui.join.qrHintText} C={C} />
       </div>

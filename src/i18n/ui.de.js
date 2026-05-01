@@ -244,6 +244,17 @@ export default {
       allNarrators: "🎉 Alle waren Erzähler!",
       gameFinished: "Spiel beendet – Endstand im Punkte-Tab",
     },
+    tv: {
+      label: "Party Screen",
+      meta: "Gemeinsamer Read-only-Bildschirm",
+      blockedTitle: "Party Screen geschützt",
+      blockedDesc: "Dieser Party-Screen-Link ist geschützt. Bitte öffne ihn direkt aus der Lobby des laufenden Raums.",
+      playersLabel: "Spieler",
+      playersCount: (n) => `${n} Mitspieler`,
+      ready: "bereit",
+      waiting: "wartet",
+      readyCount: (a, b) => `${a} / ${b} bereit`,
+    },
     hostTabs: { lobby: "Lobby", cards: "Runde", ready: "Bereit", story: "Vorlesen", resolve: "Auflösen", scores: "Punkte", next: "Nächster" },
     player: {
       inRoom: "Du bist in Raum",

@@ -172,7 +172,7 @@ export function HelpScreen({ ui, C, S, acc, appIcon }) {
   return (
     <div style={{ animation: "fadeIn .3s ease" }}>
       <EntryHero C={C} S={S} title={ui.helpScreen.title} desc={ui.helpScreen.desc} accent={acc.gold} appIcon={appIcon} />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
         {ui.helpScreen.cards.map((card) => (
           <EntryNoteCard key={card.title} label={card.label} title={card.title} text={card.text} C={C} />
         ))}

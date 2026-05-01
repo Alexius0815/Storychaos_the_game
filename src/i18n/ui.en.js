@@ -244,6 +244,17 @@ export default {
       allNarrators: "🎉 Everyone has been the narrator!",
       gameFinished: "Game finished – final scores are in the score tab",
     },
+    tv: {
+      label: "Party Screen",
+      meta: "Shared read-only screen",
+      blockedTitle: "Party Screen protected",
+      blockedDesc: "This Party Screen link is protected. Please open it directly from the live room lobby.",
+      playersLabel: "Players",
+      playersCount: (n) => `${n} players`,
+      ready: "ready",
+      waiting: "waiting",
+      readyCount: (a, b) => `${a} / ${b} ready`,
+    },
     hostTabs: { lobby: "Lobby", cards: "Round", ready: "Ready", story: "Read", resolve: "Reveal", scores: "Scores", next: "Next" },
     player: {
       inRoom: "You are in room",
