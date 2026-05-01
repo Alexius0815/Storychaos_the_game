@@ -22,6 +22,7 @@ export default function Scores({
   awardedPlayerIds = [],
   onAwardPlayer,
 }) {
+  const isLight = C.mode === "light";
   const viewport = useViewport();
   const narratorId = getNarratorId(room, players, hubPlayerName);
   const narrator = getVisiblePlayers(players, hubPlayerName).find((player) => player.id === narratorId);
@@ -53,7 +54,7 @@ export default function Scores({
 
   return (
     <div>
-      <div style={{ ...S.card, padding: viewport.isDesktop ? 16 : 18, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", background: C.mode === "dark" ? "linear-gradient(135deg, rgba(22,22,31,.88), rgba(36,36,52,.76))" : "linear-gradient(135deg, rgba(255,255,255,.92), rgba(244,244,252,.82))", borderColor: "rgba(96,165,250,.24)" }}>
+      <div style={{ ...S.card, padding: viewport.isDesktop ? 16 : 18, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", background: C.mode === "dark" ? "linear-gradient(135deg, rgba(22,22,31,.88), rgba(36,36,52,.76))" : "linear-gradient(135deg, rgba(255,255,255,.96), rgba(235,242,250,.92))", borderColor: isLight ? "rgba(37,99,235,.24)" : "rgba(96,165,250,.24)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 48, height: 48, borderRadius: 14, background: C.sur2, border: `1px solid ${C.bdr}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -64,9 +65,9 @@ export default function Scores({
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <button onClick={() => setView("action")} style={{ ...S.sbtn(view === "action" ? acc.blue : C.muted), background: view === "action" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.scores.actionView}</button>
-            <button onClick={() => setView("vote")} style={{ ...S.sbtn(view === "vote" ? acc.blue : C.muted), background: view === "vote" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.scores.voteView}</button>
-            <button onClick={() => setView("board")} style={{ ...S.sbtn(view === "board" ? acc.blue : C.muted), background: view === "board" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.scores.boardView}</button>
+            <button onClick={() => setView("action")} style={{ ...S.sbtn(view === "action" ? acc.blue : C.muted), background: view === "action" ? (isLight ? "rgba(37,99,235,.12)" : "rgba(96,165,250,.1)") : "transparent" }}>{ui.scores.actionView}</button>
+            <button onClick={() => setView("vote")} style={{ ...S.sbtn(view === "vote" ? acc.blue : C.muted), background: view === "vote" ? (isLight ? "rgba(37,99,235,.12)" : "rgba(96,165,250,.1)") : "transparent" }}>{ui.scores.voteView}</button>
+            <button onClick={() => setView("board")} style={{ ...S.sbtn(view === "board" ? acc.blue : C.muted), background: view === "board" ? (isLight ? "rgba(37,99,235,.12)" : "rgba(96,165,250,.1)") : "transparent" }}>{ui.scores.boardView}</button>
             <HelpPopover title={ui.scores.title} ui={ui} C={C} S={S} acc={acc}>
               <div>{ui.scores.desc}</div>
               {ui.scores.rules.map((rule) => <div key={rule}>{rule}</div>)}
@@ -87,11 +88,11 @@ export default function Scores({
           <div style={{ ...S.card, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: C.mode === "dark" ? "rgba(22,22,31,.78)" : "rgba(255,255,255,.82)", minHeight: compactScoreHeight }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
               <div style={{ ...S.st, marginBottom: 0 }}>{ui.scores.pointsTitle}</div>
-              <button onClick={() => setView("vote")} style={{ ...S.sbtn(acc.blue), background: "rgba(96,165,250,.1)" }}>
+              <button onClick={() => setView("vote")} style={{ ...S.sbtn(acc.blue), background: isLight ? "rgba(37,99,235,.12)" : "rgba(96,165,250,.1)" }}>
                 {ui.scores.continueToVote}
               </button>
             </div>
-            <div style={{ marginTop: 0, marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.22)", color: C.txt, fontSize: 13, fontWeight: 700 }}>
+            <div style={{ marginTop: 0, marginBottom: 12, padding: "12px 14px", borderRadius: 12, background: isLight ? "rgba(180,83,9,.10)" : "rgba(251,191,36,.08)", border: `1px solid ${isLight ? "rgba(180,83,9,.22)" : "rgba(251,191,36,.22)"}`, color: C.txt, fontSize: 13, fontWeight: 700 }}>
               {ui.scores.pointsRule}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "1fr 1fr" : "1fr", gap: 10 }}>
@@ -122,7 +123,7 @@ export default function Scores({
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
               <div style={{ ...S.st, marginBottom: 0 }}>{ui.scores.narratorVoteTitle}</div>
               {nextCandidates.length > 0 && room?.status === GAME_PHASES.VOTED && (
-                <button onClick={() => setView("next")} style={{ ...S.sbtn(acc.blue), background: "rgba(96,165,250,.1)" }}>
+                <button onClick={() => setView("next")} style={{ ...S.sbtn(acc.blue), background: isLight ? "rgba(37,99,235,.12)" : "rgba(96,165,250,.1)" }}>
                   {ui.scores.continueToNext}
                 </button>
               )}
@@ -161,7 +162,7 @@ export default function Scores({
                     </div>
                   </div>
                 ) : (
-                  <div style={{ marginTop: 14, padding: "16px 18px", borderRadius: 16, background: "linear-gradient(180deg, rgba(96,165,250,.10), rgba(96,165,250,.04))", border: "1px solid rgba(96,165,250,.24)", color: C.txt }}>
+                  <div style={{ marginTop: 14, padding: "16px 18px", borderRadius: 16, background: isLight ? "linear-gradient(180deg, rgba(37,99,235,.12), rgba(37,99,235,.05))" : "linear-gradient(180deg, rgba(96,165,250,.10), rgba(96,165,250,.04))", border: `1px solid ${isLight ? "rgba(37,99,235,.24)" : "rgba(96,165,250,.24)"}`, color: C.txt }}>
                     <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: acc.blue, marginBottom: 8 }}>
                       {ui.scores.narratorVoteLive}
                     </div>

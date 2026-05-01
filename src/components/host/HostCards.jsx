@@ -7,6 +7,7 @@ import { sb } from "../../lib/supabase";
 import { HelpPopover } from "../common/SupportUI";
 
 export default function HostCards({ room, players, ui, lang, contentLang, setContentLang, C, S, acc, hubPlayerName, allWordsByLang, allActionsByLang, onCardsDealt, onCelebrate }) {
+  const isLight = C.mode === "light";
   const [diff, setDiff] = useState("mix");
   const [cats, setCats] = useState(Object.keys(CONTENT[contentLang].words));
   const [loading, setLoading] = useState(false);
@@ -54,7 +55,7 @@ export default function HostCards({ room, players, ui, lang, contentLang, setCon
 
   return (
     <div>
-      <div style={{ ...S.card, background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))", borderColor: "rgba(251,191,36,.26)" }}>
+      <div style={{ ...S.card, background: isLight ? "linear-gradient(180deg, rgba(180,83,9,.10), rgba(180,83,9,.03))" : "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))", borderColor: isLight ? "rgba(180,83,9,.28)" : "rgba(251,191,36,.26)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <div style={S.st}>{ui.cards.title}</div>
           <HelpPopover title={ui.cards.explainTitle} ui={ui} C={C} S={S} acc={acc}>
@@ -64,12 +65,12 @@ export default function HostCards({ room, players, ui, lang, contentLang, setCon
             <div>{ui.cards.categoriesHelp}</div>
           </HelpPopover>
         </div>
-        <button onClick={deal} disabled={loading || others.length === 0 || cats.length === 0} style={{ ...S.pbtn(acc.blue, "rgba(96,165,250,.1)"), marginBottom: 12 }}>
+        <button onClick={deal} disabled={loading || others.length === 0 || cats.length === 0} style={{ ...S.pbtn(acc.blue, isLight ? "linear-gradient(180deg, rgba(37,99,235,.14), rgba(37,99,235,.06))" : "rgba(96,165,250,.1)"), marginBottom: 12 }}>
           {loading ? ui.cards.dealing : ui.cards.deal}
         </button>
         <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-          <button onClick={() => setView("setup")} style={{ ...S.sbtn(view === "setup" ? acc.blue : C.muted), background: view === "setup" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.cards.setupView}</button>
-          <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? acc.blue : C.muted), background: view === "players" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.cards.playersView}</button>
+          <button onClick={() => setView("setup")} style={{ ...S.sbtn(view === "setup" ? acc.blue : C.muted), background: view === "setup" ? (isLight ? "rgba(37,99,235,.12)" : "rgba(96,165,250,.1)") : "transparent" }}>{ui.cards.setupView}</button>
+          <button onClick={() => setView("players")} style={{ ...S.sbtn(view === "players" ? acc.blue : C.muted), background: view === "players" ? (isLight ? "rgba(37,99,235,.12)" : "rgba(96,165,250,.1)") : "transparent" }}>{ui.cards.playersView}</button>
         </div>
       </div>
 
@@ -79,7 +80,7 @@ export default function HostCards({ room, players, ui, lang, contentLang, setCon
             <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: C.muted, marginBottom: 10 }}>{ui.cards.difficulty}</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {Object.entries(content.diffLabels).map(([key, label]) => (
-                <button key={key} onClick={() => setDiff(key)} aria-pressed={diff === key} style={{ minHeight: 48, padding: "10px 8px", borderRadius: 12, fontSize: 13, fontWeight: 700, border: `1.5px solid ${diff === key ? acc.gold : C.bdr}`, background: diff === key ? "linear-gradient(180deg, rgba(251,191,36,.16), rgba(251,191,36,.08))" : C.sur2, color: diff === key ? acc.gold : C.muted, cursor: "pointer" }}>
+                <button key={key} onClick={() => setDiff(key)} aria-pressed={diff === key} style={{ minHeight: 48, padding: "10px 8px", borderRadius: 12, fontSize: 13, fontWeight: 700, border: `1.5px solid ${diff === key ? acc.gold : C.bdr}`, background: diff === key ? (isLight ? "linear-gradient(180deg, rgba(180,83,9,.14), rgba(180,83,9,.06))" : "linear-gradient(180deg, rgba(251,191,36,.16), rgba(251,191,36,.08))") : C.sur2, color: diff === key ? acc.gold : C.muted, cursor: "pointer" }}>
                   {label}
                 </button>
               ))}
@@ -92,7 +93,7 @@ export default function HostCards({ room, players, ui, lang, contentLang, setCon
               {Object.entries(content.categoryLabels).map(([key, label]) => {
                 const active = cats.includes(key);
                 return (
-                  <button key={key} onClick={() => toggleCat(key)} style={{ padding: "7px 12px", borderRadius: 999, fontSize: 12, fontWeight: 700, border: `1.5px solid ${active ? acc.blue : C.bdr}`, background: active ? "linear-gradient(180deg, rgba(96,165,250,.14), rgba(96,165,250,.08))" : C.sur2, color: active ? acc.bluel : C.muted, cursor: "pointer" }}>
+                  <button key={key} onClick={() => toggleCat(key)} style={{ padding: "7px 12px", borderRadius: 999, fontSize: 12, fontWeight: 700, border: `1.5px solid ${active ? acc.blue : C.bdr}`, background: active ? (isLight ? "linear-gradient(180deg, rgba(37,99,235,.14), rgba(37,99,235,.06))" : "linear-gradient(180deg, rgba(96,165,250,.14), rgba(96,165,250,.08))") : C.sur2, color: active ? acc.bluel : C.muted, cursor: "pointer" }}>
                     {label}
                   </button>
                 );

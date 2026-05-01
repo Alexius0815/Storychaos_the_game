@@ -22,6 +22,7 @@ export default function PlayerView({
   getPlayerPhase,
   vibrate,
 }) {
+  const isLight = C.mode === "light";
   const viewport = useViewport();
   const [player, setPlayer] = useState(null);
   const [room, setRoom] = useState(null);
@@ -136,7 +137,7 @@ export default function PlayerView({
 
   return (
     <div>
-      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.3)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))", textAlign: "center", padding: "12px 18px" }}>
+      <div style={{ ...S.card, borderColor: isLight ? "rgba(37,99,235,.26)" : "rgba(96,165,250,.3)", background: isLight ? "linear-gradient(180deg, rgba(37,99,235,.10), rgba(37,99,235,.03))" : "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))", textAlign: "center", padding: "12px 18px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "34px 1fr 34px", alignItems: "start", gap: 10 }}>
           <div />
           <div>
@@ -150,7 +151,7 @@ export default function PlayerView({
         </div>
       </div>
 
-      <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
+      <div style={{ ...S.card, borderColor: isLight ? "rgba(37,99,235,.22)" : "rgba(96,165,250,.24)", background: isLight ? "linear-gradient(180deg, rgba(37,99,235,.10), rgba(37,99,235,.03))" : "linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.03))" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: acc.blue, marginBottom: 8 }}>{ui.common.phaseTitle}</div>
@@ -172,12 +173,12 @@ export default function PlayerView({
       ) : inPointsView ? (
         <div style={{ display: "grid", gridTemplateColumns: viewport.isDesktop ? "minmax(0, 1fr) minmax(320px, 0.9fr)" : "1fr", gap: 14, alignItems: "start" }}>
           <div>
-            <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+            <div style={{ ...S.card, borderColor: isLight ? "rgba(180,83,9,.24)" : "rgba(251,191,36,.3)", background: isLight ? "rgba(180,83,9,.06)" : "rgba(251,191,36,.05)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
                 <div style={{ ...S.st, marginBottom: 0 }}>{ui.player.pointsTitle}</div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => setPointsView("vote")} style={{ ...S.sbtn(pointsView === "vote" ? acc.blue : C.muted), background: pointsView === "vote" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.player.voteView}</button>
-                  <button onClick={() => setPointsView("card")} style={{ ...S.sbtn(pointsView === "card" ? acc.blue : C.muted), background: pointsView === "card" ? "rgba(96,165,250,.1)" : "transparent" }}>{ui.player.cardView}</button>
+                  <button onClick={() => setPointsView("vote")} style={{ ...S.sbtn(pointsView === "vote" ? acc.blue : C.muted), background: pointsView === "vote" ? (isLight ? "rgba(37,99,235,.12)" : "rgba(96,165,250,.1)") : "transparent" }}>{ui.player.voteView}</button>
+                  <button onClick={() => setPointsView("card")} style={{ ...S.sbtn(pointsView === "card" ? acc.blue : C.muted), background: pointsView === "card" ? (isLight ? "rgba(37,99,235,.12)" : "rgba(96,165,250,.1)") : "transparent" }}>{ui.player.cardView}</button>
                 </div>
               </div>
               <p style={{ ...S.bt, marginBottom: pointsView === "card" ? 12 : 0 }}>{ui.player.pointsDesc}</p>
@@ -192,7 +193,7 @@ export default function PlayerView({
 
           <div style={{ position: viewport.isDesktop ? "sticky" : "static", top: viewport.isDesktop ? 16 : "auto" }}>
             {pointsView === "vote" && room.status === GAME_PHASES.VOTING && (
-              <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "rgba(251,191,36,.05)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+              <div style={{ ...S.card, borderColor: isLight ? "rgba(180,83,9,.24)" : "rgba(251,191,36,.3)", background: isLight ? "rgba(180,83,9,.06)" : "rgba(251,191,36,.05)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: acc.gold, marginBottom: 8 }}>{ui.player.narratorVoteTitle}</div>
                 <p style={{ ...S.bt, marginBottom: 12 }}>{ui.player.narratorVoteDesc}</p>
                 {narratorVote === null ? (
@@ -220,7 +221,7 @@ export default function PlayerView({
             )}
 
             {pointsView === "vote" && room.status === GAME_PHASES.VOTED && voteResult === null && (
-              <div style={{ ...S.card, borderColor: "rgba(96,165,250,.24)", background: "rgba(96,165,250,.06)", marginTop: 12 }}>
+              <div style={{ ...S.card, borderColor: isLight ? "rgba(37,99,235,.22)" : "rgba(96,165,250,.24)", background: isLight ? "rgba(37,99,235,.07)" : "rgba(96,165,250,.06)", marginTop: 12 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: acc.bluel }}>{ui.player.narratorVotePending}</div>
               </div>
             )}
@@ -229,13 +230,13 @@ export default function PlayerView({
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14, alignItems: "start" }}>
           <div>
-            <div style={{ ...S.card, borderColor: "rgba(251,191,36,.3)", background: "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))" }}>
+            <div style={{ ...S.card, borderColor: isLight ? "rgba(180,83,9,.24)" : "rgba(251,191,36,.3)", background: isLight ? "linear-gradient(180deg, rgba(180,83,9,.10), rgba(180,83,9,.03))" : "linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03))" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: acc.gold, marginBottom: 6 }}>{ui.player.phaseCards}</div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: C.txt }}>{ui.player.secretCards}</div>
                 </div>
-                <button onClick={doReroll} disabled={rerolled || storyStarted} style={{ fontSize: 11, fontWeight: 700, padding: "6px 11px", borderRadius: 999, cursor: rerolled || storyStarted ? "not-allowed" : "pointer", border: `1px solid ${rerolled || storyStarted ? C.bdr : "rgba(251,191,36,.4)"}`, background: rerolled || storyStarted ? C.sur2 : "rgba(251,191,36,.12)", color: rerolled || storyStarted ? C.muted : acc.gold }}>
+                <button onClick={doReroll} disabled={rerolled || storyStarted} style={{ fontSize: 11, fontWeight: 700, padding: "6px 11px", borderRadius: 999, cursor: rerolled || storyStarted ? "not-allowed" : "pointer", border: `1px solid ${rerolled || storyStarted ? C.bdr : isLight ? "rgba(180,83,9,.30)" : "rgba(251,191,36,.4)"}`, background: rerolled || storyStarted ? C.sur2 : isLight ? "rgba(180,83,9,.10)" : "rgba(251,191,36,.12)", color: rerolled || storyStarted ? C.muted : acc.gold }}>
                   {rerolled ? ui.player.rerolled : ui.player.reroll}
                 </button>
               </div>
@@ -276,12 +277,12 @@ export default function PlayerView({
             )}
 
             {room.story && (
-              <div style={{ ...S.card, borderColor: "rgba(96,165,250,.2)", background: "rgba(96,165,250,.04)" }}>
+              <div style={{ ...S.card, borderColor: isLight ? "rgba(37,99,235,.20)" : "rgba(96,165,250,.2)", background: isLight ? "rgba(37,99,235,.06)" : "rgba(96,165,250,.04)" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: acc.blue, marginBottom: 8 }}>{ui.player.storyRunning}</div>
                 <p style={{ ...S.bt, fontStyle: "italic" }}>{ui.player.reactHint}</p>
                 <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: acc.bluel }}>{ui.player.yourWord}</span>
-                  <span style={{ background: "rgba(96,165,250,.15)", padding: "4px 10px", borderRadius: 20, color: acc.bluel, fontSize: 13, fontWeight: 800 }}>{player.secret_word}</span>
+                  <span style={{ background: isLight ? "rgba(37,99,235,.12)" : "rgba(96,165,250,.15)", padding: "4px 10px", borderRadius: 20, color: acc.bluel, fontSize: 13, fontWeight: 800 }}>{player.secret_word}</span>
                 </div>
               </div>
             )}
