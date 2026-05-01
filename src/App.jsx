@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { buildBackupStory } from "./backupStories";
 import { CONTENT } from "./content";
 import { UI } from "./i18n";
 import { sb } from "./lib/supabase";
 import { ACTIVE_ROUND_PHASES, GAME_PHASES, PRE_STORY_PHASES, SCORE_PHASES } from "./constants/phases";
+import { buildCardLookups, detectLanguageFromSample, roomCode, shuffle } from "./game/cards";
+import { flattenPresence, getAudience, getNarratorId, getVisiblePlayers, inspectRoomPresence, timeAgo } from "./game/rooms";
+import { analyzeStory, buildStoryAttemptLine, generateLocalStory, generateStory, repairStoryToRules, stripStoryMarkup } from "./game/storyGeneration";
 
 const APP_URL = "https://storychaos-the-game.vercel.app";
 const APP_ICON = "/icon-192.png";
@@ -18,23 +20,15 @@ const THEMES = {
 };
 const ACC = { blue: "#60a5fa", bluel: "#bfdbfe", red: "#f87171", redl: "#fecaca", gold: "#fbbf24", green: "#4ade80", greenl: "#bbf7d0" };
 
-const ALL_WORDS_BY_LANG = Object.fromEntries(Object.entries(CONTENT).map(([lang, data]) => [lang, Object.values(data.words).flat()]));
-const ALL_ACTIONS_BY_LANG = Object.fromEntries(Object.entries(CONTENT).map(([lang, data]) => [lang, [...data.actions.easy, ...data.actions.medium, ...data.actions.chaos]]));
-const WORD_LOOKUPS = Object.fromEntries(Object.entries(ALL_WORDS_BY_LANG).map(([lang, words]) => [lang, new Set(words.map((word) => word.toLowerCase()))]));
-const ACTION_LOOKUPS = Object.fromEntries(Object.entries(ALL_ACTIONS_BY_LANG).map(([lang, actions]) => [lang, new Set(actions.map((action) => action.toLowerCase()))]));
+const {
+  allWordsByLang: ALL_WORDS_BY_LANG,
+  allActionsByLang: ALL_ACTIONS_BY_LANG,
+  wordLookups: WORD_LOOKUPS,
+  actionLookups: ACTION_LOOKUPS,
+} = buildCardLookups(CONTENT);
 
 function normalizeLang(value) {
   return value === "en" ? "en" : "de";
-}
-
-function detectLanguageFromSample(word, action, fallback = "de") {
-  const wordValue = word?.toLowerCase();
-  const actionValue = action?.toLowerCase();
-  if (wordValue && WORD_LOOKUPS.en.has(wordValue)) return "en";
-  if (actionValue && ACTION_LOOKUPS.en.has(actionValue)) return "en";
-  if (wordValue && WORD_LOOKUPS.de.has(wordValue)) return "de";
-  if (actionValue && ACTION_LOOKUPS.de.has(actionValue)) return "de";
-  return normalizeLang(fallback);
 }
 
 function useTheme() {
@@ -102,43 +96,6 @@ function makeStyles(C) {
   };
 }
 
-function shuffle(list) {
-  const copy = [...list];
-  for (let index = copy.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
-  }
-  return copy;
-}
-
-function roomCode() {
-  return Math.random().toString(36).substring(2, 7).toUpperCase();
-}
-
-function isHubPlayer(player) {
-  return player?.name === HUB_PLAYER_NAME;
-}
-
-function getVisiblePlayers(players = []) {
-  return players.filter((player) => !isHubPlayer(player));
-}
-
-function timeAgo(ts) {
-  const seconds = Math.floor((Date.now() - new Date(ts)) / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-  return `${Math.floor(seconds / 3600)}h`;
-}
-
-function getNarratorId(room, players = []) {
-  const visiblePlayers = getVisiblePlayers(players);
-  return room?.narrator_id || visiblePlayers.find((player) => player.is_host)?.id || players.find((player) => player.is_host)?.id || null;
-}
-
-function getAudience(players = [], narratorId) {
-  return getVisiblePlayers(players).filter((player) => player.id !== narratorId);
-}
-
 function getPlayerPhase(room, player, bothRevealed, isReady, ui) {
   if (!player?.secret_word || !player?.secret_action) return ui.player.phaseWaiting;
   if (!bothRevealed) return ui.player.phaseCards;
@@ -172,31 +129,6 @@ function renderHighlightedStory(text, highlightWords, C) {
     const match = highlightWords.some((word) => word.toLowerCase() === part.toLowerCase());
     if (!match) return <span key={`${part}-${index}`}>{part}</span>;
     return <span key={`${part}-${index}`} style={{ color: ACC.gold, fontWeight: 800, background: "rgba(251,191,36,.12)", padding: "0 2px", borderRadius: 4 }}>{part}</span>;
-  });
-}
-
-function flattenPresence(state = {}) {
-  return Object.values(state).flatMap((entries) => entries || []);
-}
-
-async function inspectRoomPresence(roomId) {
-  return await new Promise((resolve) => {
-    const channel = sb.channel(`presence-room-${roomId}`, { config: { presence: { key: `inspect-${roomId}-${Math.random().toString(36).slice(2, 8)}` } } });
-    let done = false;
-
-    const finish = (snapshot = {}) => {
-      if (done) return;
-      done = true;
-      sb.removeChannel(channel);
-      resolve(flattenPresence(snapshot));
-    };
-
-    channel.subscribe((status) => {
-      if (status === "SUBSCRIBED") finish(channel.presenceState());
-      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") finish({});
-    });
-
-    setTimeout(() => finish(channel.presenceState?.() || {}), 1200);
   });
 }
 
@@ -302,265 +234,6 @@ function playBeep(freq = 440, dur = 0.15) {
     osc.start();
     osc.stop(ctx.currentTime + dur);
   } catch {}
-}
-
-function shortModelName(model) {
-  const map = {
-    "pollinations-openai": "Polli OpenAI",
-    "pollinations-text": "Polli Text",
-    "openrouter/free": "OR Free",
-    "mistralai/mistral-7b-instruct:free": "Mistral",
-    "google/gemma-2-9b-it:free": "Gemma",
-    "meta-llama/llama-3.1-8b-instruct:free": "Llama",
-    "llama-3.1-8b-instant": "Groq Llama",
-    "openai/gpt-oss-20b": "GPT-OSS",
-    "local-fallback": "Hausautor",
-  };
-  return map[model] || model.split("/").pop()?.replace(":free", "") || model;
-}
-
-function buildStoryAttemptLine(contentLang, phase, model, detail = "") {
-  const name = shortModelName(model);
-  if (contentLang === "de") {
-    if (phase === "start" && model === "local-fallback") return `${name} ist jetzt Plan A und baut lokal eine Geschichte fuer diese Runde.`;
-    if (phase === "start") return `${name} versucht gerade, aus dem Chaos eine brauchbare Geschichte zu kochen.`;
-    if (phase === "success") return `${name} hat etwas geliefert. Wir machen kurz den Regel-TUEV.`;
-    if (phase === "fail") return `${name} zickt rum${detail ? ` (${detail})` : ""}. Nächstes Modell darf auf die Bühne.`;
-    if (phase === "repair") return `Wir helfen ${name} noch kurz nach: mehr Länge, mehr Worttreffer, weniger Drama.`;
-  }
-  if (phase === "start" && model === "local-fallback") return `${name} is now plan A and builds a local story for this round.`;
-  if (phase === "start") return `${name} is trying to cook up a usable story from the chaos.`;
-  if (phase === "success") return `${name} delivered something. Running a quick rule check now.`;
-  if (phase === "fail") return `${name} is being difficult${detail ? ` (${detail})` : ""}. Sending in the next model.`;
-  if (phase === "repair") return `Giving ${name} a tiny cleanup pass: more length, more word hits, less drama.`;
-  return name;
-}
-
-async function generateStory({ prompt, contentLang, genreId, words, minChars }, onStatus = () => {}) {
-  const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-  const groqKey = import.meta.env.VITE_GROQ_API_KEY;
-
-  const requestOpenRouter = async (model) => {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "HTTP-Referer": APP_URL,
-        "X-Title": "Story Chaos",
-        ...(openRouterKey ? { Authorization: `Bearer ${openRouterKey}` } : {}),
-      },
-      body: JSON.stringify({ model, max_tokens: 800, messages: [{ role: "user", content: prompt }] }),
-    });
-    if (!response.ok) throw new Error(`${model}:fail`);
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || "";
-  };
-
-  const requestGroq = async (model) => {
-    if (!groqKey) throw new Error("groq:no-key");
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${groqKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: CONTENT[contentLang].aiSystem },
-          { role: "user", content: prompt },
-        ],
-        temperature: 0.9,
-        max_tokens: 900,
-      }),
-    });
-    if (!response.ok) throw new Error(`${model}:fail`);
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || "";
-  };
-
-  const providers = [
-    {
-      model: "pollinations-openai",
-      run: async () => {
-      const response = await fetch("https://text.pollinations.ai/openai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "openai",
-          messages: [
-            { role: "system", content: CONTENT[contentLang].aiSystem },
-            { role: "user", content: prompt },
-          ],
-          seed: Math.floor(Math.random() * 99999),
-        }),
-      });
-      if (!response.ok) throw new Error("fail");
-      const data = await response.json();
-      return data.choices?.[0]?.message?.content || "";
-    },
-    },
-    {
-      model: "pollinations-text",
-      run: async () => {
-      const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(prompt)}`);
-      if (!response.ok) throw new Error("fail");
-      return await response.text();
-    },
-    },
-    { model: "openrouter/free", run: async () => requestOpenRouter("openrouter/free") },
-    { model: "mistralai/mistral-7b-instruct:free", run: async () => requestOpenRouter("mistralai/mistral-7b-instruct:free") },
-    { model: "google/gemma-2-9b-it:free", run: async () => requestOpenRouter("google/gemma-2-9b-it:free") },
-    { model: "meta-llama/llama-3.1-8b-instruct:free", run: async () => requestOpenRouter("meta-llama/llama-3.1-8b-instruct:free") },
-    { model: "llama-3.1-8b-instant", run: async () => requestGroq("llama-3.1-8b-instant") },
-    { model: "openai/gpt-oss-20b", run: async () => requestGroq("openai/gpt-oss-20b") },
-  ];
-  const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
-  for (const provider of providers) {
-    try {
-      onStatus(buildStoryAttemptLine(contentLang, "start", provider.model));
-      const text = await Promise.race([provider.run(), timeout(15000)]);
-      if (text && text.length > 50) {
-        onStatus(buildStoryAttemptLine(contentLang, "success", provider.model));
-        addLog("info", contentLang === "de" ? "KI OK" : "AI OK", text.slice(0, 40));
-        return text;
-      }
-    } catch (error) {
-      const detail = error.message === "timeout"
-        ? (contentLang === "de" ? "zu langsam" : "too slow")
-        : error.message === "groq:no-key"
-          ? (contentLang === "de" ? "kein Key" : "no key")
-          : (contentLang === "de" ? "keine Lust" : "not in the mood");
-      onStatus(buildStoryAttemptLine(contentLang, "fail", provider.model, detail));
-      addLog("warn", contentLang === "de" ? "KI-API fail" : "AI API fail", error.message);
-    }
-  }
-  return null;
-}
-
-async function generateLocalStory({ contentLang, genreId, words, minChars, difficulty }, onStatus = () => {}) {
-  onStatus(buildStoryAttemptLine(contentLang, "start", "local-fallback"));
-  let text = "";
-  try {
-    text = buildBackupStory({ lang: contentLang, genreId, words, minChars, difficulty, salt: `${genreId}:${difficulty}:${words.join("|")}` });
-  } catch {
-    const repeatedWords = words.map((word) => `**${word}**`).join(", ");
-    text = contentLang === "de"
-      ? `Die Runde begann ganz harmlos, doch schnell wurde klar, dass ${repeatedWords} heute wichtiger waren als allen lieb sein konnte. Erst tauchten ${repeatedWords} in einer scheinbar normalen Szene auf, dann wurden ${repeatedWords} noch einmal erwähnt, diesmal deutlich verdächtiger. Niemand wollte zu viel reagieren, doch genau dieses Bemühen machte alles nur noch lustiger. Am Ende wirkte die Geschichte wie ein harmloser Vorfall mit sehr auffälligen Gesichtern und noch auffälligeren Pausen.`
-      : `The round started harmlessly enough, but it quickly became clear that ${repeatedWords} mattered far more than anyone wanted. First ${repeatedWords} appeared in what seemed like a normal scene, then ${repeatedWords} showed up again in a much more suspicious way. Nobody wanted to react too visibly, and that effort only made the whole thing funnier. By the end, the story felt like a simple event surrounded by very noticeable faces and even more noticeable pauses.`;
-  }
-  onStatus(buildStoryAttemptLine(contentLang, "success", "local-fallback"));
-  return text;
-}
-
-function stripStoryMarkup(text = "") {
-  return text.replace(/\*\*(.*?)\*\*/g, "$1").trim();
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function splitIntoSentences(text = "") {
-  return text
-    .split(/(?<=[.!?])\s+/)
-    .map((sentence) => sentence.trim())
-    .filter(Boolean);
-}
-
-function analyzeStory(text, words, minChars) {
-  const clean = stripStoryMarkup(text);
-  const sentences = splitIntoSentences(clean);
-  const wordChecks = words.map((word) => {
-    const regex = new RegExp(`\\b${escapeRegExp(word)}\\b`, "gi");
-    const matches = clean.match(regex) || [];
-    const sentenceIndexes = sentences.reduce((indexes, sentence, index) => {
-      if (new RegExp(`\\b${escapeRegExp(word)}\\b`, "i").test(sentence)) indexes.push(index);
-      return indexes;
-    }, []);
-    return {
-      word,
-      occurrences: matches.length,
-      spreadAcrossSentences: new Set(sentenceIndexes).size >= 2,
-    };
-  });
-
-  const validLength = clean.length >= minChars;
-  const validOccurrences = wordChecks.every((check) => check.occurrences >= 2);
-  const validSpread = wordChecks.every((check) => check.spreadAcrossSentences);
-
-  return {
-    clean,
-    validLength,
-    validOccurrences,
-    validSpread,
-    valid: validLength && validOccurrences && validSpread,
-  };
-}
-
-function buildRepairSentence(word, contentLang, index = 0) {
-  const de = [
-    `Dabei kam **${word}** spaeter noch einmal zur Sprache, und genau diese betont lockere Erwaehnung machte alles erst richtig komisch.`,
-    `Kurz danach fiel **${word}** erneut, diesmal so laessig, dass es sofort wieder verdaechtig wirkte.`,
-    `Spaeter wurde **${word}** noch einmal eingeworfen, mit genau der Energie eines Details, auf das eigentlich niemand zu deutlich reagieren wollte.`,
-  ];
-  const en = [
-    `A moment later, **${word}** came up again, and that overly relaxed mention somehow made the whole scene funnier.`,
-    `Soon after that, **${word}** returned in such a casual way that it became suspicious immediately.`,
-    `Later, **${word}** was mentioned again with exactly the kind of energy nobody wanted to react to too obviously.`,
-  ];
-  const bank = contentLang === "de" ? de : en;
-  return bank[index % bank.length];
-}
-
-function buildPaddingSentence(contentLang, index = 0) {
-  const de = [
-    "Je laenger die Szene lief, desto klarer wurde, dass hier weniger die Geschichte als die Gesichter die groesste Show lieferten.",
-    "Niemand wollte zu viel verraten, aber genau dieses uebermotivierte Nicht-Reagieren machte alles erst richtig unterhaltsam.",
-    "Am Ende lebte die Geschichte weniger von Logik als von herrlich schlechtem Timing und viel zu ehrgeizigen Pokerfaces.",
-  ];
-  const en = [
-    "The longer the scene went on, the clearer it became that the faces were putting on the real show.",
-    "Nobody wanted to reveal too much, but that overcommitted effort to stay subtle made everything more entertaining.",
-    "By the end, the story lived less from logic than from terrible timing and wildly ambitious poker faces.",
-  ];
-  const bank = contentLang === "de" ? de : en;
-  return bank[index % bank.length];
-}
-
-function repairStoryToRules(text, words, minChars, contentLang) {
-  let clean = stripStoryMarkup(text);
-  let analysis = analyzeStory(clean, words, minChars);
-  let sentenceCursor = 0;
-
-  for (const check of analysis.wordChecks) {
-    let occurrenceGuard = 0;
-    while (check.occurrences < 2) {
-      occurrenceGuard += 1;
-      if (occurrenceGuard > 6) break;
-      clean = `${clean} ${buildRepairSentence(check.word, contentLang, sentenceCursor)}`.trim();
-      sentenceCursor += 1;
-      analysis = analyzeStory(clean, words, minChars);
-      const updated = analysis.wordChecks.find((entry) => entry.word === check.word);
-      check.occurrences = updated?.occurrences || check.occurrences;
-      check.spreadAcrossSentences = updated?.spreadAcrossSentences || check.spreadAcrossSentences;
-    }
-    if (!check.spreadAcrossSentences) {
-      clean = `${clean} ${buildRepairSentence(check.word, contentLang, sentenceCursor)}`.trim();
-      sentenceCursor += 1;
-      analysis = analyzeStory(clean, words, minChars);
-    }
-  }
-
-  let paddingGuard = 0;
-  while (stripStoryMarkup(clean).length < minChars) {
-    paddingGuard += 1;
-    if (paddingGuard > 20) break;
-    clean = `${clean} ${buildPaddingSentence(contentLang, sentenceCursor)}`.trim();
-    sentenceCursor += 1;
-  }
-
-  return clean;
 }
 
 function DebugPanel({ onClose, C, S, ui }) {
@@ -903,8 +576,8 @@ function RemovePlayerIconButton({ onClick, label, busy, C, S }) {
 }
 
 function HostLobby({ room, players, gameLang, lang, ui, C, S, onStart, onOpenTv, onRemovePlayer }) {
-  const narratorId = getNarratorId(room, players);
-  const others = getAudience(players, narratorId);
+  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
+  const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
   const joinUrl = `${APP_URL}?room=${room.id}&lang=${gameLang}`;
   const tvUrl = `${APP_URL}?room=${room.id}&lang=${lang}&view=tv${room?.password ? `&tv=${encodeURIComponent(room.password)}` : ""}`;
   const [view, setView] = useState("invite");
@@ -1064,8 +737,8 @@ function HostCards({ room, players, ui, lang, contentLang, setContentLang, C, S,
   const [cats, setCats] = useState(Object.keys(CONTENT[contentLang].words));
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState("setup");
-  const narratorId = getNarratorId(room, players);
-  const others = getAudience(players, narratorId);
+  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
+  const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
   const content = CONTENT[contentLang];
   const allWords = ALL_WORDS_BY_LANG[contentLang];
   const allActions = ALL_ACTIONS_BY_LANG[contentLang];
@@ -1173,8 +846,8 @@ function HostCards({ room, players, ui, lang, contentLang, setContentLang, C, S,
 }
 
 function ReadyCheck({ room, players, ui, C, S, onAllReady }) {
-  const narratorId = getNarratorId(room, players);
-  const others = getAudience(players, narratorId);
+  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
+  const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
   const readyOnes = others.filter((player) => player.ready);
   const allReady = others.length > 0 && readyOnes.length === others.length;
 
@@ -1263,7 +936,7 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
           ? " Wichtig: Prüfe vor der Ausgabe selbst, dass jedes Zielwort mindestens zweimal vorkommt, möglichst in unterschiedlichen Sätzen, und dass die Geschichte lang genug ist."
           : " Important: before answering, verify that every target word appears at least twice, preferably in different sentences, and that the story is long enough.";
         const prompt = `${content.aiPrompt(selection, words, storyMinChars, targetChars)}${strictness}`;
-        const text = await generateStory({ prompt, contentLang, genreId: selectedGenreId, words, minChars: storyMinChars }, pushAttemptLine);
+        const text = await generateStory({ prompt, contentLang, words, minChars: storyMinChars, content: CONTENT, appUrl: APP_URL, addLog }, pushAttemptLine);
         if (!text) continue;
         pushAttemptLine(buildStoryAttemptLine(contentLang, "repair", "local-fallback"));
         const repaired = repairStoryToRules(text, words, storyMinChars, contentLang);
@@ -1397,8 +1070,8 @@ function HostStory({ room, storyWords, ui, contentLang, C, S, onOpenResolution, 
 
 function Resolution({ room, players, storyWords, ui, C, S, onOpenScores }) {
   const viewport = useViewport();
-  const narratorId = getNarratorId(room, players);
-  const others = getAudience(players, narratorId);
+  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
+  const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
   const words = storyWords || [];
   const compactCardHeight = viewport.isDesktop ? "min(58vh, 560px)" : "auto";
 
@@ -1484,10 +1157,10 @@ function Resolution({ room, players, storyWords, ui, C, S, onOpenScores }) {
 
 function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChooseNarrator, onFinalizeNarratorVote, finalizingNarratorVote, awardedPlayerIds = [], onAwardPlayer }) {
   const viewport = useViewport();
-  const narratorId = getNarratorId(room, players);
-  const narrator = getVisiblePlayers(players).find((player) => player.id === narratorId);
-  const others = getAudience(players, narratorId);
-  const sorted = [...getVisiblePlayers(players)].sort((a, b) => (b.score || 0) - (a.score || 0));
+  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
+  const narrator = getVisiblePlayers(players, HUB_PLAYER_NAME).find((player) => player.id === narratorId);
+  const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
+  const sorted = [...getVisiblePlayers(players, HUB_PLAYER_NAME)].sort((a, b) => (b.score || 0) - (a.score || 0));
   const medals = ["🥇", "🥈", "🥉"];
   const [savingScoreId, setSavingScoreId] = useState(null);
   const [view, setView] = useState("action");
@@ -1658,8 +1331,8 @@ function Scores({ room, players, ui, C, S, votes = {}, narratorAwarded, onChoose
 
 function NextNarratorView({ room, players, ui, C, S, onChooseNarrator, onBack }) {
   const viewport = useViewport();
-  const narratorId = getNarratorId(room, players);
-  const others = getAudience(players, narratorId);
+  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
+  const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
   const nextCandidates = others.filter((player) => player.id !== narratorId);
   const [selectedNextId, setSelectedNextId] = useState("");
   const [startingNextRound, setStartingNextRound] = useState(false);
@@ -1797,9 +1470,9 @@ function Timer({ ui, C, S }) {
 }
 
 function RoundOverview({ room, players, ui, C, S }) {
-  const narratorId = getNarratorId(room, players);
-  const others = getAudience(players, narratorId);
-  const narrator = getVisiblePlayers(players).find((player) => player.id === narratorId);
+  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
+  const others = getAudience(players, narratorId, HUB_PLAYER_NAME);
+  const narrator = getVisiblePlayers(players, HUB_PLAYER_NAME).find((player) => player.id === narratorId);
   const past = room.past_narrators || [];
   const doneAll = others.every((player) => past.includes(player.id));
 
@@ -1899,10 +1572,10 @@ function HostApp({ roomId, hostName, onLeave, onOpenTv, lang, ui, contentLang, s
     };
   }, [roomId]);
 
-  const narratorId = getNarratorId(room, players);
-  const currentWords = getAudience(players, narratorId).map((player) => player.secret_word).filter(Boolean);
+  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
+  const currentWords = getAudience(players, narratorId, HUB_PLAYER_NAME).map((player) => player.secret_word).filter(Boolean);
   useEffect(() => {
-    if (currentWords.length > 0) setContentLang((current) => detectLanguageFromSample(currentWords[0], null, current));
+    if (currentWords.length > 0) setContentLang((current) => detectLanguageFromSample(currentWords[0], null, current, WORD_LOOKUPS, ACTION_LOOKUPS));
   }, [currentWords.join("|"), setContentLang]);
 
   async function chooseNextNarrator(nextPlayer) {
@@ -2095,7 +1768,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
         setPlayer(currentPlayer);
         setIsReady(!!currentPlayer.ready);
         setRerolled(!!currentPlayer.rerolled);
-        setContentLang((current) => detectLanguageFromSample(currentPlayer.secret_word, currentPlayer.secret_action, current));
+        setContentLang((current) => detectLanguageFromSample(currentPlayer.secret_word, currentPlayer.secret_action, current, WORD_LOOKUPS, ACTION_LOOKUPS));
       } else {
         setPlayer(null);
       }
@@ -2107,7 +1780,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
           setPlayer(payload.new);
           setIsReady(!!payload.new.ready);
           setRerolled(!!payload.new.rerolled);
-          setContentLang((current) => detectLanguageFromSample(payload.new.secret_word, payload.new.secret_action, current));
+          setContentLang((current) => detectLanguageFromSample(payload.new.secret_word, payload.new.secret_action, current, WORD_LOOKUPS, ACTION_LOOKUPS));
           if (!payload.old?.secret_word && payload.new.secret_word) {
             vibrate([100, 50, 200]);
             setCardRevealed({ word: false, action: false });
@@ -2143,7 +1816,7 @@ function PlayerView({ roomId, playerName, onLeave, ui, contentLang, setContentLa
     const { data: all } = await sb.from("players").select("secret_word,secret_action").eq("room_id", roomId);
     const usedWords = all.map((entry) => entry.secret_word).filter(Boolean);
     const usedActions = all.map((entry) => entry.secret_action).filter(Boolean);
-    const activeLang = detectLanguageFromSample(player.secret_word, player.secret_action, contentLang);
+    const activeLang = detectLanguageFromSample(player.secret_word, player.secret_action, contentLang, WORD_LOOKUPS, ACTION_LOOKUPS);
     const newWord = shuffle(ALL_WORDS_BY_LANG[activeLang].filter((word) => !usedWords.includes(word)))[0] || player.secret_word;
     const newAction = shuffle(ALL_ACTIONS_BY_LANG[activeLang].filter((action) => !usedActions.includes(action)))[0] || player.secret_action;
     await sb.from("players").update({ secret_word: newWord, secret_action: newAction, rerolled: true, ready: false }).eq("id", player.id);
@@ -2593,9 +2266,9 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
     );
   }
 
-  const narratorId = getNarratorId(room, players);
-  const narrator = getVisiblePlayers(players).find((player) => player.id === narratorId);
-  const audience = getAudience(players, narratorId);
+  const narratorId = getNarratorId(room, players, HUB_PLAYER_NAME);
+  const narrator = getVisiblePlayers(players, HUB_PLAYER_NAME).find((player) => player.id === narratorId);
+  const audience = getAudience(players, narratorId, HUB_PLAYER_NAME);
   const readyCount = audience.filter((player) => player.ready).length;
   const lobbyLikeStatus = PRE_STORY_PHASES.includes(room.status);
   const compactLobbyLayout = lobbyLikeStatus && viewport.width >= 1100;
@@ -2714,7 +2387,7 @@ function TVScreen({ roomId, lang, ui, C, S, onLeave, tvKey }) {
             <div style={{ ...S.card, ...tvCard, marginBottom: 0, padding: tvPad }}>
               <div style={{ ...tvLabel, marginBottom: 8 }}>{ui.hostTabs.scores}</div>
               <div style={{ display: "grid", gap: 8 }}>
-                {[...getVisiblePlayers(players)].sort((a, b) => (b.score || 0) - (a.score || 0)).map((player) => (
+                {[...getVisiblePlayers(players, HUB_PLAYER_NAME)].sort((a, b) => (b.score || 0) - (a.score || 0)).map((player) => (
                   <div key={player.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 10px", borderRadius: 12, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: tvBody.color }}>{player.name}</span>
                     <span style={{ fontSize: 15, fontWeight: 900, color: ACC.gold }}>{player.score || 0}</span>
